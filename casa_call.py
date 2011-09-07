@@ -61,7 +61,8 @@ def summarize_bench(in_file=None,out_file=None):
     lines = []
     lines.append("Summary of file "+in_file)
     total_time = np.max(stop) - np.min(start)
-    lines.append("Total time: "+str(total_time))
+    total_time_hr = total_time / 3600.0
+    lines.append("Total time: "+str(total_time)+" ("+str(total_time_hr)+" hr)")
     time_logged = np.sum(delta)
     lines.append("Time inside logged tasks: "+str(time_logged))
     lines.append("Time outside logged tasks: "+str(total_time-time_logged))

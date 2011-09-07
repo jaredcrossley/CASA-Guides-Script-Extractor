@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 #
-#
 # python script to extract CASA-executable scripts from the CASA
 # Guides webpages. This version has been edited to include some
 # additional benchmarking functionality.
@@ -34,6 +33,7 @@
 # Bug Fixes 12/17/09 -- jfg
 # Bug fixes and added plotants to interactive command list 2/24/10 -- jfg
 # Added the ability to make benchmarking, non-interactive scripts aug 11 --- akl
+# Updated code to make clean non-interactive; added summary to end of benchmark test. 09/02/2011 -- jhc
 
 # =====================
 # IMPORTS
@@ -247,7 +247,7 @@ def add_benchmarking(line,tasknum=0):
     pre_string = ""
     for i in range(indents):
         pre_string+=" "
-    before = pre_string+"this_call = Call('"+this_task+"','"+str(tasknum)+"')\n"
+    before = pre_string+"this_call = casa_call.Call('"+this_task+"','"+str(tasknum)+"')\n"
     after = "\n"+pre_string+"this_call.end(out_file)"
     return before+line+after
 
@@ -259,17 +259,15 @@ def suppress_for_benchmark(line):
     return False
 
 def make_clean_noninteractive(line):
-    if is_task_call(line) == False:
-        return line
-    if extract_task(line) != "clean":
-        return line
-    new_line = line.replace("interactive=True","interactive=False")
-    new_line = new_line.replace("interactive = True","interactive = False")
-    new_line = new_line.replace("interactive = T","interactive = F")
-    new_line = new_line.replace("interactive=T","interactive=F")
-    new_line = new_line.replace("interactive=true","interactive=false")
-    new_line = new_line.replace("interactive = true","interactive = false")
-    return new_line
+    if is_task_call(line) and extract_task(line) == "clean":
+        # Make clean non-interactive
+        pattern = r'''interactive\ *=\ *(True|T|true)'''
+        new_line = re.sub( pattern, 'interactive = False', line )
+        # Remove mask parameter if it exists
+        pattern = r'''mask\ *=\ *['"].*['"].*,?'''
+        new_line = re.sub( pattern, '', new_line )
+        return new_line
+    return line
 
 # function to clean up html strings (convert html markup to executable python)
 def loseTheJunk(line):
@@ -312,14 +310,20 @@ def addInteractivePause(outline):
     return newoutline
 
 # Return the pre-material needed to set up benchmarking
-def benchmark_header():
+def benchmark_header( scriptName='script' ):
+    """
+    Write the header of the benchmarking script.
+
+    * scriptName = Name of the benchmarking script
+    """
+    out_file = scriptName.replace('.py','.benchmark.txt')
     lines = []
     lines.append("### Begin Benchmarking Material")
-    lines.append("from casa_call import Call")
+    lines.append("import casa_call")
     lines.append("try:")
     lines.append("    out_file")
     lines.append("except NameError:")
-    lines.append("    out_file = 'benchmark.txt'")
+    lines.append("    out_file = '" + out_file + "'")
     lines.append("if os.path.exists(out_file):")
     lines.append("    counter = 1")
     lines.append("    while os.path.exists(out_file+'.'+str(counter)):")
@@ -427,7 +431,7 @@ def main():
         print "Writing file for execution in benchmarking mode."
         tasknum = 0
         f = codecs.open(outFile, 'w','utf-8')
-        header = benchmark_header()
+        header = benchmark_header( scriptName = outFile )
         for line in header:
             print >>f, line
         for line in compressedList:
@@ -442,6 +446,7 @@ def main():
                 task_list.append(this_task)
                 task_nums.append(tasknum)
             print >>f, line
+        print >>f, 'casa_call.summarize_bench( out_file )'
         f.close()        
         # write the expectation to a file
         exp_file = outFile+'.expected'
