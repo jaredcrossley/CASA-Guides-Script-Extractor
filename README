@@ -1,0 +1,30 @@
+CASA Guides Script Extractor and Benchmark Test Generator
+=========================================================
+
+Extract a python script from a CASA guides web page:
+
+  $ python extractCASAscript.py URL
+
+Create a benchmark test from a CASA guides web page:
+
+  $ python extractCASAscript.py URL benchmark
+
+FILES
+=====
+
+extractCASAScript.py 
+
+  The script extractor and benchmark test generator.
+
+casa_call.py 
+
+  Module for timing calls to casa tasks; contains a function
+  for printing a summary from the extractCASAScript.py output file.
+
+list_all_tasks.py 
+
+  List all CASA tasks.
+
+readcol.py 
+
+  module from http://code.google.com/p/agpy/source/browse/trunk/agpy/readcol.py
