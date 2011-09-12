@@ -333,6 +333,52 @@ def benchmark_header( scriptName='script' ):
     lines.append("### End Benchmarking Material")
     return lines
 
+def pythonize_shell_commands( line ):
+    """
+    Make casapy-friendly shell commands Python compatible.
+
+    Unix shell commands included below in the 'commands' list can be called
+    directly from the casapy prompt. These commands cannot be called from inside
+    a Python script. To run these commands in a script, place them in an 
+    os.system call.
+    
+    * line = a python statement
+    """
+    commands = [ 'ls', 'pwd', 'less', 'pwd', 'cd', 'cat' ]
+    firstWord = line.split(' ')[0]
+    if firstWord in commands:
+        line = 'os.system("' + line + '")'
+    return line
+
+def make_system_call_noninteractive( line ):
+    """
+    Make calls to os.system non-interactive.
+
+    Some shell commands called via os.system require user interaction, such as
+    more.  Make these shell calls noninteractive.
+
+    Replacements:
+
+    1) Replace more with cat,
+    2) [Add other replacements here...]
+
+    * line = a python statement
+    """
+    command = ''
+    newCommand = ''
+    # Extract the system command from the os.system statement
+    pattern = r'''os.system\ *\(\ *(['"])(.*)\1\ *\)'''
+    matchObj = re.match( pattern, line )
+    if matchObj:
+        command = matchObj.group(2)
+        command = command.strip()
+        # Replace more with cat
+        pattern2 = r'''^more\ '''
+        newCommand = re.sub( pattern2, 'cat ', command )
+        # Add additional substutions here...
+    newLine = line.replace( command, newCommand, 1 )
+    return newLine
+    
 # start of main code
 
 # =====================
@@ -424,6 +470,9 @@ def main():
     print str(len(lineList))+" total lines become"
     print str(len(compressedList))+" compressed lines"
 
+    for i,line in enumerate(compressedList):
+        compressedList[i] = pythonize_shell_commands( compressedList[i] )
+
     # Now write to disk. Details depend on desired mode.
     if benchmark == True:
         task_list = []
@@ -438,6 +487,7 @@ def main():
             if suppress_for_benchmark(line):
                 continue
             line = make_clean_noninteractive(line)
+            line = make_system_call_noninteractive(line)
             if is_task_call(line):                
                 this_task = extract_task(line)
                 print "I found a task call for ", this_task                
