@@ -378,6 +378,17 @@ def make_system_call_noninteractive( line ):
         # Add additional substutions here...
     newLine = line.replace( command, newCommand, 1 )
     return newLine
+
+def exclude_raw_input( line ):
+    """
+    Exclude raw_input calls from non-interactive scripts.
+
+    * line = a python statement
+    """
+    pattern = r'''raw_input\ *\('''
+    if re.search( pattern, line ):
+        line = ' ' * indentation(line) + '#' + line.replace('\n','')
+    return line
     
 # start of main code
 
@@ -485,9 +496,12 @@ def main():
             print >>f, line
         for line in compressedList:
             if suppress_for_benchmark(line):
+                print >>f, ' ' * indentation(line) + 'pass; #' + \
+                    line.replace('\n','')
                 continue
             line = make_clean_noninteractive(line)
             line = make_system_call_noninteractive(line)
+            line = exclude_raw_input(line)
             if is_task_call(line):                
                 this_task = extract_task(line)
                 print "I found a task call for ", this_task                
