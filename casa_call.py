@@ -58,21 +58,54 @@ def summarize_bench(in_file=None,out_file=None):
         return
     task, tag, delta, start, stop = readcol(in_file,twod=False)
 
+    dummy = os.popen("date")
+    date_stamp = dummy.readlines()
+    dummy = os.popen("uname -a")
+    uname_stamp = dummy.readlines()
+    dummy = os.popen("pwd")
+    pwd_stamp = dummy.readline()
+
     lines = []
-    lines.append("Summary of file "+in_file)
+    lines.append("Summary of file "+in_file+"\n")
+    lines.append(date_stamp[0]+"\n")
+    lines.append(uname_stamp[0]+"\n")
+    lines.append(pwd_stamp+"\n")
+    lines.append("\n")
     total_time = np.max(stop) - np.min(start)
     total_time_hr = total_time / 3600.0
-    lines.append("Total time: "+str(total_time)+" ("+str(total_time_hr)+" hr)")
+    lines.append("Total time: "+str(total_time)+" ("+str(total_time_hr)+" hr)\n")
     time_logged = np.sum(delta)
-    lines.append("Time inside logged tasks: "+str(time_logged))
-    lines.append("Time outside logged tasks: "+str(total_time-time_logged))
-    lines.append("Total logged calls: "+str(len(task)))
-    lines.append("Average time per call: "+str(np.mean(delta)))
+    lines.append("Time inside logged tasks: "+str(time_logged)+"\n")
+    lines.append("Time outside logged tasks: "+str(total_time-time_logged)+"\n")
+    lines.append("Total logged calls: "+str(len(task))+"\n")
+    lines.append("Average time per call: "+str(np.mean(delta))+"\n")
+
+    lines.append("\n")
+
     tasks_called = np.unique(task)
+    n_calls = {}
+    t_per_call = {}
+    tot_t = {}
+
     for this_task in tasks_called:
-        mean_time = np.mean(delta[task == this_task])
-        lines.append(this_task+" "+str(mean_time))
+        t_per_call[this_task] = np.mean(delta[task == this_task])
+        tot_t[this_task] = np.sum(delta[task == this_task])
+        n_calls[this_task] = np.sum(task == this_task)
+
+    tot_t_vec = np.zeros_like(tasks_called)
+    for i in range(len(tasks_called)):
+        tot_t_vec[i] = tot_t[tasks_called[i]]
+    order = np.argsort(tot_t_vec)
+    tasks_called = tasks_called[order]
+
+    for this_task in tasks_called:
+        lines.append(this_task+" "+str(n_calls[this_task])+ \
+                         " "+str(t_per_call[this_task])+ \
+                         " "+str(tot_t[this_task])+"\n")
     if out_file == None:
         for line in lines:
             print line
-
+    else:
+        f = open(out_file,"w")
+        f.writelines(lines)
+        f.close()
