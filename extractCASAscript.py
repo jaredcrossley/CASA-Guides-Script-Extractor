@@ -496,7 +496,7 @@ def main():
             print >>f, line
         for line in compressedList:
             if suppress_for_benchmark(line):
-                print >>f, ' ' * indentation(line) + 'pass; #' + \
+                print >>f, ' ' * indentation(line) + 'pass #' + \
                     line.replace('\n','')
                 continue
             line = make_clean_noninteractive(line)
@@ -510,7 +510,7 @@ def main():
                 task_list.append(this_task)
                 task_nums.append(tasknum)
             print >>f, line
-        print >>f, 'casa_call.summarize_bench( out_file )'
+        print >>f, 'casa_call.summarize_bench( out_file, out_file+".summary" )'
         f.close()        
         # write the expectation to a file
         exp_file = outFile+'.expected'
