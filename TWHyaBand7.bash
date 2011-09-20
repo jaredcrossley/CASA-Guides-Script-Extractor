@@ -7,7 +7,7 @@ benchmarkScript='/users/jcrossle/casa/benchmark/benchmark.bash'
 extractScript='/users/jcrossle/casa/benchmark/extractCASAscript.py'
 calibrationGuideURL='http://casaguides.nrao.edu/index.php?title=TWHydraBand7_Calibration'
 imagingGuideURL='http://casaguides.nrao.edu/index.php?title=TWHydraBand7_Imaging'
-dataURL='https://almascience.nrao.edu/almadata/sciver/NGC3256/NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'
+dataURL='https://almascience.nrao.edu/almadata/sciver/TWHya/TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'
 dataLustre='/export/lustre/SV/TWHya/TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'
 extractBenchmark='TWHya.extract.benchmark'
 

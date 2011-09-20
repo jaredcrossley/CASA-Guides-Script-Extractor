@@ -24,8 +24,8 @@ function casaGuidesTest ()
     echo "Beginning benchmark test of $scriptName"
     echo "Logging to $logName"
     date >> $logName
-    /bin/env time -v casapy-stable -c $scriptName >> $logName 2>> $logName
-    local sumName=`ls -lt *.summary | head -n 1`
+    /bin/env time -v casapy-stable --nogui -c $scriptName >> $logName 2>> $logName
+    local sumName=`ls -1t *.summary | head -n 1`
     cat $sumName >> ../$sumName
     echo "Finished test of $scriptName"
 }
@@ -43,7 +43,7 @@ function extractionTest ()
     then
         echo "Acquiring data by HTTP"
         date >> $outFile
-        /bin/env time -v wget -q $dataPath >> $outFile 2>> $outFile
+        /bin/env time -v wget -N -q $dataPath >> $outFile 2>> $outFile
         dataPath=`basename $dataPath`
     else
         echo "Data available by filesystem"
