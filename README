@@ -10,7 +10,15 @@ Create a benchmark test from a CASA guides web page:
   $ python extractCASAscript.py URL benchmark
 
 Bash script are included that automate benchmark testing for 3 science
-verification data sets. See file descriptions below for details.
+verification data sets. See file descriptions below for details. A master
+script, doom.bash, invokes all 3 SV benchmarking scripts sequentially.  Report
+generating scripts produce a nice, neat table showing the benchmark timing data
+for all tests.
+
+Under ideal conditions a benchmarking cycle will involve only these commands:
+
+  $ ./doom.bash
+  $ ./report.bash outfile
 
 FILES
 =====
@@ -51,3 +59,15 @@ doom.bash
 
   The master script that runs all of the CASA Guide benchmark scripts above.
   One script to rule them all...
+
+report.py
+
+  Python script that generates a table summarizing the timing information in
+  all casa_call.summarize_bench output files. The script takes a glob pattern
+  and operates on all files matched by the pattern.
+
+report.bash
+
+  Bash script that invokes report.py on each host used for benchmarking,
+  in the appropriate directory on each host, sends all output to a single file
+  and then sorts the file and appends a table header.
