@@ -21,8 +21,7 @@ function casaGuidesTest ()
     # Set name for log file
     local logName=../$scriptName.log
     # Begin test
-    echo "Beginning benchmark test of $scriptName"
-    echo "Logging to $logName"
+    echo "Beginning benchmark test of $scriptName. Logging to $logName"
     date >> $logName
     /bin/env time -v casapy-stable --nogui -c $scriptName >> $logName 2>> $logName
     local sumName=`ls -1t *.summary | head -n 1`
@@ -30,7 +29,8 @@ function casaGuidesTest ()
     echo "Finished test of $scriptName"
 }
 
-# Benchmark test data extraction.
+# Extract data for a benchmark test. Recursively remove any files or dirctories
+# in the way so the newly extracted data set will be pristine.
 # PARAMETERS:
 #   1) dataPath = URL or filesystem path to compressed data
 #   2) outFile = file to hold output of 
@@ -41,7 +41,7 @@ function extractionTest ()
     # If dataPath is a URL, download data.
     if [[ ${dataPath} == http* ]]
     then
-        echo "Acquiring data by HTTP"
+        echo "Acquiring data by HTTP. Logging to $outFile"
         date >> $outFile
         /bin/env time -v wget -N -q $dataPath >> $outFile 2>> $outFile
         dataPath=`basename $dataPath`
@@ -50,6 +50,6 @@ function extractionTest ()
     fi
     echo "Extracting data. Logging to $outFile"
     date >> $outFile
-    /bin/env time -v tar xzf $dataPath >> $outFile 2>> $outFile
+    /bin/env time -v tar --recursive-unlink -x -z -f $dataPath >> $outFile 2>> $outFile
     dir=`basename $dataLustre .tgz`
 }
