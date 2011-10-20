@@ -21,7 +21,7 @@ function casaGuidesTest ()
     # Set name for log file
     local logName=../$scriptName.log
     # Begin test
-    echo "Beginning benchmark test of $scriptName. Logging to $logName"
+    echo "Beginning benchmark test of $scriptName. Logging to ${logName##*/}"
     date >> $logName
     /bin/env time -v casapy-stable --nogui -c $scriptName >> $logName 2>> $logName
     local sumName=`ls -1t *.summary | head -n 1`
@@ -33,7 +33,7 @@ function casaGuidesTest ()
 # in the way so the newly extracted data set will be pristine.
 # PARAMETERS:
 #   1) dataPath = URL or filesystem path to compressed data
-#   2) outFile = file to hold output of 
+#   2) outFile = file to hold output of script
 function extractionTest ()
 {
     dataPath=$1
