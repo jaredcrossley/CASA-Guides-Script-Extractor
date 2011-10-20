@@ -269,6 +269,26 @@ def make_clean_noninteractive(line):
         return new_line
     return line
 
+def suppress_gui( line ):
+    """
+    Suppress GUIs. Return modified line.
+
+    * line = a python statement
+    """
+    if is_task_call(line): 
+        # Plotcal
+        if extract_task(line) == "plotcal":
+            # if showgui is true, set to false
+            pattern = r'''showgui\ *=\ *(True|T|true)'''
+            new_line = re.sub( pattern, 'showgui = False', line )
+            if new_line == line: # no substituion made
+                # add showgui=False to parameter list
+                pattern = r'''\('''
+                new_line = re.sub( pattern, '( showgui=False, ', line )
+            return new_line
+        # Suppress GUIs for other tasks here...
+    return line
+
 # function to clean up html strings (convert html markup to executable python)
 def loseTheJunk(line):
     """
@@ -352,7 +372,7 @@ def pythonize_shell_commands( line ):
 
 def make_system_call_noninteractive( line ):
     """
-    Make calls to os.system non-interactive.
+    Make calls to os.system non-interactive. Return non-interacive line.
 
     Some shell commands called via os.system require user interaction, such as
     more.  Make these shell calls noninteractive.
@@ -501,6 +521,7 @@ def main():
                 continue
             line = make_clean_noninteractive(line)
             line = make_system_call_noninteractive(line)
+            line = suppress_gui(line)
             line = exclude_raw_input(line)
             if is_task_call(line):                
                 this_task = extract_task(line)
