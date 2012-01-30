@@ -278,8 +278,8 @@ def suppress_gui( line ):
     if is_task_call(line): 
         # Plotcal
         if extract_task(line) == "plotcal":
-            # if showgui is true, set to false
-            pattern = r'''showgui\ *=\ *(True|T|true)'''
+            # if showgui is specified, make sure it is false
+            pattern = r'''showgui\ *=\ *(True|T|true|False|F|false)'''
             new_line = re.sub( pattern, 'showgui = False', line )
             if new_line == line: # no substituion made
                 # add showgui=False to parameter list
