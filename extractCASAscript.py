@@ -45,6 +45,7 @@ import sys
 import codecs
 import re
 import string
+from optparse import OptionParser
 
 # =====================
 # DEFINITIONS
@@ -259,6 +260,14 @@ def suppress_for_benchmark(line):
     return False
 
 def make_clean_noninteractive(line):
+    """
+    Make calls to clean non interactive.
+
+    Clean can be called as a function with parameters specified as function arguments
+    or as a function with no parameters in which case the parameters are obtained from 
+    the local namespace. Both invocations of clean are made non interactive.
+    """
+    # First check to see if clean is called with function arguments.
     if is_task_call(line) and extract_task(line) == "clean":
         # Make clean non-interactive
         pattern = r'''interactive\ *=\ *(True|T|true)'''
@@ -267,6 +276,14 @@ def make_clean_noninteractive(line):
         pattern = r'''mask\ *=\ *['"].*['"].*,?'''
         new_line = re.sub( pattern, '', new_line )
         return new_line
+    # Second account for parameters being pulled from local namespace
+    else:
+        pattern = r'''^[ \t]*interactive\ *=\ *(True|T|true)'''
+        # If variable interactive is being set, make sure it is set to false.
+        if re.match( pattern, line ):
+            pattern2 = r'''\ *(True|T|true)'''
+            new_line = re.sub( pattern2, ' False', line )
+            return new_line
     return line
 
 def suppress_gui( line ):
@@ -416,67 +433,78 @@ def exclude_raw_input( line ):
 # MAIN PROGRAM
 # =====================
 
-def main():
+def main( URL, options ):
+    """ Create a Python script from a CASA Guide or existing Python script.
+    
+    * URL = URL to a CASA Guide web page (HTML) or a Python script.  
+    * options = options object created by optparse.  If options.benchmark
+      is true, output a Python benchmarking script.
 
-    # Parse command line input
-    try:
-        baseURL = sys.argv[1]
-    except:
-        print 'No argument given.'
-        print 'Syntax: extractCASAscript.py    \'http:blah.blah.edu/web_site/\''
-        sys.exit(2)
+    If URL to a CASA Guide, extract the Python from the guide and create
+    an executable Python script. If options.benchmark is true, produce a 
+    benchmark test from the CASA Guide or existing Python script. 
 
-    print "Rest assured. I'm trying to get " + baseURL + " for you now."
+    If URL to a Python script, convert the script to a benchmarking script.
+    """
+
+    print "Rest assured. I'm trying to get " + URL + " for you now."
 
     # See if the user asked for benchmarking mode ... could be cleaned up
-    try:
-        bench_string = sys.argv[2]
-    except:
-        bench_string = "NOPE"
-    if bench_string == "benchmark":
-        benchmark = True
+    if options.benchmark:
         print "I will try to write the script in benchmarking mode."
+
+    # Determine if the input file is a Python script
+    pyInput = False
+    if ( URL[-3:].upper() == '.PY' ):
+        pyInput = True
+
+    # Pull the input file across the web or get it from local disk
+    responseLines = []
+    if ( URL[:4].upper() == 'HTTP' ):
+        req = urllib2.Request(URL)
+        response = urllib2.urlopen(req)
+        responseLines = response.read().split("\n")
     else:
-        benchmark = False
+        localFile = open( URL, 'r' )
+        responseLines = localFile.read().split("\n")
+
+    print "Things are going well. Let me clean out some of that html markup."
 
     # Clean up the output file name
-    outFile = baseURL.split('/')[-1] + '.py'
+    outFile = URL.split('/')[-1]
+    if not pyInput: outFile += '.py'
     outFile = outFile.replace("index.php?title=","")
     outFile = outFile.replace(":","")
     outFile = outFile.replace("_","") 
   
-    # Pull the input file across the web
-    req = urllib2.Request(baseURL)
-    response = urllib2.urlopen(req)
-    the_page = response.read().split("\n")
-
-    print "Things are going well. Let me clean out some of that html markup."
-
-    # Initialize the parser and output line line list
+    # Initialize the parser and output line list
     isActive = False
     lineList = []
 
-    # Loop over the lines read from the web page
-    for line in the_page:
-        # If we are not currently reading code, see if this line
-        # begins a python code block.
-        if (isActive == False):
-            temp = line.find(beginBlock)
-            if temp > -1:
-                isActive = True
-                outline = loseTheJunk(line)
-                lineList += [outline]
+    if pyInput:
+        lineList = responseLines
+    else:
+        # Loop over the lines read from the web page
+        for line in responseLines:
+            # If we are not currently reading code, see if this line
+            # begins a python code block.
+            if (isActive == False):
+                temp = line.find(beginBlock)
+                if temp > -1:
+                    isActive = True
+                    outline = loseTheJunk(line)
+                    lineList += [outline]
+                    temp = line.find(endBlock)
+                    if temp > -1:
+                        isActive = False
+                    line = "DontPrintMe" # avoid double printing if endBlock is on the same line
+            if (isActive == True):
+                if (line != "DontPrintMe"):
+                    outline = loseTheJunk(line)
+                    lineList += [outline]
                 temp = line.find(endBlock)
                 if temp > -1:
                     isActive = False
-                line = "DontPrintMe" # avoid double printing if endBlock is on the same line
-        if (isActive == True):
-            if (line != "DontPrintMe"):
-                outline = loseTheJunk(line)
-                lineList += [outline]
-            temp = line.find(endBlock)
-            if temp > -1:
-                isActive = False
 
     # The commands are now loaded into a list of lines.
 
@@ -493,9 +521,8 @@ def main():
             iline += 1
             line += lineList[iline]
             pcount = countParen(line)
-        line = string.expandtabs(line,4)
+        line = string.expandtabs(line)
         compressedList += [line]
-        print line
         iline += 1
 
     print str(len(lineList))+" total lines become"
@@ -505,7 +532,7 @@ def main():
         compressedList[i] = pythonize_shell_commands( compressedList[i] )
 
     # Now write to disk. Details depend on desired mode.
-    if benchmark == True:
+    if options.benchmark or pyInput:
         task_list = []
         task_nums = []
         print "Writing file for execution in benchmarking mode."
@@ -556,4 +583,21 @@ def main():
 
     
 if __name__ == "__main__":
-    main()
+    usage = \
+"""usage: %prog [options] URL
+
+The URL should point to a CASA Guide webpage (HTML) or to a Python script.
+"""
+    parser = OptionParser( usage=usage )
+    parser.add_option( '-b', '--benchmark', action="store_true", default=False,
+        help="produce benchmark test script" )
+    (options, args) = parser.parse_args()
+    if len(args) != 1:
+        parser.print_help()
+        raise ValueError("")
+    main(args[0], options)
+
+# Wish list:
+# * Use proper command line option API for benchmark option.
+# * Make script so it handles a python script directly.
+# * Clean up code by putting stuff from main into functions.

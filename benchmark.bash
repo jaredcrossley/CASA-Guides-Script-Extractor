@@ -15,16 +15,16 @@ function casaGuidesTest ()
     CASAGuideURL=$2
     # Extract script from CASA Guide:
     extractLog=`basename $extractScript`.log
-    python $extractScript $CASAGuideURL benchmark >> $extractLog 2>> $extractLog
+    python $extractScript -b $CASAGuideURL >> $extractLog 2>> $extractLog
     # Get name of output Python script (this is the newest python script in pwd)
-    local scriptName=`ls -1t *.py | head -n 1`
+    local scriptName=`\ls -1t *.py | head -n 1`
     # Set name for log file
-    local logName=../$scriptName.log
+    local logName="../$scriptName.log"
     # Begin test
     echo "Beginning benchmark test of $scriptName. Logging to ${logName##*/}"
     date >> $logName
-    /bin/env time -v casapy-stable --nogui -c $scriptName >> $logName 2>> $logName
-    local sumName=`ls -1t *.summary | head -n 1`
+    /bin/env time -v casapy --nogui -c $scriptName >> $logName 2>> $logName
+    local sumName=`\ls -1t *.summary | head -n 1`
     cat $sumName >> ../$sumName
     echo "Finished test of $scriptName"
 }
@@ -51,5 +51,4 @@ function extractionTest ()
     echo "Extracting data. Logging to $outFile"
     date >> $outFile
     /bin/env time -v tar --recursive-unlink -x -z -f $dataPath >> $outFile 2>> $outFile
-    dir=`basename $dataLustre .tgz`
 }

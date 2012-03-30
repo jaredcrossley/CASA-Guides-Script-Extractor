@@ -12,3 +12,9 @@ $scriptDir/TWHyaBand7.bash $1
 
 echo "--> Kicking off Antennae test"
 $scriptDir/AntennaeBand7.bash $1
+
+echo "--> Kicking off M100 test"
+$scriptDir/M100Band3.bash $1
+
+echo "--> Kicking off SgrA test"
+$scriptDir/SgrABand6.bash $1
