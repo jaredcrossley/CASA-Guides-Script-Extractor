@@ -45,6 +45,7 @@ import sys
 import codecs
 import re
 import string
+import os, os.path
 from optparse import OptionParser
 
 # =====================
@@ -449,7 +450,7 @@ def main( URL, options ):
 
     print "Rest assured. I'm trying to get " + URL + " for you now."
 
-    # See if the user asked for benchmarking mode ... could be cleaned up
+    # See if the user asked for benchmarking mode 
     if options.benchmark:
         print "I will try to write the script in benchmarking mode."
 
@@ -458,25 +459,28 @@ def main( URL, options ):
     if ( URL[-3:].upper() == '.PY' ):
         pyInput = True
 
-    # Pull the input file across the web or get it from local disk
+    # Pull the input file across the web or get it from local network
     responseLines = []
+    outFile = ''
     if ( URL[:4].upper() == 'HTTP' ):
         req = urllib2.Request(URL)
         response = urllib2.urlopen(req)
         responseLines = response.read().split("\n")
+        # Clean up the output file name
+        outFile = URL.split('/')[-1]
+        if not pyInput: outFile += '.py'
+        outFile = outFile.replace("index.php?title=","")
+        outFile = outFile.replace(":","")
+        outFile = outFile.replace("_","") 
     else:
-        localFile = open( URL, 'r' )
+        print "Copying " + URL + " to CWD."
+        os.system('scp elwood:'+URL+' ./')
+        outFile = os.path.basename(URL)
+        localFile = open( outFile , 'r' )
         responseLines = localFile.read().split("\n")
 
     print "Things are going well. Let me clean out some of that html markup."
 
-    # Clean up the output file name
-    outFile = URL.split('/')[-1]
-    if not pyInput: outFile += '.py'
-    outFile = outFile.replace("index.php?title=","")
-    outFile = outFile.replace(":","")
-    outFile = outFile.replace("_","") 
-  
     # Initialize the parser and output line list
     isActive = False
     lineList = []

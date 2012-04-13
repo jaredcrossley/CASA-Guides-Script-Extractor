@@ -1,8 +1,9 @@
 #!/bin/env bash
 #
-# Functions for CASA Guides benchmark testing.
+# Benchmark testing script. Review command line options and arguments by using
+# option -h:
 #
-# Import these functions into another bash script by calling '. benchmark.bash'.
+#   benchmark.bash -h
 #
 
 # Perform general CASA Guides benchmark testing.
@@ -37,7 +38,7 @@ function casaGuidesTest ()
 function extractionTest ()
 {
     dataPath=$1
-    outFile=$2
+    outFile=`basename $dataPath .tgz`.extraction.benchmark
     # If dataPath is a URL, download data.
     if [[ ${dataPath} == http* ]]
     then
@@ -47,8 +48,74 @@ function extractionTest ()
         dataPath=`basename $dataPath`
     else
         echo "Data available by filesystem"
+        scp elwood:$dataPath ./
+        dataPath=`basename $dataPath`
     fi
     echo "Extracting data. Logging to $outFile"
     date >> $outFile
     /bin/env time -v tar --recursive-unlink -x -z -f $dataPath >> $outFile 2>> $outFile
 }
+
+# Handle command line options
+useURL=
+useCWD=
+while getopts 'uc' OPTION
+do
+    case $OPTION in
+    u)  useURL=1 # Get data by HTTP; else filesystem
+        ;;
+    c)  useCWD=1 # Use data in CWD; do not download; do not extract
+        ;;
+    ?)  printf "Usage: %s [-b scriptDir] [-u] [-c] parameters\n" $(basename $0) >&2
+        echo "  parameters = path to file containing test parameters" >&2
+        echo "  scriptDir = directory containing benchmarking scripts" >&2
+        echo "  -u = get data by HTTP rather than filesystem" >&2
+        echo "  -c = use extracted data in current working directory; do not download" >&2
+        exit 2
+        ;;
+    esac
+done
+shift $(($OPTIND -1))
+
+# Get parameters file name from command line.
+if [ $# -ne 1 ]
+then
+    echo "Improper number of arguments." >&2
+    exit 1
+else
+    parameters=$1
+fi
+
+# Hardcoded parameters
+benchmarkDir='/users/jcrossle/casa/benchmark'
+
+# Read the parameter file. Which should contain these variables with string 
+# values:
+# calibrationURL = URL or path to calibration CASA guide or Python script
+# imagingURL = URL or path to imaging CASA guide or Python script
+# dataURL = URL to test data (used with -u option)
+# dataPath = path to data on filesystem 
+source $parameters
+
+# Extract data
+if [ ! "$useCWD" ]
+then
+    if [ "$useURL" ]
+    then
+        extractionTest $dataURL 
+    else
+        extractionTest $dataPath
+    fi
+fi
+dir=`basename $dataPath .tgz`
+cd $dir
+
+# Run casa guides tests
+for URL in $calibrationURL $imagingURL
+do
+    extractionScript=$benchmarkDir/extractCASAscript.py
+    casaGuidesTest $extractionScript $URL
+done
+
+cd ..
+echo "Benchmark wrapper finished."

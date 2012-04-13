@@ -19,7 +19,7 @@ ssh gluttony $report /export/data_1/jcrossle/benchmark/$pattern >> $output
 ssh multivac08 $report /export/lustre/jcrossle/benchmark/$pattern >> $output
 
 cp $output $output.bkup
-echo "              Script Name       Host  AvgTime  StDTime" > $output
-echo "------------------------- ---------- -------- --------" >> $output
+echo "              Script Name       Host  AvgTime  StDTime Runtimes (s)" > $output
+echo "------------------------- ---------- -------- -------- ------------" >> $output
 sort $output.bkup >> $output
 rm $output.bkup
