@@ -5,20 +5,24 @@ Extract a python script from a CASA guides web page:
 
   $ python extractCASAscript.py URL
 
-Create a benchmark test from a CASA guides web page:
+Create a benchmark test from a CASA guides web page or casapy script:
 
-  $ python extractCASAscript.py URL benchmark
+  $ python extractCASAscript.py -b URL
 
-Bash script are included that automate benchmark testing for 3 science
-verification data sets. See file descriptions below for details. A master
-script, doom.bash, invokes all 3 SV benchmarking scripts sequentially.  Report
-generating scripts produce a nice, neat table showing the benchmark timing data
-for all tests.
+A bash script and parameter files are included to automate Python extraction
+and benchmark test execution for 6 ALMA data sets.  See file descriptions below
+for details. A master script, doom.bash, invokes all 6 benchmarking scripts
+sequentially.  Report generation scripts produce a nice, neat table showing the
+benchmark timing data for all tests.
 
 Under ideal conditions a benchmarking cycle will involve only these commands:
 
   $ ./doom.bash
   $ ./report.bash outfile
+
+To run a single benchmark test:
+
+  $ ./benchmark.bash NGC3256Band3.bash
 
 FILES
 =====
@@ -30,8 +34,9 @@ extractCASAScript.py
 casa_call.py 
 
   Module for timing calls to casa tasks; contains a function for printing a
-  summary from the extractCASAScript.py output file.  Required when running
-  extractCASAScript.py in benchmark mode.
+  summary from the extractCASAScript.py output file.  The scripts output by
+  extractCASAScript.py in benchmark mode require this module.
+  (extractCASAScript.py does not require this module.)
 
 list_all_tasks.py 
 
@@ -50,10 +55,11 @@ benchmark.bash
   benchmarking data extraction; the other for benchmarking the execution of the
   casaguide.  (Yes, I am benchmarking the benchmark test!)
  
-AntennaeBand7.bash, NGC3256Band3.bash, TWHydraBand7.bash
+AntennaeBand7.bash, NGC3256Band3.bash, TWHydraBand7.bash, M100Band3.bash,
+SgrABand6.bash,  2011.0.00367.S.bash
 
-  Scripts for running benchmarks on each of three sets of CASA Guides. Each
-  set contains a calibration and imaging guide.
+  Input parameter files for benchmark.bash.  These files are simple bash scripts
+  that are invoked to set parameters for the respective data sets.
 
 doom.bash
 
