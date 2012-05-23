@@ -59,18 +59,18 @@ function extractionTest ()
 # Handle command line options
 useURL=
 useCWD=
-while getopts 'uc' OPTION
+while getopts 'uch' OPTION
 do
     case $OPTION in
     u)  useURL=1 # Get data by HTTP; else filesystem
         ;;
     c)  useCWD=1 # Use data in CWD; do not download; do not extract
         ;;
-    ?)  printf "Usage: %s [-b scriptDir] [-u] [-c] parameters\n" $(basename $0) >&2
+    ?|h)  printf "Usage: %s [-u] [-c] parameters\n" $(basename $0) >&2
         echo "  parameters = path to file containing test parameters" >&2
-        echo "  scriptDir = directory containing benchmarking scripts" >&2
         echo "  -u = get data by HTTP rather than filesystem" >&2
         echo "  -c = use extracted data in current working directory; do not download" >&2
+        echo "  -h = print usage instructions and exit" >&2
         exit 2
         ;;
     esac
