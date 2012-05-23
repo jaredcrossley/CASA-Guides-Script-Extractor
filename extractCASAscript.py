@@ -1,39 +1,33 @@
 #!/usr/bin/env python
-#
-# python script to extract CASA-executable scripts from the CASA
-# Guides webpages. This version has been edited to include some
-# additional benchmarking functionality.
-#
-# --- Some specific notes on benchmarking mode ---
-# 
-# This mode will try to remove interactive components from the script
-# and call a small python program to note the start time and stop time
-# of each task in a text file. It requires a list of CASA tasks, which
-# can be automatically generated using *list_all_tasks.py*.
-#
-# The intended functionality of the benchmarking mode is (1) to allow
-# easy assessment of whether the scripts are working and (2) to
-# produce useful benchmarks of performance, e.g., as a function of
-# machine.
-#
-# For this mode to work, you need to have the "casa_call.py" package
-# available in your python path. The script should be periodically
-# updated to hold an up-to-date task list using "list_all_tasks.py"
-# inside the relevant CASA version. Extra tasks in this list probably
-# won't hurt.
-#
-# To invoke benchmarking add the command line parameter "benchmark"
-# after the rest of the call.
-# 
-# -------------------------------------------------
-#
-# HISTORY
-# Jack Gallimore 8/10/09
-# Updated to accommodate new web host 10/30/09.
-# Bug Fixes 12/17/09 -- jfg
-# Bug fixes and added plotants to interactive command list 2/24/10 -- jfg
-# Added the ability to make benchmarking, non-interactive scripts aug 11 --- akl
-# Updated code to make clean non-interactive; added summary to end of benchmark test. 09/02/2011 -- jhc
+'''
+A script to transform CASA Guide webpages and casapy scripts to casapy
+scripts suited for interactive or non-interactive use.  This script can be
+run from the command line.  Use the '-h' option to obtain a help message
+explaining the command line parameters and options.
+
+The script runs in one of three modes:
+
+1) interactive (default): Generates a casapy script that requests user input
+   when interactive GUIs are invoked.
+
+2) non-interactive: Generates a casapy script that sleeps for 60s when an
+   interactive GUI is invoked.  (Note: 60s may not be enough time for some
+   plots.)
+
+3) benchmark: Generates a casapy script that makes all tasks noninteractive or
+   removes their invocation all together.  The output script imports and makes
+   extensive use of module *casa_call.py* to keep track of the start and stop
+   time of tasks.  *casa_call.py* must be in the casapy Python path when 
+   the casapy script is run.  To work properly, the list of casapy tasks hard
+   coded below must be consistent with the tasks available in the version of
+   casa being tests.  To check for consistency or update the hardcoded list,
+   use the function listCASATasks() below (see the function's docstring for
+   instructions).
+
+   The intended functionality of the benchmarking mode is (1) to allow easy
+   assessment of whether the scripts are working and (2) to produce useful
+   benchmarks of performance, e.g., as a function of machine.
+'''
 
 # =====================
 # IMPORTS
@@ -57,117 +51,51 @@ beginBlock = "class=\"source-python\""
 endBlock = "</pre></div></div>"
 
 # interactives
-interactive=re.compile("(plotxy|plotcal|plotms|viewer|plotants)")
+interactive=re.compile("[\s;]*(plotxy|plotcal|plotms|viewer|plotants)")
 
 # CASA task list (used for benchmarking markup, else ignored)
-casa_tasks = ['accum',
-            'applycal',
-            'asap_init',
-            'autoclea',
-            'bandpass',
-            'blcal',
-            'boxi',
-            'browsetable',
-            'calstat',
-            'clean',
-            'clearcal',
-            'clearplot',
-            'clearstat',
-            'concat',
-            'conjugatevis',
-            'csvclea',
-            'cvel',
-            'deconvolve',
-            'exportasd',
-            'exportfits',
-            'exportuvfits',
-            'feather',
-            'find',
-            'fixplanets',
-            'fixvis',
-            'flagautocorr',
-            'flagcmd',
-            'flagdata',
-            'flagmanager',
-            'fluxscale',
-            'ft',
-            'gaincal',
-            'gencal',
-            'hanningsmooth',
-            'help par.parametername',
-            'help taskname',
-            'imcollapse',
-            'imcontsub',
-            'imfit',
-            'imhead',
-            'immath',
-            'immoments',
-            'importaipscaltable',
-            'importasdm',
-            'importevl',
-            'importfits',
-            'importfitsidi',
-            'importgmr',
-            'importoldasd',
-            'importuvfits',
-            'importvla',
-            'imregrid',
-            'imsmooth',
-            'imstat',
-            'imtrans',
-            'imval',
-            'imview',
-            'listcal',
-            'listhistory',
-            'listobs',
-            'listsd',
-            'listvis',
-            'mosai',
-            'msmoments',
-            'msview',
-            'plotants',
-            'plotcal',
-            'plotms',
-            'plotxy',
-            'polcal',
-            'rmtables',
-            'sdaverage',
-            'sdbaseline',
-            'sdcal',
-            'sdcoadd',
-            'sdfit',
-            'sdflag',
-            'sdflagmanager',
-            'sdimaging',
-            'sdimprocess',
-            'sdlist',
-            'sdmath',
-            'sdplot',
-            'sdsave',
-            'sdscale',
-            'sdsmooth',
-            'sdstat',
-            'sdtpimaging',
-            'setjy',
-            'simdata',
-            'slsearch',
-            'smoothcal',
-            'specfi',
-            'splattotable',
-            'split',
-            'startup',
-            'taskhelp',
-            'tasklist',
-            'testautofla',
-            'testconcat',
-            'toolhelp',
-            'uvcontsub',
-            'uvmodelfit',
-            'uvsub',
-            'viewer',
-            'vishead',
-            'visstat',
-            'widefiel']
+# Check and update this list using function listCASATasks(), below.
+# for CASA 3.4...
+casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummar', 'bandpass',
+'blcal', 'boxi', 'browsetable', 'calstat', 'caltabconvert', 'clean',
+'clearcal', 'clearplot', 'clearstat', 'concat', 'conjugatevis', 'csvclea',
+'cvel', 'deconvolve', 'delmod', 'exportasdm', 'exportfits', 'exportuvfits',
+'feather', 'find', 'fixplanets', 'fixvis', 'flagautocorr', 'flagcmd',
+'flagdata', 'flagmanager', 'fluxscale', 'ft', 'gaincal', 'gencal',
+'hanningsmooth', 'help par.parametername', 'help taskname', 'imcollapse',
+'imcontsub', 'imfit', 'imhead', 'immath', 'immoments', 'impbcor', 'importasdm',
+'importevl', 'importfits', 'importfitsidi', 'importgmr', 'importuvfits',
+'importvla', 'imregrid', 'imsmooth', 'imstat', 'imtrans', 'imval', 'imview',
+'listcal', 'listfits', 'listhistory', 'listobs', 'listsd', 'listvis', 'mosai',
+'msmoments', 'msview', 'oldflagcmd', 'plotants', 'plotcal', 'plotms', 'plotuv',
+'plotweathe', 'plotxy', 'polcal', 'predictcomp', 'rmtables', 'sdbaseline',
+'sdcal', 'sdcoadd', 'sdfit', 'sdflag', 'sdflagmanager', 'sdgrid', 'sdimaging',
+'sdimprocess', 'sdlist', 'sdmath', 'sdplot', 'sdreduce', 'sdsave', 'sdscale',
+'sdsmooth', 'sdstat', 'sdtpimaging', 'setjy', 'simanalyze', 'simdata',
+'simobserve', 'slsearch', 'smoothcal', 'specfi', 'splattotable', 'split',
+'startup', 'statw', 'taskhelp', 'tasklist', 'testautofla', 'testconcat',
+'tflagdata', 'toolhelp', 'uvcontsub', 'uvmodelfit', 'uvsub', 'viewer',
+'vishead', 'visstat', 'widefiel', 'wvrgcal']
+# # CASA 3.3...
+# casa_tasks = ['accum', 'applycal', 'asap_init', 'bandpass', 'blcal', 'boxi',
+# 'browsetable', 'calstat', 'clean', 'clearcal', 'clearplot', 'clearstat',
+# 'concat', 'conjugatevis', 'csvclea', 'cvel', 'deconvolve', 'exportasd',
+# 'exportfits', 'exportuvfits', 'feather', 'find', 'fixplanets', 'fixvis',
+# 'flagautocorr', 'flagcmd', 'flagdata', 'flagmanager', 'fluxscale', 'ft',
+# 'gaincal', 'gencal', 'hanningsmooth', 'help par.parametername', 'help
+# taskname', 'imcollapse', 'imcontsub', 'imfit', 'imhead', 'immath', 'immoments',
+# 'impbcor', 'importaipscaltable', 'importasdm', 'importevl', 'importfits',
+# 'importfitsidi', 'importgmr', 'importoldasd', 'importuvfits', 'importvla',
+# 'imregrid', 'imsmooth', 'imstat', 'imtrans', 'imval', 'imview', 'listcal',
+# 'listhistory', 'listobs', 'listsd', 'listvis', 'mosai', 'msmoments', 'msview',
+# 'plotants', 'plotcal', 'plotms', 'plotuv', 'plotxy', 'polcal', 'rmtables',
+# 'sdaverage', 'sdbaseline', 'sdcal', 'sdcoadd', 'sdfit', 'sdflag',
+# 'sdflagmanager', 'sdimaging', 'sdimprocess', 'sdlist', 'sdmath', 'sdplot',
+# 'sdsave', 'sdscale', 'sdsmooth', 'sdstat', 'sdtpimaging', 'setjy',
+# 'sim_analyze', 'sim_observe', 'simdata', 'slsearch', 'smoothcal', 'specfi',
+# 'splattotable', 'split', 'startup', 'taskhelp', 'tasklist', 'testautofla',
+# 'testconcat', 'toolhelp', 'uvcontsub', 'uvmodelfit', 'uvsub', 'viewer',
+# 'vishead', 'visstat', 'widefiel']
 
 # define formatting junk that needs to be filtered
 # JFG comments that regular expressions might clean this up
@@ -260,24 +188,24 @@ def suppress_for_benchmark(line):
         return True
     return False
 
-def make_clean_noninteractive(line):
+def make_func_noninteractive(line):
     """
-    Make calls to clean non interactive.
+    Make calls to specific tasks/functions non interactive.
 
-    Clean can be called as a function with parameters specified as function arguments
-    or as a function with no parameters in which case the parameters are obtained from 
-    the local namespace. Both invocations of clean are made non interactive.
+    Set argument interactive to false for specific tasks and functions.
     """
-    # First check to see if clean is called with function arguments.
-    if is_task_call(line) and extract_task(line) == "clean":
-        # Make clean non-interactive
+    # First, check to see if clean is called with function arguments.
+    funcName = extract_task(line)
+    if funcName == "clean" or funcName == "au.plotbandpass":
+        # Set argument interactive to false
         pattern = r'''interactive\ *=\ *(True|T|true)'''
         new_line = re.sub( pattern, 'interactive = False', line )
-        # Remove mask parameter if it exists
-        pattern = r'''mask\ *=\ *['"].*['"].*,?'''
-        new_line = re.sub( pattern, '', new_line )
+        if funcName == "clean":
+            # Remove clean mask parameter if it exists
+            pattern = r'''mask\ *=\ *['"].*['"].*,?'''
+            new_line = re.sub( pattern, '', new_line )
         return new_line
-    # Second account for parameters being pulled from local namespace
+    # Second, check for variables in local namespace
     else:
         pattern = r'''^[ \t]*interactive\ *=\ *(True|T|true)'''
         # If variable interactive is being set, make sure it is set to false.
@@ -306,6 +234,13 @@ def suppress_gui( line ):
             return new_line
         # Suppress GUIs for other tasks here...
     return line
+
+def turnPlotmsOff( line ):
+    """ Turn off plotms calls. """
+    if is_task_call(line):
+        if extract_task(line) == "plotms":
+            line = ' '*indentation(line) + "print 'Turned PLOTMS off'"
+    return(line)
 
 # function to clean up html strings (convert html markup to executable python)
 def loseTheJunk(line):
@@ -342,9 +277,18 @@ def loseTheJunk(line):
 
 def addInteractivePause(outline):
     newoutline = outline
-    newoutline += "\ninp()\nprint('When you are done with the graphics window,')\n"
-    newoutline += "\nprint('quit that window, and')\n"
-    newoutline += "\nuser_check=raw_input('press enter to continue script\\n')\n"
+    indent = " "*indentation(outline)
+    # Use a raw string for the print statement because outline could contain
+    # single and/or double quotes.
+    newoutline += "\n" + indent + "print r'''Command: " + outline.lstrip().replace('\n','\\n') + "'''"
+    newoutline += "\n" + indent + "user_check=raw_input('When you are done with the window, close it and press enter to continue:')"
+    return newoutline
+
+def addNonInteractivePause(outline):
+    newoutline = outline
+    newoutline += "\ninp()\nprint('Pausing for 60 seconds...')\n"
+    newoutline += "time.sleep(60)\n"
+    newoutline = string.replace(newoutline, '\n', '\n'+' '*indentation(outline))
     return newoutline
 
 # Return the pre-material needed to set up benchmarking
@@ -425,10 +369,63 @@ def exclude_raw_input( line ):
     """
     pattern = r'''raw_input\ *\('''
     if re.search( pattern, line ):
-        line = ' ' * indentation(line) + '#' + line.replace('\n','')
+        newline = ' ' * indentation(line) + '#' + line
+        newline += '\n' + ' '*indentation(line) + 'pass\n'
+        line = newline
     return line
     
 # start of main code
+
+def make_noninteractive( line ):
+    """
+    Make *line* non-interactive.
+
+    * line = a python statement
+    """
+    line = make_func_noninteractive(line)
+    line = make_system_call_noninteractive(line)
+    line = exclude_raw_input(line)
+    return line
+
+def listCASATasks():
+    """
+    Return a list of all the CASA tasks.
+
+    Also report the difference between the task list in this module and the
+    task list obtained from CASA. Note that the appropriate list will vary
+    with the version of CASA.
+
+    This function requires casapy modlue *tasks*.
+
+    In casapy:
+    >>> import extractCASAscript
+    >>> taskList = extractCASAscript.listCASATasks()
+    
+    Review the difference between the task lists here...
+
+    To update the task list in this module, 
+    >>> print taskList
+
+    Then, copy-paste the output list into this module.
+
+    THIS COULD BE AUTOMATED IF THE SCRIPT EXTRACTOR WAS RUN WITHIN CASAPY!  THE
+    CURRENT DESIGN ASSUMES THIS IS NOT THE CASE.
+    """
+    from tasks import allcat
+    all_tasks=[]
+    for key in allcat.keys():
+        for taskname in allcat[key]:
+            if (taskname[0] == '(') or (taskname[0]=='{'):
+                length = len(taskname)
+                taskname = taskname[1:length-2]
+            if (taskname in all_tasks) == False:
+                all_tasks.append(taskname)
+    all_tasks.sort()
+    all_tasks_set = set(all_tasks)
+    casa_tasks_set = set(casa_tasks)
+    print "Tasks in casapy but not in this module: " + str(all_tasks_set.difference(casa_tasks_set))
+    print "Tasks in this module but not in casapy: " + str(casa_tasks_set.difference(all_tasks_set))
+    return all_tasks
 
 # =====================
 # MAIN PROGRAM
@@ -447,13 +444,6 @@ def main( URL, options ):
 
     If URL to a Python script, convert the script to a benchmarking script.
     """
-
-    print "Rest assured. I'm trying to get " + URL + " for you now."
-
-    # See if the user asked for benchmarking mode 
-    if options.benchmark:
-        print "I will try to write the script in benchmarking mode."
-
     # Determine if the input file is a Python script
     pyInput = False
     if ( URL[-3:].upper() == '.PY' ):
@@ -463,6 +453,7 @@ def main( URL, options ):
     responseLines = []
     outFile = ''
     if ( URL[:4].upper() == 'HTTP' ):
+        print "Acquiring " + URL
         req = urllib2.Request(URL)
         response = urllib2.urlopen(req)
         responseLines = response.read().split("\n")
@@ -479,10 +470,8 @@ def main( URL, options ):
         localFile = open( outFile , 'r' )
         responseLines = localFile.read().split("\n")
 
-    print "Things are going well. Let me clean out some of that html markup."
-
     # Initialize the parser and output line list
-    isActive = False
+    readingCode = False
     lineList = []
 
     if pyInput:
@@ -492,29 +481,22 @@ def main( URL, options ):
         for line in responseLines:
             # If we are not currently reading code, see if this line
             # begins a python code block.
-            if (isActive == False):
-                temp = line.find(beginBlock)
-                if temp > -1:
-                    isActive = True
+            if (readingCode == False):
+                if beginBlock in line:
+                    readingCode = True
                     outline = loseTheJunk(line)
                     lineList += [outline]
-                    temp = line.find(endBlock)
-                    if temp > -1:
-                        isActive = False
-                    line = "DontPrintMe" # avoid double printing if endBlock is on the same line
-            if (isActive == True):
-                if (line != "DontPrintMe"):
-                    outline = loseTheJunk(line)
-                    lineList += [outline]
-                temp = line.find(endBlock)
-                if temp > -1:
-                    isActive = False
+                    if endBlock in line:
+                        readingCode = False
+            else:
+                outline = loseTheJunk(line)
+                lineList += [outline]
+                if endBlock in line:
+                    readingCode = False
 
-    # The commands are now loaded into a list of lines.
-
-    # Now compress the lines into individual commands, allowing for
-    # commands to span multiple lines. Lines are grouped by closed
-    # parentheses.
+    # The python code is now loaded into a list of lines.  Now compress the
+    # lines into individual commands, allowing for commands to span multiple
+    # lines.  Lines are grouped by closed parentheses.
     compressedList = []
     iline = 0
     while iline < len(lineList):
@@ -532,11 +514,17 @@ def main( URL, options ):
     print str(len(lineList))+" total lines become"
     print str(len(compressedList))+" compressed lines"
 
+    # All modes
     for i,line in enumerate(compressedList):
         compressedList[i] = pythonize_shell_commands( compressedList[i] )
 
-    # Now write to disk. Details depend on desired mode.
-    if options.benchmark or pyInput:
+    # Prepare for benchmark and noninteractive modes
+    if options.benchmark or options.noninteractive:
+        for i,line in enumerate(compressedList):
+            compressedList[i] = make_noninteractive( compressedList[i] )
+
+    # Write script for benchmark mode
+    if options.benchmark:
         task_list = []
         task_nums = []
         print "Writing file for execution in benchmarking mode."
@@ -549,22 +537,20 @@ def main( URL, options ):
             if suppress_for_benchmark(line):
                 print >>f, ' ' * indentation(line) + 'pass #' + \
                     line.replace('\n','')
-                continue
-            line = make_clean_noninteractive(line)
-            line = make_system_call_noninteractive(line)
-            line = suppress_gui(line)
-            line = exclude_raw_input(line)
-            if is_task_call(line):                
-                this_task = extract_task(line)
-                print "I found a task call for ", this_task                
-                tasknum += 1
-                line = add_benchmarking(line,tasknum)      
-                task_list.append(this_task)
-                task_nums.append(tasknum)
-            print >>f, line
+            else: 
+                line = suppress_gui(line)
+                if is_task_call(line):                
+                    this_task = extract_task(line)
+                    print "I found a task call for ", this_task                
+                    tasknum += 1
+                    line = add_benchmarking(line,tasknum)      
+                    task_list.append(this_task)
+                    task_nums.append(tasknum)
+                print >>f, line
         print >>f, 'casa_call.summarize_bench( out_file, out_file+".summary" )'
         f.close()        
-        # write the expectation to a file
+
+        # Write task list to expectation file
         exp_file = outFile+'.expected'
         print "I am writing the expected flow to a file called "+exp_file
         f = codecs.open(exp_file, 'w','utf-8')
@@ -572,36 +558,43 @@ def main( URL, options ):
             print >>f, task_list[i], task_nums[i]
         f.close()
     else:
-        print "Writing file for execution in interactive mode."
+        # Write script for interactive and noninteractive modes
         f = codecs.open(outFile, 'w','utf-8')
         for line in compressedList:
-            mtch = interactive.match(line)
-            if (mtch and line.find("showgui=F") == -1): line = addInteractivePause(line)
+            if options.plotmsoff:
+                line = turnPlotmsOff(line)
+            if options.noninteractive:
+                if extract_task(line) == 'plotms': 
+                    line = addNonInteractivePause(line)
+            else: #interactive
+                line = exclude_raw_input(line)
+                mtch = interactive.match(line)
+                if (mtch and not ("showgui=F" in line)): 
+                    line = addInteractivePause(line)
             print >>f, line
         f.close()
     
-    print "Great. I think I just wrote the file " + outFile + " in the current directory. No promises.\n"
-    print "In casapy, run the file using\n"
-    print "execfile(\"" + outFile + "\")\n"
-
-
+    print "New file " + outFile + " written to current directory."
+    print "In casapy, run the file using ",
+    print 'execfile("' + outFile + '")'
     
 if __name__ == "__main__":
     usage = \
-"""usage: %prog [options] URL
+""" %prog [options] URL
 
-The URL should point to a CASA Guide webpage (HTML) or to a Python script.
-"""
+*URL* should point to a CASA Guide webpage or to a Python script. *URL* can also be
+a local file system path."""
     parser = OptionParser( usage=usage )
     parser.add_option( '-b', '--benchmark', action="store_true", default=False,
         help="produce benchmark test script" )
+    parser.add_option( '-n', '--noninteractive', action="store_true", 
+        default=False, 
+        help="make script non-interactive (non-benchmark mode only)")
+    parser.add_option( '-p', '--plotmsoff', action="store_true",
+        help="turn off all plotms commands")
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.print_help()
-        raise ValueError("")
+        #raise ValueError("")
+        sys.exit(1)
     main(args[0], options)
-
-# Wish list:
-# * Use proper command line option API for benchmark option.
-# * Make script so it handles a python script directly.
-# * Clean up code by putting stuff from main into functions.
