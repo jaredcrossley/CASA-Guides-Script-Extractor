@@ -47,7 +47,7 @@ from optparse import OptionParser
 # =====================
 
 # Expression that define the beginning and end of CASA code blocks in the HTML
-beginBlock = "class=\"source-python\""
+beginBlock = "class=\"python source-python\""
 endBlock = "</pre></div></div>"
 
 # interactives
@@ -99,8 +99,8 @@ casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummar', 'bandpass',
 
 # define formatting junk that needs to be filtered
 # JFG comments that regular expressions might clean this up
-junkStr = ["<div dir=\"ltr\" style=\"text-align: left;\">"]
-junkStr = junkStr + ["<div class=\"source-python\" style=\"font-family: monospace;\">"]
+junkStr = ["<div dir=\"ltr\" class=\"mw-geshi\" style=\"text-align: left;\">"]
+junkStr = junkStr + ["<div class=\"python source-python\"><pre class=\"de1\">"]
 junkStr = junkStr + ["<pre>"]
 junkStr = junkStr + ["</span>"]
 junkStr = junkStr + ["</pre></div></div>"]
@@ -116,6 +116,7 @@ lessthan = "&lt;"
 greaterthan = "&gt;"
 ampersand = "&amp;"
 substr1 = r"<span class=[^>]*>"
+nbsp = "&#160;"
 
 # tasks to suppress in benchmarking run
 tasks_to_suppress = ["plotms"]
@@ -261,6 +262,7 @@ def loseTheJunk(line):
     outline = outline.replace(lessthan, "<")
     outline = outline.replace(greaterthan, ">")
     outline = outline.replace(ampersand, "&")
+    outline = outline.replace(nbsp, " ")
 
     #some additional parsing -- scripting has slightly different
     #syntax than interactive session for tget, default, and go
@@ -493,7 +495,7 @@ def main( URL, options ):
                 lineList += [outline]
                 if endBlock in line:
                     readingCode = False
-
+                    
     # The python code is now loaded into a list of lines.  Now compress the
     # lines into individual commands, allowing for commands to span multiple
     # lines.  Lines are grouped by closed parentheses.
@@ -598,3 +600,4 @@ a local file system path."""
         #raise ValueError("")
         sys.exit(1)
     main(args[0], options)
+
