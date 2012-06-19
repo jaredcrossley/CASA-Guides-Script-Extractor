@@ -1,10 +1,21 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 #
 # Benchmark testing script. Review command line options and arguments by using
 # option -h:
 #
 #   benchmark.bash -h
 #
+
+# Hardcoded parameters. These are necessary for moving between Linux and Mac.
+# Mac:
+benchmarkDir='/Users/jcrossle/NRAO/casa/benchmark_code'
+env=/usr/bin/env
+time='time'
+tarExtract='tar -x -z -f'
+# # Linux:
+# benchmarkDir='/users/jcrossle/casa/benchmark'
+# env='/bin/env'
+# time='time -v'
 
 # Perform general CASA Guides benchmark testing.
 # PARAMETERS:
@@ -24,7 +35,7 @@ function casaGuidesTest ()
     # Begin test
     echo "Beginning benchmark test of $scriptName. Logging to ${logName##*/}"
     date >> $logName
-    /bin/env time -v casapy --nogui -c $scriptName >> $logName 2>> $logName
+    $env $time casapy --nogui -c $scriptName >> $logName 2>> $logName
     local sumName=`\ls -1t *.summary | head -n 1`
     cat $sumName >> ../$sumName
     echo "Finished test of $scriptName"
@@ -44,7 +55,7 @@ function extractionTest ()
     then
         echo "Acquiring data by HTTP. Logging to $outFile"
         date >> $outFile
-        /bin/env time -v wget -N -q $dataPath >> $outFile 2>> $outFile
+        $env $time wget -N -q --no-check-certificate $dataPath >> $outFile 2>> $outFile
         dataPath=`basename $dataPath`
     else
         echo "Data available by filesystem"
@@ -53,23 +64,29 @@ function extractionTest ()
     fi
     echo "Extracting data. Logging to $outFile"
     date >> $outFile
-    /bin/env time -v tar --recursive-unlink -x -z -f $dataPath >> $outFile 2>> $outFile
+    # Mac tar does not have --recursive-unlink, so remove dir explicitly
+    dirPath=`basename $dataPath .tgz`
+    rm -rf $dirPath
+    $env $time tar -x -z -f $dataPath >> $outFile 2>> $outFile
 }
 
 # Handle command line options
 useURL=
 useCWD=
-while getopts 'uch' OPTION
+while getopts 'uchp' OPTION
 do
     case $OPTION in
     u)  useURL=1 # Get data by HTTP; else filesystem
         ;;
     c)  useCWD=1 # Use data in CWD; do not download; do not extract
         ;;
-    ?|h)  printf "Usage: %s [-u] [-c] parameters\n" $(basename $0) >&2
+    p)  prepOnly=1 # Prep the data for benchmark testing, but do not start test
+        ;;
+    ?|h)  printf "Usage: %s [-u] [-c] [-p] parameters\n" $(basename $0) >&2
         echo "  parameters = path to file containing test parameters" >&2
         echo "  -u = get data by HTTP rather than filesystem" >&2
         echo "  -c = use extracted data in current working directory; do not download" >&2
+        echo "  -p = prepare the data only; do not run test" >&2
         echo "  -h = print usage instructions and exit" >&2
         exit 2
         ;;
@@ -85,9 +102,6 @@ then
 else
     parameters=$1
 fi
-
-# Hardcoded parameters
-benchmarkDir='/users/jcrossle/casa/benchmark'
 
 # Read the parameter file. Which should contain these variables with string 
 # values:
@@ -111,11 +125,13 @@ dir=`basename $dataPath .tgz`
 cd $dir
 
 # Run casa guides tests
-for URL in $calibrationURL $imagingURL
-do
-    extractionScript=$benchmarkDir/extractCASAscript.py
-    casaGuidesTest $extractionScript $URL
-done
-
+if [ ! "$prepOnly" ]
+then
+    for URL in $calibrationURL $imagingURL
+    do
+        extractionScript=$benchmarkDir/extractCASAscript.py
+        casaGuidesTest $extractionScript $URL
+    done
+fi
 cd ..
 echo "Benchmark wrapper finished."

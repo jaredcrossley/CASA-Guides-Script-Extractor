@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 #
 # Call report.py for all summary files.
 #
@@ -9,17 +9,19 @@
 # PARAMETERS:
 #   1) output = output file name
 
-report=/users/jcrossle/casa/benchmark/report.py
+linuxReport=/users/jcrossle/casa/benchmark/report.py
+macReport=/Users/jcrossle/NRAO/casa/benchmark_code/report.py
 pattern="'*.summary'"
 output=$1
 
-ssh gauss $report /export/data_1/jcrossle/benchmark/$pattern > $output
-ssh boromir $report /export/raid0/jcrossle/benchmark/$pattern >> $output
-ssh gluttony $report /export/data_1/jcrossle/benchmark/$pattern >> $output
-ssh multivac08 $report /export/lustre/jcrossle/benchmark/$pattern >> $output
+ssh gauss $linuxReport /export/data_1/jcrossle/benchmark/$pattern > $output
+ssh boromir $linuxReport /export/raid0/jcrossle/benchmark/$pattern >> $output
+ssh gluttony $linuxReport /export/data_1/jcrossle/benchmark/$pattern >> $output
+ssh multivac08 $linuxReport /export/lustre/jcrossle/benchmark/$pattern >> $output
+ssh arkleseizure $macReport /Users/jcrossle/NRAO/casa/benchmark_work/$pattern >> $output
 
 cp $output $output.bkup
-echo "              Script Name       Host  AvgTime  StDTime Runtimes (s)" > $output
-echo "------------------------- ---------- -------- -------- ------------" >> $output
+echo "              Script Name         Host  AvgTime  StDTime Runtimes (s)" > $output
+echo "------------------------- ------------ -------- -------- ------------" >> $output
 sort $output.bkup >> $output
 rm $output.bkup
