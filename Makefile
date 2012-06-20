@@ -10,11 +10,11 @@ SgrABand6.bash TWHyaBand7.bash dist/
 
 # Distribute on Mac
 dist_mac: dist
-	sed -i 's\#!/bin/env\#!/usr/bin/env\ ' dist/benchmark.bash    
-	sed -i 's\#!/bin/env\#!/usr/bin/env\ ' dist/doom.bash
-	sed -i 's\#!/bin/env\#!/usr/bin/env\ ' dist/report.bash
-	sed -i 's\#!/bin/env\#!/usr/bin/env\ ' dist/extractCASAscript.py
-	sed -i 's\#!/bin/env\#!/usr/bin/env\ ' dist/report.py
+	sed -i .orig 's~#!/bin/env~#!/usr/bin/env~' dist/benchmark.bash    
+	sed -i .orig 's~#!/bin/env~#!/usr/bin/env~' dist/doom.bash
+	sed -i .orig 's~#!/bin/env~#!/usr/bin/env~' dist/report.bash
+	sed -i .orig 's~#!/bin/env~#!/usr/bin/env~' dist/extractCASAscript.py
+	sed -i .orig 's~#!/bin/env~#!/usr/bin/env~' dist/report.py
 
 clean:
 	rm -r dist
