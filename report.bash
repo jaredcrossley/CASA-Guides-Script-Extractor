@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/env bash
 #
 # Call report.py for all summary files.
 #

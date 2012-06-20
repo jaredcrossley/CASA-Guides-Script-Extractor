@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/bin/env python
 '''
 A script to transform CASA Guide webpages and casapy scripts to casapy
 scripts suited for interactive or non-interactive use.  This script can be

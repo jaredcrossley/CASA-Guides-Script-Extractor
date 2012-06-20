@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/env bash
 #
 # Benchmark testing script. Review command line options and arguments by using
 # option -h:
