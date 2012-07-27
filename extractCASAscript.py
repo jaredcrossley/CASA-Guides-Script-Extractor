@@ -119,7 +119,9 @@ substr1 = r"<span class=[^>]*>"
 nbsp = "&#160;"
 
 # tasks to suppress in benchmarking run
-tasks_to_suppress = ["plotms"]
+# plotms -- produces table locks; must be run synchronously
+# plotants -- produces a table lock that causes wvrgcal to fail
+tasks_to_suppress = ["plotms", "plotants"]
 
 # =====================
 # FUNCTIONS
@@ -231,7 +233,7 @@ def suppress_gui( line ):
             if new_line == line: # no substituion made
                 # add showgui=False to parameter list
                 pattern = r'''\('''
-                new_line = re.sub( pattern, '( showgui=False, ', line )
+                new_line = re.sub( pattern, '( showgui=False, ', line, count=1 )
             return new_line
         # Suppress GUIs for other tasks here...
     return line
