@@ -6,16 +6,21 @@
 #   benchmark.bash -h
 #
 
-# Hardcoded parameters. These are necessary for moving between Linux and Mac.
-# Mac:
-benchmarkDir='/Users/jcrossle/NRAO/casa/benchmark_code'
-env=/usr/bin/env
-time='time'
-tarExtract='tar -x -z -f'
-# # Linux:
-# benchmarkDir='/users/jcrossle/casa/benchmark'
-# env='/bin/env'
-# time='time -v'
+# Set variables, command, options that are different on Mac and RedHat.
+if [ `uname` = 'Darwin' ]
+then 
+    benchmarkDir='/Users/jcrossle/NRAO/casa/benchmark_code'
+    env=/usr/bin/env
+    time='time'
+elif [ `uname` = 'Linux' ]
+then
+    benchmarkDir='/users/jcrossle/casa/benchmark'
+    env='/bin/env'
+    time='time -v'
+else
+    echo "Error: OS type not identified."
+    exit 1
+fi
 
 # Perform general CASA Guides benchmark testing.
 # PARAMETERS:
@@ -33,11 +38,11 @@ function casaGuidesTest ()
     # Set name for log file
     local logName="../$scriptName.log"
     # Begin test
-    echo "Beginning benchmark test of $scriptName. Logging to ${logName##*/}"
+    echo -e "Beginning benchmark test of $scriptName.\nLogging to ${logName##*/}"
     date >> $logName
     $env $time casapy --nogui -c $scriptName >> $logName 2>> $logName
     local sumName=`\ls -1t *.summary | head -n 1`
-    cat $sumName >> ../$sumName
+    echo -e "\n" >> ../$sumName; cat $sumName >> ../$sumName
     echo "Finished test of $scriptName"
 }
 
@@ -53,7 +58,7 @@ function extractionTest ()
     # If dataPath is a URL, download data.
     if [[ ${dataPath} == http* ]]
     then
-        echo "Acquiring data by HTTP. Logging to $outFile"
+        echo -e "Acquiring data by HTTP.\nLogging to $outFile"
         date >> $outFile
         $env $time wget -N -q --no-check-certificate $dataPath >> $outFile 2>> $outFile
         dataPath=`basename $dataPath`
@@ -62,11 +67,12 @@ function extractionTest ()
         scp elwood:$dataPath ./
         dataPath=`basename $dataPath`
     fi
-    echo "Extracting data. Logging to $outFile"
     date >> $outFile
     # Mac tar does not have --recursive-unlink, so remove dir explicitly
     dirPath=`basename $dataPath .tgz`
+    echo "Removing preexisting data."
     rm -rf $dirPath
+    echo -e "Extracting data.\nLogging to $outFile"
     $env $time tar -x -z -f $dataPath >> $outFile 2>> $outFile
 }
 
@@ -117,6 +123,7 @@ then
     if [ "$useURL" ]
     then
         extractionTest $dataURL 
+        dataPath=$dataURL
     else
         extractionTest $dataPath
     fi
