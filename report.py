@@ -30,7 +30,7 @@ def make_report( globPattern ):
         avg = numpy.average(times)
         std = numpy.std(times)
         # Print summary
-        print "%25s %12s %8.1f %8.1f " % (testName, hostname, avg, std) ,
+        print "%33s %12s %8.1f %8.1f " % (testName, hostname, avg, std) ,
         for time in times:
             print "%d " % time, 
         print
