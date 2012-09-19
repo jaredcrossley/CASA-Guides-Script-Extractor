@@ -26,24 +26,30 @@ fi
 # PARAMETERS:
 #   1) extractScript = path to CASA Guides script extractor
 #   2) CASAGuideURL = URL to CASA Guide
+#   3) prepOnly = boolean; if true, only prepare directory, do not execute test
 function casaGuidesTest ()
 {
     extractScript=$1
     CASAGuideURL=$2
+    prepOnly=$3
     # Extract script from CASA Guide:
     extractLog=`basename $extractScript`.log
+    echo -e "Extracting CASA Guide.\nLogging to $extractLog"
     python $extractScript -b $CASAGuideURL >> $extractLog 2>> $extractLog
     # Get name of output Python script (this is the newest python script in pwd)
     local scriptName=`\ls -1t *.py | head -n 1`
     # Set name for log file
     local logName="../$scriptName.log"
     # Begin test
-    echo -e "Beginning benchmark test of $scriptName.\nLogging to ${logName##*/}"
-    date >> $logName
-    $env $time casapy --nogui -c $scriptName >> $logName 2>> $logName
-    local sumName=`\ls -1t *.summary | head -n 1`
-    echo -e "\n" >> ../$sumName; cat $sumName >> ../$sumName
-    echo "Finished test of $scriptName"
+    if [ ! "$prepOnly" ]
+    then
+        echo -e "Beginning benchmark test of $scriptName.\nLogging to ${logName##*/}"
+        date >> $logName
+        $env $time casapy --nologger --nogui -c $scriptName >> $logName 2>> $logName
+        local sumName=`\ls -1t *.summary | head -n 1`
+        echo -e "\n" >> ../$sumName; cat $sumName >> ../$sumName
+        echo "Finished test of $scriptName"
+    fi
 }
 
 # Extract data for a benchmark test. Recursively remove any files or dirctories
@@ -55,43 +61,57 @@ function extractionTest ()
 {
     dataPath=$1
     outFile=`basename $dataPath .tgz`.extraction.benchmark
-    # If dataPath is a URL, download data.
-    if [[ ${dataPath} == http* ]]
+    if [ "$skipDownload" ]
     then
-        echo -e "Acquiring data by HTTP.\nLogging to $outFile"
-        date >> $outFile
-        $env $time wget -N -q --no-check-certificate $dataPath >> $outFile 2>> $outFile
-        dataPath=`basename $dataPath`
+        # Check that the tarball actually exists
+        tarball=`basename $dataPath`
+        if [ ! -e $tarball ]; then
+            echo "Cannot find tarball for extraction:"
+            echo $tarball
+            echo "Download may be required."
+            exit 2
+        fi
     else
-        echo "Data available by filesystem"
-        scp elwood:$dataPath ./
-        dataPath=`basename $dataPath`
+        # Download data.
+        if [[ ${dataPath} == http* ]]
+        then
+            echo -e "Acquiring data by HTTP.\nLogging to $outFile"
+            date >> $outFile
+            $env $time wget -N -q --no-check-certificate $dataPath >> $outFile 2>> $outFile
+        else
+            echo "Data available by filesystem"
+            scp elwood:$dataPath ./
+        fi
     fi
+    tarball=`basename $dataPath`
     date >> $outFile
     # Mac tar does not have --recursive-unlink, so remove dir explicitly
     dirPath=`basename $dataPath .tgz`
     echo "Removing preexisting data."
     rm -rf $dirPath
     echo -e "Extracting data.\nLogging to $outFile"
-    $env $time tar -x -z -f $dataPath >> $outFile 2>> $outFile
+    $env $time tar -x -z -f $tarball >> $outFile 2>> $outFile
 }
 
 # Handle command line options
 useURL=
 useCWD=
-while getopts 'uchp' OPTION
+while getopts 'udxhp' OPTION
 do
     case $OPTION in
     u)  useURL=1 # Get data by HTTP; else filesystem
         ;;
-    c)  useCWD=1 # Use data in CWD; do not download; do not extract
+    x)  useCWD=1 # Use extracted data in CWD; do not download; do not extract
+        ;;
+    d)  skipDownload=1 # Do not download; use tarball in current directory
         ;;
     p)  prepOnly=1 # Prep the data for benchmark testing, but do not start test
         ;;
     ?|h)  printf "Usage: %s [-u] [-c] [-p] parameters\n" $(basename $0) >&2
         echo "  parameters = path to file containing test parameters" >&2
         echo "  -u = get data by HTTP rather than filesystem" >&2
-        echo "  -c = use extracted data in current working directory; do not download" >&2
+        echo "  -x = use extracted data; do not download; do not extract" >&2
+        echo "  -d = do not download; use tarball in current directory" >&2
         echo "  -p = prepare the data only; do not run test" >&2
         echo "  -h = print usage instructions and exit" >&2
         exit 2
@@ -131,14 +151,11 @@ fi
 dir=`basename $dataPath .tgz`
 cd $dir
 
-# Run casa guides tests
-if [ ! "$prepOnly" ]
-then
-    for URL in $calibrationURL $imagingURL
-    do
-        extractionScript=$benchmarkDir/extractCASAscript.py
-        casaGuidesTest $extractionScript $URL
-    done
-fi
+# Extract and run casa guides tests
+for URL in $calibrationURL $imagingURL
+do
+    extractionScript=$benchmarkDir/extractCASAscript.py
+    casaGuidesTest $extractionScript $URL $prepOnly
+done
 cd ..
 echo "Benchmark wrapper finished."
