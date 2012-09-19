@@ -16,7 +16,7 @@ output=$1
 
 ssh gauss $linuxReport /export/data_2/jcrossle/benchmark/$pattern > $output
 ssh boromir $linuxReport /export/raid0/jcrossle/benchmark/$pattern >> $output
-ssh gluttony $linuxReport /export/data_1/jcrossle/benchmark/$pattern >> $output
+ssh gluttony $linuxReport /export/raid5/jcrossle/benchmark/$pattern >> $output
 ssh multivac08 $linuxReport /export/lustre/jcrossle/benchmark/$pattern >> $output
 ssh antares $linuxReport /export/data_1/jcrossle/benchmark/$pattern >> $output
 ssh arkleseizure $macReport /Users/jcrossle/NRAO/casa/benchmark_work/$pattern >> $output
