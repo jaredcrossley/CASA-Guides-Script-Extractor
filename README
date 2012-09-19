@@ -1,19 +1,27 @@
+=========================================================
 CASA Guides Script Extractor and Benchmark Test Generator
 =========================================================
 
-Extract a python script from a CASA guides web page:
+This package will extract the Python code from a CASA Guide and write it to
+disk or optionally use the Python code to create a light-weight CASA benchmark
+test.
+
+To extract a python script from a CASA guides web page simply type
 
   $ python extractCASAscript.py URL
+  
+where URL is the web address of the CASA Guide.  To create a benchmark test
+from a CASA guide web page or casapy script type
 
-Create a benchmark test from a CASA guides web page or casapy script:
+  $ python extractCASAscript.py -b URLPATH
+ 
+where URLPATH is the URL of the CASA guide or the path to the casapy script.
 
-  $ python extractCASAscript.py -b URL
-
-A bash script and parameter files are included to automate Python extraction
-and benchmark test execution for 6 ALMA data sets.  See file descriptions below
-for details. A master script, doom.bash, invokes all 6 benchmarking scripts
-sequentially.  Report generation scripts produce a nice, neat table showing the
-benchmark timing data for all tests.
+A bash script, benchmark.bash, and parameter files are included to automate
+Python extraction and benchmark test execution for several ALMA data sets.  See
+file descriptions below for details. A master script, doom.bash, invokes all
+benchmarking scripts sequentially.  Report generation scripts produce a nice,
+neat table showing the benchmark timing data for all tests.
 
 Under ideal conditions a benchmarking cycle will involve only these commands:
 
@@ -29,7 +37,8 @@ FILES
 
 extractCASAScript.py 
 
-  The script extractor and benchmark test generator.
+  The script extractor and benchmark test generator.  Invoke with the -h
+  option for details.
 
 casa_call.py 
 
@@ -56,7 +65,7 @@ benchmark.bash
   casaguide.  (Yes, I am benchmarking the benchmark test!)
  
 AntennaeBand7.bash, NGC3256Band3.bash, TWHydraBand7.bash, M100Band3.bash,
-SgrABand6.bash,  2011.0.00367.S.bash
+SgrABand6.bash,  2011.0.00367.S.bash, IRAS16293Band9.bash
 
   Input parameter files for benchmark.bash.  These files are simple bash scripts
   that are invoked to set parameters for the respective data sets.
@@ -64,7 +73,10 @@ SgrABand6.bash,  2011.0.00367.S.bash
 doom.bash
 
   The master script that runs all of the CASA Guide benchmark scripts above.
-  One script to rule them all...
+  Edit this script and set the directory of your source code before running.
+  (One script to rule them all...) Actually, not all scripts above will run
+  under the same version of CASA.  So, in reality this is...  One script to
+  rule them all, but not at the same time...  
 
 report.py
 
