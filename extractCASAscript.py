@@ -55,27 +55,48 @@ interactive=re.compile("[\s;]*(plotxy|plotcal|plotms|viewer|plotants)")
 
 # CASA task list (used for benchmarking markup, else ignored)
 # Check and update this list using function listCASATasks(), below.
-# for CASA 3.4...
-casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummar', 'bandpass',
-'blcal', 'boxi', 'browsetable', 'calstat', 'caltabconvert', 'clean',
-'clearcal', 'clearplot', 'clearstat', 'concat', 'conjugatevis', 'csvclea',
-'cvel', 'deconvolve', 'delmod', 'exportasdm', 'exportfits', 'exportuvfits',
-'feather', 'find', 'fixplanets', 'fixvis', 'flagautocorr', 'flagcmd',
-'flagdata', 'flagmanager', 'fluxscale', 'ft', 'gaincal', 'gencal',
-'hanningsmooth', 'help par.parametername', 'help taskname', 'imcollapse',
-'imcontsub', 'imfit', 'imhead', 'immath', 'immoments', 'impbcor', 'importasdm',
-'importevl', 'importfits', 'importfitsidi', 'importgmr', 'importuvfits',
-'importvla', 'imregrid', 'imsmooth', 'imstat', 'imtrans', 'imval', 'imview',
-'listcal', 'listfits', 'listhistory', 'listobs', 'listsd', 'listvis', 'mosai',
-'msmoments', 'msview', 'oldflagcmd', 'plotants', 'plotcal', 'plotms', 'plotuv',
-'plotweathe', 'plotxy', 'polcal', 'predictcomp', 'rmtables', 'sdbaseline',
-'sdcal', 'sdcoadd', 'sdfit', 'sdflag', 'sdflagmanager', 'sdgrid', 'sdimaging',
-'sdimprocess', 'sdlist', 'sdmath', 'sdplot', 'sdreduce', 'sdsave', 'sdscale',
-'sdsmooth', 'sdstat', 'sdtpimaging', 'setjy', 'simanalyze', 'simdata',
-'simobserve', 'slsearch', 'smoothcal', 'specfi', 'splattotable', 'split',
-'startup', 'statw', 'taskhelp', 'tasklist', 'testautofla', 'testconcat',
-'tflagdata', 'toolhelp', 'uvcontsub', 'uvmodelfit', 'uvsub', 'viewer',
-'vishead', 'visstat', 'widefiel', 'wvrgcal']
+# for CASA 4.0...
+casa_tasks = ['accum', 'applycal', 'asap_init', 'bandpass', 'blcal', 'boxi',
+'browsetable', 'calstat', 'caltabconvert', 'clean', 'clearcal', 'clearplot',
+'clearstat', 'concat', 'conjugatevis', 'csvclea', 'cvel', 'deconvolve',
+'delmod', 'exportasdm', 'exportfits', 'exportuvfits', 'feather', 'find',
+'fixplanets', 'fixvis', 'flagcmd', 'flagdata', 'flagmanager', 'fluxscale',
+'ft', 'gaincal', 'gencal', 'hanningsmooth', 
+'imcollapse', 'imcontsub', 'imfit', 'imhead', 'immath', 'immoments',
+'impbcor', 'importasdm', 'importevl', 'importfits', 'importfitsidi',
+'importgmr', 'importuvfits', 'importvla', 'imregrid', 'imsmooth', 'imstat',
+'imsubimage', 'imtrans', 'imval', 'imview', 'listcal', 'listfits',
+'listhistory', 'listobs', 'listpartitio', 'listsd', 'listvis', 'makemas',
+'mosai', 'msmoments', 'msview', 'partitio', 'plotants', 'plotcal', 'plotms',
+'plotuv', 'plotweathe', 'plotxy', 'polcal', 'predictcomp', 'rmtables',
+'sdbaseline', 'sdcal', 'sdcoadd', 'sdfit', 'sdflag', 'sdflagmanager', 'sdgrid',
+'sdimaging', 'sdimprocess', 'sdlist', 'sdmath', 'sdplot', 'sdreduce', 'sdsave',
+'sdscale', 'sdsmooth', 'sdstat', 'sdtpimaging', 'setjy', 'simalm',
+'simanalyze', 'simobserve', 'slsearch', 'smoothcal', 'specfi', 'splattotable',
+'split', 'startup', 'statw', 'taskhelp', 'tasklist', 'testconcat', 'toolhelp',
+'uvcontsub', 'uvmodelfit', 'uvsub', 'viewer', 'virtualconcat', 'vishead',
+'visstat', 'widebandpbco', 'widefiel', 'wvrgcal']
+# # for CASA 3.4...
+# casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummar', 'bandpass',
+# 'blcal', 'boxi', 'browsetable', 'calstat', 'caltabconvert', 'clean',
+# 'clearcal', 'clearplot', 'clearstat', 'concat', 'conjugatevis', 'csvclea',
+# 'cvel', 'deconvolve', 'delmod', 'exportasdm', 'exportfits', 'exportuvfits',
+# 'feather', 'find', 'fixplanets', 'fixvis', 'flagautocorr', 'flagcmd',
+# 'flagdata', 'flagmanager', 'fluxscale', 'ft', 'gaincal', 'gencal',
+# 'hanningsmooth', 'help par.parametername', 'help taskname', 'imcollapse',
+# 'imcontsub', 'imfit', 'imhead', 'immath', 'immoments', 'impbcor', 'importasdm',
+# 'importevl', 'importfits', 'importfitsidi', 'importgmr', 'importuvfits',
+# 'importvla', 'imregrid', 'imsmooth', 'imstat', 'imtrans', 'imval', 'imview',
+# 'listcal', 'listfits', 'listhistory', 'listobs', 'listsd', 'listvis', 'mosai',
+# 'msmoments', 'msview', 'oldflagcmd', 'plotants', 'plotcal', 'plotms', 'plotuv',
+# 'plotweathe', 'plotxy', 'polcal', 'predictcomp', 'rmtables', 'sdbaseline',
+# 'sdcal', 'sdcoadd', 'sdfit', 'sdflag', 'sdflagmanager', 'sdgrid', 'sdimaging',
+# 'sdimprocess', 'sdlist', 'sdmath', 'sdplot', 'sdreduce', 'sdsave', 'sdscale',
+# 'sdsmooth', 'sdstat', 'sdtpimaging', 'setjy', 'simanalyze', 'simdata',
+# 'simobserve', 'slsearch', 'smoothcal', 'specfi', 'splattotable', 'split',
+# 'startup', 'statw', 'taskhelp', 'tasklist', 'testautofla', 'testconcat',
+# 'tflagdata', 'toolhelp', 'uvcontsub', 'uvmodelfit', 'uvsub', 'viewer',
+# 'vishead', 'visstat', 'widefiel', 'wvrgcal']
 # # CASA 3.3...
 # casa_tasks = ['accum', 'applycal', 'asap_init', 'bandpass', 'blcal', 'boxi',
 # 'browsetable', 'calstat', 'clean', 'clearcal', 'clearplot', 'clearstat',
@@ -567,7 +588,7 @@ def main( URL, options ):
         for line in compressedList:
             if options.plotmsoff:
                 line = turnPlotmsOff(line)
-            if options.noninteractive:
+            elif options.noninteractive:
                 if extract_task(line) == 'plotms': 
                     line = addNonInteractivePause(line)
             else: #interactive
