@@ -3,8 +3,9 @@ CASA Guides Script Extractor and Benchmark Test Generator
 =========================================================
 
 This package will extract the Python code from a CASA Guide and write it to
-disk or optionally use the Python code to create a light-weight CASA benchmark
-test.
+disk or optionally use the Python code to create a CASA benchmark test.  The
+benchmark test returns a measurement of the total execution time for a CASA
+script and also measurements of the time spent in each CASA task.
 
 To extract a python script from a CASA guides web page simply type
 
@@ -38,7 +39,8 @@ FILES
 extractCASAScript.py 
 
   The script extractor and benchmark test generator.  Invoke with the -h
-  option for details.
+  option for details.  Contains a convenience function for updating the list
+  of CASA tasks used when generating benchmark tests.
 
 casa_call.py 
 
