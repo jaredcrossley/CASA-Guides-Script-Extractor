@@ -45,7 +45,7 @@ function casaGuidesTest ()
     then
         echo -e "Beginning benchmark test of $scriptName.\nLogging to ${logName##*/}"
         date >> $logName
-        $env $time casapy --nologger --nogui -c $scriptName >> $logName 2>> $logName
+        $env $time casapy -r 4.0.0 --nologger --nogui -c $scriptName >> $logName 2>> $logName
         local sumName=`\ls -1t *.summary | head -n 1`
         echo -e "\n" >> ../$sumName; cat $sumName >> ../$sumName
         echo "Finished test of $scriptName"
