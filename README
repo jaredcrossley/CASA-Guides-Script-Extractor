@@ -7,31 +7,31 @@ disk or optionally use the Python code to create a CASA benchmark test.  The
 benchmark test returns a measurement of the total execution time for a CASA
 script and also measurements of the time spent in each CASA task.
 
-To extract a python script from a CASA guides web page simply type
+To extract a Python script from a CASA guides web page simply type
 
-  $ python extractCASAscript.py URL
+  $ ./extractCASAscript.py URL
   
 where URL is the web address of the CASA Guide.  To create a benchmark test
 from a CASA guide web page or casapy script type
 
-  $ python extractCASAscript.py -b URLPATH
+  $ ./extractCASAscript.py -b URLPATH
  
 where URLPATH is the URL of the CASA guide or the path to the casapy script.
 
-A bash script, benchmark.bash, and parameter files are included to automate
+A bash script, benchmark.sh, and parameter files are included to automate
 Python extraction and benchmark test execution for several ALMA data sets.  See
-file descriptions below for details. A master script, doom.bash, invokes all
+file descriptions below for details. A master script, doom.sh, invokes all
 benchmarking scripts sequentially.  Report generation scripts produce a nice,
 neat table showing the benchmark timing data for all tests.
 
 Under ideal conditions a benchmarking cycle will involve only these commands:
 
-  $ ./doom.bash
-  $ ./report.bash outfile
+  $ ./doom.sh 
+  $ ./report.sh outfile
 
 To run a single benchmark test:
 
-  $ ./benchmark.bash NGC3256Band3.bash
+  $ ./benchmark.sh NGC3256Band3.sh
 
 FILES
 =====
@@ -60,19 +60,32 @@ readcol.py
   A module for reading tables of ASCII data. Imported by casa_call.py.  From
   http://code.google.com/p/agpy/source/browse/trunk/agpy/readcol.py
 
-benchmark.bash
+benchmark.sh
 
   Bash script that contains two functions: one for acquiring data and
   benchmarking data extraction; the other for benchmarking the execution of the
   casaguide.  (Yes, I am benchmarking the benchmark test!)
  
-AntennaeBand7.bash, NGC3256Band3.bash, TWHydraBand7.bash, M100Band3.bash,
-SgrABand6.bash,  2011.0.00367.S.bash, IRAS16293Band9.bash
+AntennaeBand7.sh, NGC3256Band3.sh, TWHydraBand7.sh, M100Band3.sh,
+SgrABand6.sh,  2011.0.00367.S.sh, IRAS16293Band9.sh
 
-  Input parameter files for benchmark.bash.  These files are simple bash scripts
-  that are invoked to set parameters for the respective data sets.
+  Input parameter files for benchmark.sh.  These files are simple bash scripts
+  that are invoked to set parameters for the respective data sets.  Only the
+  first 4 scripts in the table below are CASA 4.0 compliant.
 
-doom.bash
+  -----------------  ------------------------------------
+  Script name        Description
+  -----------------  ------------------------------------
+  AntennaeBand7.sh   Antennae CASA Guide
+  NGC3256Band3.sh    NGC3256 CASA Guide
+  TWHydraBand7.sh    TW Hydra CASA Guide
+  IRAS16293Band9.sh  IRAS16293 CASA Guide (needs testing)
+  M100Band3.sh       M100 SV Data
+  SgrABand6.sh       SgrA SV Data
+  2011.0.00367.S.sh  2011.0.00367.S Data
+  -----------------  ------------------------------------
+
+doom.sh
 
   The master script that runs all of the CASA Guide benchmark scripts above.
   Edit this script and set the directory of your source code before running.
@@ -86,7 +99,7 @@ report.py
   all casa_call.summarize_bench output files. The script takes a glob pattern
   and operates on all files matched by the pattern.
 
-report.bash
+report.sh
 
   Bash script that invokes report.py on each host used for benchmarking,
   in the appropriate directory on each host, sends all output to a single file
