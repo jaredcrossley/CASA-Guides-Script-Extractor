@@ -226,7 +226,7 @@ def make_func_noninteractive(line):
         new_line = re.sub( pattern, 'interactive = False', line )
         if funcName == "clean":
             # Remove clean mask parameter if it exists
-            pattern = r'''mask\ *=\ *['"].*['"].*,?'''
+            pattern = r'''mask\ *=\ *['"].*['"].*?,?'''
             new_line = re.sub( pattern, '', new_line )
         return new_line
     # Second, check for variables in local namespace
@@ -259,12 +259,38 @@ def suppress_gui( line ):
         # Suppress GUIs for other tasks here...
     return line
 
+def turnTaskOff( taskname, line ):
+    """ Turn off task calls. """
+    if is_task_call(line):
+        if extract_task(line) == taskname:
+            line = ' '*indentation(line) + "print 'Turned " + taskname + " off'"
+    return(line)
+
 def turnPlotmsOff( line ):
     """ Turn off plotms calls. """
     if is_task_call(line):
         if extract_task(line) == "plotms":
             line = ' '*indentation(line) + "print 'Turned PLOTMS off'"
     return(line)
+
+# TO DO: This function testing; I don't think it's working yet.
+def turnPlotbandpassOff( line ):
+    """ Turn aU.plotbandpass off. """
+    pattern = r'''\s*aU.plotbandpass\(.*\)'''
+    matchObj = re.match( pattern, line )
+    if matchObj:
+        line =  ' ' * indentation(line) + "print 'Turned aU.plotbandpass off'"
+    return( line )
+
+def turnDiagPlotsOff( line ):
+    """ Turn diagnostic plots off (plotms, plotcal, aU.plotbandpass, plotants, plotxy) """
+    line = turnTaskOff( "plotms", line )
+    line = turnTaskOff( "plotcal", line )
+    line = turnTaskOff( "plotants", line )
+    line = turnTaskOff( "plotxy", line )
+    # Test this function before using.
+    # line = turnPlotbandpassOff( line )
+    return line
 
 # function to clean up html strings (convert html markup to executable python)
 def loseTheJunk(line):
@@ -586,7 +612,10 @@ def main( URL, options ):
         # Write script for interactive and noninteractive modes
         f = codecs.open(outFile, 'w','utf-8')
         for line in compressedList:
-            if options.plotmsoff:
+            if options.diagplotoff:
+                print "Turning off diagnostic plots..."
+                line = turnDiagPlotsOff(line)
+            elif options.plotmsoff:
                 line = turnPlotmsOff(line)
             elif options.noninteractive:
                 if extract_task(line) == 'plotms': 
@@ -617,6 +646,8 @@ a local file system path."""
         help="make script non-interactive (non-benchmark mode only)")
     parser.add_option( '-p', '--plotmsoff', action="store_true",
         help="turn off all plotms commands")
+    parser.add_option( '-d', '--diagplotoff', action="store_true",
+        help="turn off diagnostic plots (plotms, plotcal, aU.plotbandpass, plotants, plotxy)" )
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.print_help()
