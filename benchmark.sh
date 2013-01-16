@@ -14,7 +14,9 @@ then
     time='time'
 elif [ `uname` = 'Linux' ]
 then
-    benchmarkDir="$PWD"
+    # TO-DO: Remove hardcoded path from source code.
+    #benchmarkDir="$PWD"
+    benchmarkDir=/users/jcrossle/casa/benchmark/dist
     env='/bin/env'
     time='time -v'
 else
@@ -78,12 +80,12 @@ function extractionTest ()
             echo -e "Acquiring data by HTTP.\nLogging to $outFile"
             date >> $outFile
             $env $time wget -N -q --no-check-certificate $dataPath >> $outFile 2>> $outFile
+            tarball=`basename $dataPath`
         else
             echo "Data available by filesystem"
-            scp elwood:$dataPath ./
+            tarball=$dataPath
         fi
     fi
-    tarball=`basename $dataPath`
     date >> $outFile
     # Mac tar does not have --recursive-unlink, so remove dir explicitly
     dirPath=`basename $dataPath .tgz`
