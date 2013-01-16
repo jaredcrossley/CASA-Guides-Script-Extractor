@@ -3,18 +3,20 @@
 # Benchmark testing script. Review command line options and arguments by using
 # option -h:
 #
-#   benchmark.bash -h
+#   benchmark.sh -h
 #
 
 # Set variables, command, options that are different on Mac and RedHat.
 if [ `uname` = 'Darwin' ]
 then 
-    benchmarkDir='/Users/jcrossle/NRAO/casa/benchmark_code'
+    benchmarkDir="$HOME/NRAO/casa/benchmark_code"
     env=/usr/bin/env
     time='time'
 elif [ `uname` = 'Linux' ]
 then
-    benchmarkDir='/users/jcrossle/casa/benchmark'
+    # TO-DO: Remove hardcoded path from source code.
+    #benchmarkDir="$PWD"
+    benchmarkDir=/users/jcrossle/casa/benchmark/dist
     env='/bin/env'
     time='time -v'
 else
@@ -78,12 +80,12 @@ function extractionTest ()
             echo -e "Acquiring data by HTTP.\nLogging to $outFile"
             date >> $outFile
             $env $time wget -N -q --no-check-certificate $dataPath >> $outFile 2>> $outFile
+            tarball=`basename $dataPath`
         else
             echo "Data available by filesystem"
-            scp elwood:$dataPath ./
+            tarball=$dataPath
         fi
     fi
-    tarball=`basename $dataPath`
     date >> $outFile
     # Mac tar does not have --recursive-unlink, so remove dir explicitly
     dirPath=`basename $dataPath .tgz`
