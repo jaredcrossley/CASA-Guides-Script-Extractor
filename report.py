@@ -30,10 +30,21 @@ def make_report( globPattern ):
         avg = numpy.average(times)
         std = numpy.std(times)
         # Print summary
-        print "%33s %12s %8.1f %8.1f " % (testName, hostname, avg, std) ,
-        for time in times:
-            print "%d " % time, 
-        print
+        print_ascii( testName, hostname, times, avg, std )
+
+def print_ascii( testName, hostname, times, avg, std ):
+    """ Print 1 row of the summary ASCII table. """
+    print "%33s %12s %8.1f %8.1f " % (testName, hostname, avg, std) ,
+    for time in times:
+        print "%d " % time, 
+    print
+
+def print_csv( testName, hostname, times, avg, std ):
+    """ Print 1 row of the summary CSV table. """
+    print "%33s, %12s, %8.1f, %8.1f " % (testName, hostname, avg, std) ,
+    for time in times:
+        print "%d, " % time, 
+    print
 
 if __name__ == "__main__":
     ''' 
