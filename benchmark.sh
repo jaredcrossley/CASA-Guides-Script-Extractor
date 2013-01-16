@@ -3,18 +3,18 @@
 # Benchmark testing script. Review command line options and arguments by using
 # option -h:
 #
-#   benchmark.bash -h
+#   benchmark.sh -h
 #
 
 # Set variables, command, options that are different on Mac and RedHat.
 if [ `uname` = 'Darwin' ]
 then 
-    benchmarkDir='/Users/jcrossle/NRAO/casa/benchmark_code'
+    benchmarkDir="$HOME/NRAO/casa/benchmark_code"
     env=/usr/bin/env
     time='time'
 elif [ `uname` = 'Linux' ]
 then
-    benchmarkDir='/users/jcrossle/casa/benchmark'
+    benchmarkDir="$PWD"
     env='/bin/env'
     time='time -v'
 else

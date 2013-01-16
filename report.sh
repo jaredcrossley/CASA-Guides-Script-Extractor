@@ -9,8 +9,8 @@
 # PARAMETERS:
 #   1) output = output file name
 
-linuxReport=/users/jcrossle/casa/benchmark/report.py
-macReport=/Users/jcrossle/NRAO/casa/benchmark_code/report.py
+linuxReport=$HOME/casa/benchmark/report.py
+macReport=$HOME/NRAO/casa/benchmark_code/report.py
 pattern="'*.summary'"
 output=$1
 
