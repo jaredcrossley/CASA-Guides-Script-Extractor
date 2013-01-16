@@ -584,6 +584,8 @@ def main( URL, options ):
         header = benchmark_header( scriptName = outFile )
         for line in header:
             print >>f, line
+        print >>f, 'sys.path.append("/users/thunter/AIV/science/analysis_scripts/")'
+        print >>f, "import analysisUtils as au; aU = au"
         for line in compressedList:
             if suppress_for_benchmark(line):
                 print >>f, ' ' * indentation(line) + 'pass #' + \
