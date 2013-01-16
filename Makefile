@@ -1,12 +1,15 @@
+SCRIPTS = benchmark.sh doom.sh report.sh
+PYTHON = extractCASAscript.py casa_call.py readcol.py report.py
+PARAMS = NGC3256Band3.sh TWHyaBand7.sh AntennaeBand7.sh IRAS16293Band9.sh \
+    SgrABand6.sh M100Band3.sh 2011.0.00367.S.sh
+DOCS = README
+ALLFILES = $(SCRIPTS) $(PYTHON) $(PARAMS) $(DOCS)
+
 all: dist
 
-dist:
-	mkdir dist
-	cp 2011.0.00367.S.sh AntennaeBand7.sh M100Band3.sh NGC3256Band3.sh \
-SgrABand6.sh TWHyaBand7.sh dist/
-	cp benchmark.sh doom.sh report.sh dist/
-	cp extractCASAscript.py casa_call.py readcol.py report.py dist/
-	cp README dist/
+dist: $(ALLFILES)
+	mkdir -p dist
+	cp $(ALLFILES) dist/
 
 # Distribute on Mac
 dist_mac: dist
