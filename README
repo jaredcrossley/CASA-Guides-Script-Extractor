@@ -7,6 +7,13 @@ disk or optionally use the Python code to create a CASA benchmark test.  The
 benchmark test returns a measurement of the total execution time for a CASA
 script and also measurements of the time spent in each CASA task.
 
+To install the package type
+
+  $ make
+
+This will create a dist/ directory.  If you will be benchmark testing, add
+this directory to your execution path.
+
 To extract a Python script from a CASA guides web page simply type
 
   $ ./extractCASAscript.py URL
@@ -22,16 +29,21 @@ A bash script, benchmark.sh, and parameter files are included to automate
 Python extraction and benchmark test execution for several ALMA data sets.  See
 file descriptions below for details. A master script, doom.sh, invokes all
 benchmarking scripts sequentially.  Report generation scripts produce a nice,
-neat table showing the benchmark timing data for all tests.
+neat table showing the benchmark timing data for all tests.  report.py collects
+test data on a give machine; report.sh compiles report.py output from multiple
+machines. report.sh should be setup to call the machines you are testing.
 
 Under ideal conditions a benchmarking cycle will involve only these commands:
 
   $ ./doom.sh 
-  $ ./report.sh outfile
+  $ ./report.py
 
 To run a single benchmark test:
 
   $ ./benchmark.sh NGC3256Band3.sh
+
+To collect benchmarking results for all machines tested, setup report.sh and
+run it.
 
 FILES
 =====
@@ -96,11 +108,12 @@ doom.sh
 report.py
 
   Python script that generates a table summarizing the timing information in
-  all casa_call.summarize_bench output files. The script takes a glob pattern
-  and operates on all files matched by the pattern.
+  all casa_call.summarize_bench output files. The script optionally takes a
+  glob pattern and operates on all files matched by the pattern. Command
+  line options allow for comma separated variable output.
 
 report.sh
 
   Bash script that invokes report.py on each host used for benchmarking,
-  in the appropriate directory on each host, sends all output to a single file
-  and then sorts the file and appends a table header.
+  in the appropriate directory on each host, sorts all output and sends it to
+  stdout.

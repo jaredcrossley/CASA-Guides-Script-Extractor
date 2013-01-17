@@ -1,29 +1,48 @@
 #!/bin/env bash
 #
-# Call report.py for all summary files.
+# Call report.py for all machines.
 #
-# This simple script parses benchmark summaries from the hosts listed 
-# below in the appropriate benchmarking directory on each host.  The 
-# the parsed data is output as a sorted table. A header is appended.
+# This script collects the output of report.py for all machines.  It 
+# sort the table, adds a header and sends output to stdout. Review command
+# line options using -h:
 #
-# PARAMETERS:
-#   1) output = output file name
+#   report.sh -h
+#
 
-linuxReport=$HOME/casa/benchmark/report.py
-macReport=$HOME/NRAO/casa/benchmark_code/report.py
 pattern="'*.summary'"
-output=$1
+output=.report.out 
 
-ssh gauss $linuxReport /export/data_2/jcrossle/benchmark/$pattern > $output
-ssh boromir $linuxReport /export/raid0/jcrossle/benchmark/$pattern >> $output
-ssh gluttony $linuxReport /export/raid5/jcrossle/benchmark/$pattern >> $output
-ssh multivac08 $linuxReport /lustre/naasc/jcrossle/benchmark/$pattern >> $output
-ssh nihal $linuxReport /users/jcrossle/casa/benchmark/beefy/$pattern >> $output
+# Handle command line options (there's only one right now!)
+csv=
+while getopts 'ch' OPTION
+do
+    case $OPTION in
+    c)  csv='-c' # Use CSV format
+        ;;
+    ?|h)  printf "Usage: %s [-c] [-h]\n" $(basename $0) >&2
+        echo "  -c = output report in comma separated variable format" >&2
+        echo "  -h = print usage instructions and exit" >&2
+        exit 2
+        ;;
+    esac
+done
+shift $(($OPTIND -1))
+
+# Call report.py for each machine; specify location test output for each.
+ssh gauss report.py -e ${csv} /export/data_2/jcrossle/benchmark/$pattern > $output
+ssh boromir report.py -e ${csv} /export/raid0/jcrossle/benchmark/$pattern >> $output
+ssh gluttony report.py -e ${csv} /export/raid5/jcrossle/benchmark/$pattern >> $output
+ssh multivac08 report.py -e ${csv} /lustre/naasc/jcrossle/benchmark/$pattern >> $output
+ssh nihal report.py -e ${csv} /users/jcrossle/casa/benchmark/beefy/$pattern >> $output
 # ssh antares $linuxReport /export/data_1/jcrossle/benchmark/$pattern >> $output
 # ssh arkleseizure $macReport /Users/jcrossle/NRAO/casa/benchmark_work/$pattern >> $output
 
+# Sort report table
 cp $output $output.bkup
-echo "                      Script Name         Host  AvgTime  StDTime Runtimes (s)" > $output
-echo "--------------------------------- ------------ -------- -------- ------------" >> $output
-sort $output.bkup >> $output
+sort $output.bkup > $output
 rm $output.bkup
+
+# Write table to STDOUT
+report.py --headeronly ${csv}
+cat $output
+rm $output
