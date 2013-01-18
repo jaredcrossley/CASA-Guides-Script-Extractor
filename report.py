@@ -67,7 +67,10 @@ if __name__ == "__main__":
     Take care to avoid undesired shell wildcard expansion when passing a glob
     pattern in as a command line argument.
     '''
-    usage = """ %prog [options] """
+    usage = """ %prog [options] [globPattern] 
+
+    Write globPattern within single quotes to avoid shell wildcard expansion.
+    """
     parser = OptionParser( usage=usage )
     parser.add_option( '-e', '--header', action="store_false", default=True,
         help="do not write table header" )
@@ -82,4 +85,7 @@ if __name__ == "__main__":
         if len(args) > 1:
             parser.print_help()
             sys.exit(1)
-        make_report( options, globPattern=args[0] )
+        elif len(args) == 1:
+            make_report( options, globPattern=args[0] )
+        elif len(args) == 0:
+            make_report( options )
