@@ -69,7 +69,8 @@ if __name__ == "__main__":
     '''
     usage = """ %prog [options] [globPattern] 
 
-    Write globPattern within single quotes to avoid shell wildcard expansion.
+    By default globPattern = './*.summary'.  Write globPattern within single
+    quotes to avoid shell wildcard expansion.
     """
     parser = OptionParser( usage=usage )
     parser.add_option( '-e', '--header', action="store_false", default=True,
