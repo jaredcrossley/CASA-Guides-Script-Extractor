@@ -9,14 +9,14 @@
 # Set variables, command, options that are different on Mac and RedHat.
 if [ `uname` = 'Darwin' ]
 then 
-    benchmarkDir="$HOME/NRAO/casa/benchmark_code"
     env=/usr/bin/env
     time='time'
+    echo "Under Mac OS casapy cannot be started from a script. I will prepare "
+    echo "the data for benchmark testing and give you the commands for "
+    echo "executing the tests."
+    prepOnly=1 
 elif [ `uname` = 'Linux' ]
 then
-    # TO-DO: Remove hardcoded path from source code.
-    #benchmarkDir="$PWD"
-    benchmarkDir=/users/jcrossle/casa/benchmark/dist
     env='/bin/env'
     time='time -v'
 else
@@ -37,20 +37,26 @@ function casaGuidesTest ()
     # Extract script from CASA Guide:
     extractLog=`basename $extractScript`.log
     echo -e "Extracting CASA Guide.\nLogging to $extractLog"
-    python $extractScript -b $CASAGuideURL >> $extractLog 2>> $extractLog
+    $extractScript -b $CASAGuideURL >> $extractLog 2>> $extractLog
     # Get name of output Python script (this is the newest python script in pwd)
     local scriptName=`\ls -1t *.py | head -n 1`
     # Set name for log file
     local logName="../$scriptName.log"
     # Begin test
+    execCommand="$env $time casapy -r 4.0.0 --nologger --nogui -c $scriptName >> $logName 2>> $logName"
+    printCommand="casapy -r 4.0.0 --nologger --nogui -c $scriptName"
+    echo prepOnly = $prepOnly
     if [ ! "$prepOnly" ]
     then
         echo -e "Beginning benchmark test of $scriptName.\nLogging to ${logName##*/}"
         date >> $logName
-        $env $time casapy -r 4.0.0 --nologger --nogui -c $scriptName >> $logName 2>> $logName
+        $execCommand
         local sumName=`\ls -1t *.summary | head -n 1`
         echo -e "\n" >> ../$sumName; cat $sumName >> ../$sumName
         echo "Finished test of $scriptName"
+    else
+        echo Manually start test with command:
+        echo $printCommand
     fi
 }
 
@@ -156,8 +162,7 @@ cd $dir
 # Extract and run casa guides tests
 for URL in $calibrationURL $imagingURL
 do
-    extractionScript=$benchmarkDir/extractCASAscript.py
-    casaGuidesTest $extractionScript $URL $prepOnly
+    casaGuidesTest extractCASAscript.py $URL $prepOnly
 done
 cd ..
 echo "Benchmark wrapper finished."
