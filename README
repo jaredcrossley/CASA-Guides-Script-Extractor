@@ -45,6 +45,25 @@ To run a single benchmark test:
 To collect benchmarking results for all machines tested, setup report.sh and
 run it.
 
+KNOWN ISSUES
+============
+
+* There is a known bug in CASA that causes iPython to sometimes crash when
+  exiting.  The crash will produce an iPython error message and then hang.  By
+  the time the error is generated the benchmarking script has finished.
+  However, this error will cause casa to hang and thereby also hang the
+  benchmarking script.  The workaround is to kill the process that started
+  casapy.
+
+* There is an known bug in CASA that prevents it starting from a shell
+  script on a Mac. Thus, benchmark.sh cannot start casapy to run benchmark tests
+  on a Mac.  (See CASA JIRA ticket CAS-3596.) The workaround is too use
+  benchmark.sh with option -p to prepare the benchmarking test.  Then, enter the
+  dataset directory and start the tests manually using execfile.
+  
+    CASA: execfile('NGC3256Band3CalibrationforCASA4.0.py');
+          execfile('NGC3256Band3ImagingforCASA4.0.py')
+
 FILES
 =====
 
