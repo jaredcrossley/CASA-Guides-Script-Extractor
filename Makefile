@@ -13,11 +13,11 @@ dist: $(ALLFILES)
 
 # Distribute on Mac
 dist_mac: dist
-	sed --in-place=.orig 's~#!/bin/env~#!/usr/bin/env~' dist/benchmark.sh    
-	sed --in-place=.orig 's~#!/bin/env~#!/usr/bin/env~' dist/doom.sh
-	sed --in-place=.orig 's~#!/bin/env~#!/usr/bin/env~' dist/report.sh
-	sed --in-place=.orig 's~#!/bin/env~#!/usr/bin/env~' dist/extractCASAscript.py
-	sed --in-place=.orig 's~#!/bin/env~#!/usr/bin/env~' dist/report.py
+	sed -i .orig 's~#!/bin/env~#!/usr/bin/env~' dist/benchmark.sh    
+	sed -i .orig 's~#!/bin/env~#!/usr/bin/env~' dist/doom.sh
+	sed -i .orig 's~#!/bin/env~#!/usr/bin/env~' dist/report.sh
+	sed -i .orig 's~#!/bin/env~#!/usr/bin/env~' dist/extractCASAscript.py
+	sed -i .orig 's~#!/bin/env~#!/usr/bin/env~' dist/report.py
 
 clean:
 	rm -r dist
