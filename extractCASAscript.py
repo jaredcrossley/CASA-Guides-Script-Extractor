@@ -478,6 +478,15 @@ def listCASATasks():
     print "Tasks in this module but not in casapy: " + str(casa_tasks_set.difference(all_tasks_set))
     return all_tasks
 
+def checkModules():
+    """ Check that modules required for the benchmarking script are in the
+    Python path. """
+    try:
+        import casa_call
+    except ImportError:
+        print "casa_call.py must exist in the casapy module search path!"
+        raise
+
 # =====================
 # MAIN PROGRAM
 # =====================
@@ -581,11 +590,10 @@ def main( URL, options ):
         print "Writing file for execution in benchmarking mode."
         tasknum = 0
         f = codecs.open(outFile, 'w','utf-8')
+        checkModules()
         header = benchmark_header( scriptName = outFile )
         for line in header:
             print >>f, line
-        print >>f, 'sys.path.append("/users/thunter/AIV/science/analysis_scripts/")'
-        print >>f, "import analysisUtils as au; aU = au"
         for line in compressedList:
             if suppress_for_benchmark(line):
                 print >>f, ' ' * indentation(line) + 'pass #' + \

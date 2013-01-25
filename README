@@ -12,7 +12,12 @@ To install the package type
   $ make
 
 This will create a dist/ directory.  If you will be benchmark testing, add
-this directory to your execution path.
+this directory to your shell execution path and to your casapy Python path.
+The casapy Python path can be appended by adding
+
+  sys.path.append('myBenchmarkPath')
+ 
+to your casa initialization file, ~/.casa/init.py.
 
 To extract a Python script from a CASA guides web page simply type
 
@@ -44,6 +49,10 @@ To run a single benchmark test:
 
 To collect benchmarking results for all machines tested, setup report.sh and
 run it.
+
+* If analysisUtils is used in the script you are benchmark testing, it must
+be present in the casapy module search path. To install analysisUtils see
+http://casaguides.nrao.edu/index.php?title=Analysis_Utilities.
 
 FILES
 =====
