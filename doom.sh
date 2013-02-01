@@ -28,27 +28,24 @@ while [ ! -d "$DESTDIR" ]; do
             exit 1
         fi
     fi
-    
 done
 
-scriptDir="$PWD"
-if [ ! -e $scriptdir ]; then
-    mkdir -p $scriptdir
-fi
+STARTDIR=$PWD
+cd $DESTDIR
 
-PYTHONPATH=$scriptDir:$PYTHONPATH
-export PYTHONPATH
+# To-do: remove path from code; put params into benchmarking code.
+scriptDir="/Users/jcrossle/benchmark/CASA-Guides-Script-Extractor/dist"
 
 benchmark=$scriptDir/benchmark.sh
 
 echo "--> Kicking off NGC3256 test"
-$benchmark $1 $scriptDir/NGC3256Band3.sh
+$benchmark $@ $scriptDir/NGC3256Band3.sh
 
 echo "--> Kicking off TWHydra test"
-$benchmark $1 $scriptDir/TWHyaBand7.sh
+$benchmark $@ $scriptDir/TWHyaBand7.sh
 
 echo "--> Kicking off Antennae test"
-$benchmark $1 $scriptDir/AntennaeBand7.sh
+$benchmark $@ $scriptDir/AntennaeBand7.sh
 
 # # Runs under CASA 3.3
 # echo "--> Kicking off M100 test"
@@ -61,3 +58,5 @@ $benchmark $1 $scriptDir/AntennaeBand7.sh
 # # Does not yet work with script extractor!
 # echo "--> Kicking off IRAS16239 test"
 # $benchmark $1 $scriptDir/IRAS16293Band9.sh
+
+cd $STARTDIR
