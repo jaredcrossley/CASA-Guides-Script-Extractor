@@ -33,7 +33,8 @@ ssh gauss report.py -e ${csv} /export/data_2/jcrossle/benchmark/$pattern > $outp
 ssh boromir report.py -e ${csv} /export/raid0/jcrossle/benchmark/$pattern >> $output
 ssh gluttony report.py -e ${csv} /export/raid5/jcrossle/benchmark/$pattern >> $output
 ssh multivac08 report.py -e ${csv} /lustre/naasc/jcrossle/benchmark/$pattern >> $output
-ssh nihal report.py -e ${csv} /users/jcrossle/casa/benchmark/beefy/$pattern >> $output
+ssh beefy report.py -e ${csv} /users/jcrossle/casa/benchmark/beefy/$pattern >> $output
+ssh kwaltz report.py -e ${csv} /Users/jcrossle/benchmark/work/$pattern >> $output
 # ssh antares $linuxReport /export/data_1/jcrossle/benchmark/$pattern >> $output
 # ssh arkleseizure $macReport /Users/jcrossle/NRAO/casa/benchmark_work/$pattern >> $output
 
