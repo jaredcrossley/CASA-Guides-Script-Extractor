@@ -43,8 +43,7 @@ function casaGuidesTest ()
     # Set name for log file
     local logName="../$scriptName.log"
     # Begin test
-    execCommand="$env $time casapy -r 4.0.0 --nologger --nogui -c $scriptName >> $logName 2>> $logName"
-    printCommand="casapy -r 4.0.0 --nologger --nogui -c $scriptName"
+    execCommand="$env $time casapy -r $casapyVersion --nologger --nogui -c $scriptName >> $logName 2>> $logName"
     echo prepOnly = $prepOnly
     if [ ! "$prepOnly" ]
     then
@@ -56,7 +55,7 @@ function casaGuidesTest ()
         echo "Finished test of $scriptName"
     else
         echo Manually start test with command:
-        echo $printCommand
+        echo $execCommand
     fi
 }
 
@@ -104,7 +103,8 @@ function extractionTest ()
 # Handle command line options
 useURL=
 useCWD=
-while getopts 'udxhp' OPTION
+casapyVersion=4.0.0 # default casapy version
+while getopts 'udxhpr:' OPTION
 do
     case $OPTION in
     u)  useURL=1 # Get data by HTTP; else filesystem
@@ -115,13 +115,20 @@ do
         ;;
     p)  prepOnly=1 # Prep the data for benchmark testing, but do not start test
         ;;
-    ?|h)  printf "Usage: %s [-u] [-c] [-p] parameters\n" $(basename $0) >&2
-        echo "  parameters = path to file containing test parameters" >&2
+    r)  casapyVersion="$OPTARG"
+        ;;
+    ?|h)  printf "Usage: %s [-u] [-c] [-p] [-r version] CASAGuideName\n" $(basename $0) >&2
+        echo "  CASAGuideName = Name of CASA Guide from list below" >&2
         echo "  -u = get data by HTTP rather than filesystem" >&2
         echo "  -x = use extracted data; do not download; do not extract" >&2
         echo "  -d = do not download; use tarball in current directory" >&2
         echo "  -p = prepare the data only; do not run test" >&2
+        echo "  -r VERSION = use specific casapy VERSION" >&2
         echo "  -h = print usage instructions and exit" >&2
+        echo "" >&2
+        echo "  Available CASA Guide Names:" >&2
+        echo "  NGC3256Band3     TWHydraBand7     AntennaeBand7     (CASA 4.0)" >&2
+        echo "  NGC3256Band3_34  TWHydraBand7_34  AntennaeBand7_34  (CASA 3.4)" >&2
         exit 2
         ;;
     esac
@@ -133,17 +140,21 @@ if [ $# -ne 1 ]
 then
     echo "Improper number of arguments." >&2
     exit 1
-else
-    parameters=$1
 fi
+paramSet=$1
 
-# Read the parameter file. Which should contain these variables with string 
-# values:
-# calibrationURL = URL or path to calibration CASA guide or Python script
-# imagingURL = URL or path to imaging CASA guide or Python script
-# dataURL = URL to test data (used with -u option)
-# dataPath = path to data on filesystem 
-source $parameters
+# Source the parameter set file.
+source parameters.sh
+
+# Set parameters specified on the command line by calling the function of the
+# same name. Exit if the function does not exist.
+if type $paramSet > /dev/null
+then
+    $paramSet
+else
+    echo "Parameter set does not exist: $paramSet"
+    exit 1
+fi
 
 # Extract data
 if [ ! "$useCWD" ]
