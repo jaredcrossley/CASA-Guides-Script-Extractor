@@ -1,10 +1,8 @@
 SCRIPTS = benchmark.sh doom.sh report.sh appendSummary_mac.sh parameters.sh \
     setup.sh
 PYTHON = extractCASAscript.py casa_call.py readcol.py report.py
-PARAMS = NGC3256Band3.sh TWHyaBand7.sh AntennaeBand7.sh IRAS16293Band9.sh \
-    SgrABand6.sh M100Band3.sh 2011.0.00367.S.sh
 DOCS = README
-ALLFILES = $(SCRIPTS) $(PYTHON) $(PARAMS) $(DOCS)
+ALLFILES = $(SCRIPTS) $(PYTHON) $(DOCS)
 
 all: dist
 
