@@ -30,13 +30,15 @@ from a CASA guide web page or casapy script type
  
 where URLPATH is the URL of the CASA guide or the path to the casapy script.
 
-A bash script, benchmark.sh, and parameter files are included to automate
+Two bash scripts, benchmark.sh and parameters.sh, are included to automate
 Python extraction and benchmark test execution for several ALMA data sets.  See
-file descriptions below for details. A master script, doom.sh, invokes all
-benchmarking scripts sequentially.  Report generation scripts produce a nice,
-neat table showing the benchmark timing data for all tests.  report.py collects
-test data on a give machine; report.sh compiles report.py output from multiple
-machines. report.sh should be setup to call the machines you are testing.
+file descriptions below for details. Use 'benchmark -h' to see a list of
+keywords for starting a benchmark test on specific CASA Guides.  A master
+script, doom.sh, invokes all benchmarking scripts sequentially.  Report
+generation scripts produce a nice, neat table showing the benchmark timing data
+for all tests.  report.py collects test data on a give machine; report.sh
+compiles report.py output from multiple machines. report.sh should be setup to
+call the machines you are testing.
 
 Under ideal conditions a benchmarking cycle will involve only these commands:
 
@@ -45,7 +47,10 @@ Under ideal conditions a benchmarking cycle will involve only these commands:
 
 To run a single benchmark test:
 
-  $ ./benchmark.sh NGC3256Band3.sh
+  $ ./benchmark.sh NGC3256Band3
+
+Here, NGC3256Band3 is a specific key word used to start the lasted version of
+the NGC3256 Band 3 CASA Guide.
 
 To collect benchmarking results for all machines tested, setup report.sh and
 run it.
@@ -106,24 +111,11 @@ benchmark.sh
   benchmarking data extraction; the other for benchmarking the execution of the
   casaguide.  (Yes, I am benchmarking the benchmark test!)
  
-AntennaeBand7.sh, NGC3256Band3.sh, TWHydraBand7.sh, M100Band3.sh,
-SgrABand6.sh,  2011.0.00367.S.sh, IRAS16293Band9.sh
+parameters.sh
 
-  Input parameter files for benchmark.sh.  These files are simple bash scripts
-  that are invoked to set parameters for the respective data sets.  Only the
-  first 4 scripts in the table below are CASA 4.0 compliant.
-
-  -----------------  ------------------------------------
-  Script name        Description
-  -----------------  ------------------------------------
-  AntennaeBand7.sh   Antennae CASA Guide
-  NGC3256Band3.sh    NGC3256 CASA Guide
-  TWHydraBand7.sh    TW Hydra CASA Guide
-  IRAS16293Band9.sh  IRAS16293 CASA Guide (needs testing)
-  M100Band3.sh       M100 SV Data
-  SgrABand6.sh       SgrA SV Data
-  2011.0.00367.S.sh  2011.0.00367.S Data
-  -----------------  ------------------------------------
+  Contains input parameters for benchmark testing various CASA Guides.  See
+  'benchmark -h' output for a list of CASA Guide names that have been tested.
+  Other input parameter sets exist but have not been tested.
 
 doom.sh
 
