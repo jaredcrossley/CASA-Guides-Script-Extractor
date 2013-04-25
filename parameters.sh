@@ -1,5 +1,14 @@
 # CASA Guide parameters
 
+# Benchmark test parameters for 2011.0.00099.S; casa 4.0
+function 2011_0_00099_S ()
+{
+    calibrationURL='/lustre/naasc/jcrossle/benchmark/scripts/2011.0.00099.S_calibration_casa4p0.py'
+    imagingURL='/lustre/naasc/jcrossle/benchmark/scripts/2011.0.00099.S_imaging_casa4p0.py'
+    # dataURL THIS DATA IS NOT ON THE SCIENCE PORTAL
+    dataPath='/lustre/naasc/jcrossle/benchmark/data/2011.0.00099.S/2011.0.00099.S.tgz'
+}
+
 # Benchmark test parameters for NGC3256 Band 3; casa 4.0
 function NGC3256Band3 ()
 {

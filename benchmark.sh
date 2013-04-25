@@ -129,6 +129,9 @@ do
         echo "  Available CASA Guide Names:" >&2
         echo "  NGC3256Band3     TWHydraBand7     AntennaeBand7     (CASA 4.0)" >&2
         echo "  NGC3256Band3_34  TWHydraBand7_34  AntennaeBand7_34  (CASA 3.4)" >&2
+        echo "" >&2
+        echo "  Scripts for internal testing:" >&2
+        echo "  2011_0_00099_S                                      (CASA 4.0)" >&2
         exit 2
         ;;
     esac
