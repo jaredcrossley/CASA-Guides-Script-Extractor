@@ -103,7 +103,7 @@ function extractionTest ()
 # Handle command line options
 useURL=
 useCWD=
-casapyVersion=4.0.0 # default casapy version
+casapyVersion=4.1.0 # default casapy version
 while getopts 'udxhpr:' OPTION
 do
     case $OPTION in
@@ -127,6 +127,7 @@ do
         echo "  -h = print usage instructions and exit" >&2
         echo "" >&2
         echo "  Available CASA Guide Names:" >&2
+        echo "  NGC3256Band3_41  TWHydraBand7_41  AntennaeBand7_41  (CASA 4.1)" >&2
         echo "  NGC3256Band3     TWHydraBand7     AntennaeBand7     (CASA 4.0)" >&2
         echo "  NGC3256Band3_34  TWHydraBand7_34  AntennaeBand7_34  (CASA 3.4)" >&2
         echo "" >&2

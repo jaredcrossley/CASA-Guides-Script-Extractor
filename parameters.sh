@@ -9,6 +9,15 @@ function 2011_0_00099_S ()
     dataPath='/lustre/naasc/jcrossle/benchmark/data/2011.0.00099.S/2011.0.00099.S.tgz'
 }
 
+# Benchmark test parameters for NGC3256 Band 3; casa 4.1
+function NGC3256Band3_41 ()
+{
+    calibrationURL='http://casaguides.nrao.edu/index.php?title=NGC3256_Band3_Calibration_for_CASA_4.1'
+    imagingURL='http://casaguides.nrao.edu/index.php?title=NGC3256_Band3_Imaging_for_CASA_4.1'
+    dataURL='https://almascience.nrao.edu/almadata/sciver/NGC3256/NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'
+    dataPath='/lustre/naasc/SV/NGC3256/NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'
+}
+
 # Benchmark test parameters for NGC3256 Band 3; casa 4.0
 function NGC3256Band3 ()
 {
@@ -27,6 +36,15 @@ function NGC3256Band3_34 ()
     dataPath='/lustre/naasc/SV/NGC3256/NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'
 }
 
+# Benchmark test parameters for TWHydra Band 7; casa 4.1
+function TWHydraBand7_41 ()
+{
+    calibrationURL='http://casaguides.nrao.edu/index.php?title=TWHydraBand7_Calibration_4.1'
+    imagingURL='http://casaguides.nrao.edu/index.php?title=TWHydraBand7_Imaging_4.1'
+    dataURL='https://almascience.nrao.edu/almadata/sciver/TWHya/TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'
+    dataPath='/lustre/naasc/SV/TWHya/TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'
+}
+
 # Benchmark test parameters for TWHydra Band 7; casa 4.0
 function TWHydraBand7 ()
 {
@@ -43,6 +61,15 @@ function TWHydraBand7_34 ()
     imagingURL='http://casaguides.nrao.edu/index.php?title=TWHydraBand7_Imaging_3.4'
     dataURL='https://almascience.nrao.edu/almadata/sciver/TWHya/TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'
     dataPath='/lustre/naasc/SV/TWHya/TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'
+}
+
+# Benchmark test parameters for Antennae Band 7; casa 4.1
+function AntennaeBand7_41 ()
+{
+    calibrationURL='http://casaguides.nrao.edu/index.php?title=AntennaeBand7_Calibration_4.1'
+    imagingURL='http://casaguides.nrao.edu/index.php?title=AntennaeBand7_Imaging_4.1'
+    dataURL='https://almascience.nrao.edu/almadata/sciver/AntennaeBand7/Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz'
+    dataPath='/lustre/naasc/SV/AntennaeBand7/Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz'
 }
 
 # Benchmark test parameters for Antennae Band 7; casa 4.0

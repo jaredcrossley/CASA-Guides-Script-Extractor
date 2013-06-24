@@ -5,13 +5,16 @@
 # one script to rule them all... 
 
 echo "--> Kicking off NGC3256 test"
-benchmark.sh $@ NGC3256Band3
+benchmark.sh $@ NGC3256Band3_41
 
 echo "--> Kicking off TWHydra test"
-benchmark.sh $@ TWHydraBand7
+benchmark.sh $@ TWHydraBand7_41
 
 echo "--> Kicking off Antennae test"
-benchmark.sh $@ AntennaeBand7
+benchmark.sh $@ AntennaeBand7_41
+
+echo "--> Kicking off 2011_0_00099_S test"
+benchmark.sh $@ 2011_0_00099_S
 
 # # Does not yet work with script extractor!
 # echo "--> Kicking off IRAS16239 test"
