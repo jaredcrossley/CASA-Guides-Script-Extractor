@@ -525,7 +525,7 @@ def main( URL, options ):
         outFile = outFile.replace("_","") 
     else:
         print "Copying " + URL + " to CWD."
-        os.system('scp elwood:'+URL+' ./')
+        os.system('cp '+URL+' ./')
         outFile = os.path.basename(URL)
         localFile = open( outFile , 'r' )
         responseLines = localFile.read().split("\n")
