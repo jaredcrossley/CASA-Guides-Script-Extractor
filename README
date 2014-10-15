@@ -1,6 +1,17 @@
-=========================================================
-CASA Guides Script Extractor and Benchmark Test Generator
-=========================================================
+==================
+Python Translation
+==================
+Files unique to translated architecture:
+  -benchmark.py
+  
+All files included in translated architecture:
+  -benchmark.py
+  -extractCASAscript.py
+
+
+====================================================================
+[original] CASA Guides Script Extractor and Benchmark Test Generator
+====================================================================
 
 This package will extract the Python code from a CASA Guide and write it to
 disk or optionally use the Python code to create a CASA benchmark test.  The
