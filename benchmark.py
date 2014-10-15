@@ -12,6 +12,8 @@ import extractCASAscript
 # what the date and time is coming from
 #-should make the calibrationURL and imagingURL behavior reflect the fact that
 # extractCASAscript.py can take local Python files there too
+#-I should make all the multi-line print statements indented after method name
+# is printed
 
 class benchmark:
     '''
@@ -22,6 +24,7 @@ class benchmark:
       -extractData
       -makeExtractOpts --- this should be private, if I keep it at all
       -runScriptExtractor --- this should probably be split into cal and imaging
+      -runGuideScript --- should also have switch for cal and imaging
     list of attributes:
       -workDir
       -calibrationURL
@@ -33,16 +36,33 @@ class benchmark:
       -previousDir
       -localTar
       -extractLog
+      -calScript
+      -calScriptLog
+      -imageScript
+      -imageScriptLog
+      -benchOutFile
+      -benchSumm
     '''
+    #I want to have a set order for the attributes being initialized, group them
+    #in some way or have a particular order that I could continue if I were to
+    #add more later on for example
     def __init__(self, workDir='./', calibrationURL='', imagingURL='', \
                  dataPath='', outFile='', skipDownload=False):
         fullFuncName = __name__ + '::__init__'
+
+        self.calScript = ''
+        self.calScriptLog = ''
+        self.imageScript = ''
+        self.imageScriptLog = ''
+        self.benchOutFile = ''
+        self.benchSumm = ''
         #initialize the working directory
         if not os.path.isdir(workDir):
             print fullFuncName + ': ' + \
                   'Working directory does not exist.'
             return
         if workDir[-1] != '/': workDir += '/'
+        self.workDir = workDir
         self.outString = ''
         self.extractLog = workDir + 'extractCASAscript.py.log'
         #check we were given URLs to the calibration and image guides
@@ -147,11 +167,13 @@ class benchmark:
         parser.add_option('-p', '--plotmsoff', action="store_true")
         parser.add_option('-d', '--diagplotoff', action="store_true")
         (options, args) = parser.parse_args()
+        options.benchmark = True
         return options
 
     def runScriptExtractor(self):
         fullFuncName = __name__ + '::runScriptExtractor'
 
+        #do the script extraction
         print fullFuncName + ':' + \
               'Extracting CASA Guide.\nLogging to ' + self.extractLog
         stdOut = sys.stdout
@@ -164,4 +186,64 @@ class benchmark:
         sys.stdout.close()
         sys.stdout = stdOut
         sys.stderr = stdErr
-        
+
+        #store the script name(s) in the object
+        scripts = list()
+        f = open(self.extractLog, 'r')
+        for line in f:
+            if 'New file' in line:
+                scripts.append(line.split(' ')[2])
+        f.close()
+        if 'Calibration' in  scripts[0]:
+            self.calScript = self.workDir + scripts[0]
+            self.imageScript = self.workDir + scripts[1]
+        else:
+            self.calScript = self.workDir + scripts[1]
+            self.imageScript = self.workDir + scripts[0]
+
+        #store the log name(s) in the object
+        self.calScriptLog = self.calScript + '.log'
+        self.imageScriptLog = self.imageScript + '.log'
+        self.benchOutFile = self.calScript[:-3] + '.benchmark.txt'
+        self.benchSumm = self.benchOutFile + '.summary'
+
+    def runGuideScript(self):
+        fullFuncName = __name__ + '::runGuideScript'
+
+        #run calibration script
+        print fullFuncName + ':' + \
+              'Beginning benchmark test of ' + self.calScript + '.\n' + \
+              'Logging to ' + self.calScriptLog
+        stdOut = sys.stdout
+        stdErr = sys.stderr
+        sys.stdout = open(self.calScriptLog, 'w')
+        sys.stderr = sys.stdout
+        execfile(self.calScript)
+        sys.stdout.close()
+        f1 = open('../' + self.benchSumm.split('/')[-1], 'a')
+        f2 = open(self.benchSumm, 'r')
+        f1.write('\n')
+        f1.write(f2.read())
+        f1.close()
+        f2.close()
+        print fullFuncName + ':' + \
+              'Finished test of ' + self.calScript
+
+        #run imaging script
+        print fullFuncName + ':' + \
+              'Beginning benchmark test of ' + self.imageScript + '.\n' + \
+              'Logging to ' + self.imageScriptLog
+        sys.stdout = open(self.imageScriptLog, 'w')
+        sys.stderr = sys.stdout
+        execfile(self.imageScript)
+        sys.stdout.close()
+        f1 = open('../' + self.benchSumm.split('/')[-1], 'a')
+        f2 = open(self.benchSumm, 'r')
+        f1.write('\n')
+        f1.write(f2.read())
+        f1.close()
+        f2.close()
+        print fullFuncName + ':' + \
+              'Finished test of ' + self.imageScript
+        sys.stdout = stdOut
+        sys.stderr = stdErr
