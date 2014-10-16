@@ -4,6 +4,8 @@ import sys
 import shutil
 import time
 from optparse import OptionParser
+import socket
+import tarfile
 
 #import non-standard library Python modules
 import extractCASAscript
@@ -14,17 +16,22 @@ import extractCASAscript
 # extractCASAscript.py can take local Python files there too
 #-I should make all the multi-line print statements indented after method name
 # is printed
+#-I need to get the correct behavior when something doesn't exist etc. instead
+# of just returning
+#-all methods should probably return something
 
 class benchmark:
     '''
     list of methods:
       -__init__
+      -createDirTree
       -removePreviousRun
       -downloadData
       -extractData
       -makeExtractOpts --- this should be private, if I keep it at all
       -runScriptExtractor --- this should probably be split into cal and imaging
       -runGuideScript --- should also have switch for cal and imaging
+      -writeOutFile
     list of attributes:
       -workDir
       -calibrationURL
@@ -40,8 +47,15 @@ class benchmark:
       -calScriptLog
       -imageScript
       -imageScriptLog
-      -benchOutFile
-      -benchSumm
+      -calBenchOutFile
+      -imageBenchOutFile
+      -calBenchSumm
+      -imageBenchSumm
+      -currentWorkDir
+      -currentLogDir
+      -currentTarDir
+      -currentRedDir
+      -allLogDir
     '''
     #I want to have a set order for the attributes being initialized, group them
     #in some way or have a particular order that I could continue if I were to
@@ -54,17 +68,27 @@ class benchmark:
         self.calScriptLog = ''
         self.imageScript = ''
         self.imageScriptLog = ''
-        self.benchOutFile = ''
-        self.benchSumm = ''
+        self.calBenchOutFile = ''
+        self.imageBenchOutFile = ''
+        self.calBenchSumm = ''
+        self.imageBenchSumm = ''
         #initialize the working directory
         if not os.path.isdir(workDir):
             print fullFuncName + ': ' + \
                   'Working directory does not exist.'
             return
+        if workDir = './': workDir = os.getcwd()
         if workDir[-1] != '/': workDir += '/'
         self.workDir = workDir
+        self.currentWorkDir = self.workDir + '/' + \
+                              time.strftime('%Y_%m_%dT%H_%M_%S') + '-' + \
+                              socket.gethostname() + '/'
+        self.currentLogDir = self.currentWorkDir + 'log_files/'
+        self.currentTarDir = self.currentWorkDir + 'tarballs/'
+        self.currentRedDir = ''
+        self.allLogDir = self.workDir + 'all_logs/'
         self.outString = ''
-        self.extractLog = workDir + 'extractCASAscript.py.log'
+        self.extractLog = self.currentLogDir + 'extractCASAscript.py.log'
         #check we were given URLs to the calibration and image guides
         if calibrationURL == '':
             print fullFuncName + ': ' + \
@@ -91,7 +115,7 @@ class benchmark:
                   'A file must be specified for the output of the script.'
             return
         else:
-            self.outFile = outFile
+            self.outFile = self.currentLogDir + outFile
         self.skipDownload = skipDownload
         #check that the tarball does exist if not downloading it
         if self.skipDownload == True:
@@ -119,12 +143,35 @@ class benchmark:
             self.previousDir = os.path.abspath(prevDir)
         else:
             self.previousDir = ''
+
+    def createDirTree(self):
+        fullFuncName = __name__ + '::createDirTree'
+
+        #check if directories already exist
+        if os.path.isdir(self.currentWorkDir) or \
+           os.path.isdir(self.currentLogDir) or \
+           os.path.isdir(self.currentTarDir):
+            print fullFuncName + ': ' + \
+                  'Current benchmark directories already exist.'
+            return
+
+        #make directories specific to a benchmark instance
+        os.mkdir(self.currentWorkDir)
+        os.mkdir(self.currentLogDir)
+        if not self.skipDownload:
+            os.mkdir(self.currentTarDir)
+
+        #check if all_logs needs to be made
+        if not os.path.isdir(self.allLogDir):
+            os.mkdir(self.allLogDir)
+
     def removePreviousRun(self):
         fullFuncName = __name__ + '::removePreviousRun'
 
         print fullFuncName + ': ' + \
               'Removing preexisting data.'
         shutil.rmtree(self.previousDir)
+
     def downloadData(self):
         fullFuncName = __name__ + '::downloadData'
 
@@ -134,11 +181,12 @@ class benchmark:
         self.outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
         procT = time.clock()
         wallT = time.time()
-        os.system('wget -q --no-check-certificate ' + self.dataPath)
+        os.system('wget -q --no-check-certificate --directory-prefix=' + \
+                  self.currentTarDir + ' ' + self.dataPath)
         wallT = round(time.time() - wallT, 2)
         procT = round(time.clock() - procT, 2)
         self.outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n'
-        self.localTar = os.getcwd() + '/' + self.dataPath.split('/')[-1]
+        self.localTar = self.currentTarDir+ self.dataPath.split('/')[-1]
 
     def extractData(self):
         fullFuncName = __name__ + '::extractData'
@@ -149,12 +197,18 @@ class benchmark:
         self.outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
         procT = time.clock()
         wallT = time.time()
-        os.system('tar -x -z -f ' + self.localTar)
+        tar = tarfile.open(self.localTar)
+        tar.extractall(path=self.currentWorkDir)
+        tar.close()
         wallT = round(time.time() - wallT, 2)
         procT = round(time.clock() - procT, 2)
         self.outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n'
+        self.currentRedDir = self.currentWorkDir + \
+                             os.path.basename(self.localTar)[:-4] + '/'
 
     def makeExtractOpts(self):
+        fullFuncName = __name__ + '::makeExtractOpts'
+        
         usage = \
             """ %prog [options] URL
                 *URL* should point to a CASA Guide webpage or to a Python
@@ -173,6 +227,10 @@ class benchmark:
     def runScriptExtractor(self):
         fullFuncName = __name__ + '::runScriptExtractor'
 
+        #remember where we were and change to reduction directory
+        oldPWD = os.getcwd()
+        os.chdir(self.currentRedDir)
+
         #do the script extraction
         print fullFuncName + ':' + \
               'Extracting CASA Guide.\nLogging to ' + self.extractLog
@@ -187,6 +245,9 @@ class benchmark:
         sys.stdout = stdOut
         sys.stderr = stdErr
 
+        #change directory back to wherever we started from
+        os.chdir(oldPWD)
+
         #store the script name(s) in the object
         scripts = list()
         f = open(self.extractLog, 'r')
@@ -195,20 +256,26 @@ class benchmark:
                 scripts.append(line.split(' ')[2])
         f.close()
         if 'Calibration' in  scripts[0]:
-            self.calScript = self.workDir + scripts[0]
-            self.imageScript = self.workDir + scripts[1]
+            self.calScript = self.currentRedDir + scripts[0]
+            self.imageScript = self.currentRedDir + scripts[1]
         else:
-            self.calScript = self.workDir + scripts[1]
-            self.imageScript = self.workDir + scripts[0]
+            self.calScript = self.currentRedDir + scripts[1]
+            self.imageScript = self.currentRedDir + scripts[0]
 
         #store the log name(s) in the object
         self.calScriptLog = self.calScript + '.log'
         self.imageScriptLog = self.imageScript + '.log'
-        self.benchOutFile = self.calScript[:-3] + '.benchmark.txt'
-        self.benchSumm = self.benchOutFile + '.summary'
+        self.calBenchOutFile = self.calScript[:-3] + '.benchmark.txt'
+        self.imageBenchOutFile = self.imageScript[:-3] + '.benchmark.txt'
+        self.calBenchSumm = self.calBenchOutFile + '.summary'
+        self.imageBenchSumm = self.imageBenchOutFile + '.summary'
 
     def runGuideScript(self):
         fullFuncName = __name__ + '::runGuideScript'
+
+        #remember where we were and change to reduction directory
+        oldPWD = os.getcwd()
+        os.chdir(self.currentRedDir)
 
         #run calibration script
         print fullFuncName + ':' + \
@@ -220,12 +287,14 @@ class benchmark:
         sys.stderr = sys.stdout
         execfile(self.calScript)
         sys.stdout.close()
-        f1 = open('../' + self.benchSumm.split('/')[-1], 'a')
-        f2 = open(self.benchSumm, 'r')
-        f1.write('\n')
-        f1.write(f2.read())
-        f1.close()
-        f2.close()
+        #I'm not sure what the old code was trying to do and how to fit it into
+        #the new directory structuring
+#        f1 = open('../' + self.calBenchSumm.split('/')[-1], 'a')
+#        f2 = open(self.calBenchSumm, 'r')
+#        f1.write('\n')
+#        f1.write(f2.read())
+#        f1.close()
+#        f2.close()
         print fullFuncName + ':' + \
               'Finished test of ' + self.calScript
 
@@ -237,13 +306,25 @@ class benchmark:
         sys.stderr = sys.stdout
         execfile(self.imageScript)
         sys.stdout.close()
-        f1 = open('../' + self.benchSumm.split('/')[-1], 'a')
-        f2 = open(self.benchSumm, 'r')
-        f1.write('\n')
-        f1.write(f2.read())
-        f1.close()
-        f2.close()
+        #I'm not sure what the old code was trying to do and how to fit it into
+        #the new directory structuring
+#        f1 = open('../' + self.imageBenchSumm.split('/')[-1], 'a')
+#        f2 = open(self.imageBenchSumm, 'r')
+#        f1.write('\n')
+#        f1.write(f2.read())
+#        f1.close()
+#        f2.close()
         print fullFuncName + ':' + \
               'Finished test of ' + self.imageScript
         sys.stdout = stdOut
         sys.stderr = stdErr
+
+        #change directory back to wherever we started from
+        os.chdir(oldPWD)
+
+    def writeOutFile(self):
+        fullFuncName = __name__ + '::writeOutFile'
+        
+        f = open(self.outFile, 'w')
+        f.write(self.outString)
+        f.close()
