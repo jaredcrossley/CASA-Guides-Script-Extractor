@@ -7,6 +7,27 @@ from optparse import OptionParser
 import socket
 import tarfile
 
+#import CASA modules
+from taskinit import *
+import casadef
+from listobs_cli import listobs_cli as listobs
+from gencal_cli import gencal_cli as gencal
+from wvrgcal_cli import wvrgcal_cli as wvrgcal
+from flagdata_cli import flagdata_cli as flagdata
+from flagmanager_cli import flagmanager_cli as flagmanager
+from applycal_cli import applycal_cli as applycal
+from split_cli import split_cli as split
+from concat_cli import concat_cli as concat
+from fixplanets_cli import fixplanets_cli as fixplanets
+from gaincal_cli import gaincal_cli as gaincal
+from plotcal_cli import plotcal_cli as plotcal
+from bandpass_cli import bandpass_cli as bandpass
+from setjy_cli import setjy_cli as setjy
+from fluxscale_cli import fluxscale_cli as fluxscale
+from delmod_cli import delmod_cli as delmod
+from imview_cli import imview_cli as imview
+from clean_cli import clean_cli as clean
+
 #import non-standard library Python modules
 import extractCASAscript
 
@@ -19,6 +40,11 @@ import extractCASAscript
 #-I need to get the correct behavior when something doesn't exist etc. instead
 # of just returning
 #-all methods should probably return something
+#-alphabetize the CASA modules
+#-think of a way to automate importing CASA modules needed, maybe based on the
+# scripts generated or just on tasklist
+#-think about putting CASA module imports into a separate file just for
+# appearances
 
 class benchmark:
     '''
@@ -60,8 +86,8 @@ class benchmark:
     #I want to have a set order for the attributes being initialized, group them
     #in some way or have a particular order that I could continue if I were to
     #add more later on for example
-    def __init__(self, workDir='./', calibrationURL='', imagingURL='', \
-                 dataPath='', outFile='', skipDownload=False):
+    def __init__(self, scriptDir='',workDir='./', calibrationURL='', \
+                 imagingURL='', dataPath='', outFile='', skipDownload=False):
         fullFuncName = __name__ + '::__init__'
 
         self.calScript = ''
@@ -72,15 +98,24 @@ class benchmark:
         self.imageBenchOutFile = ''
         self.calBenchSumm = ''
         self.imageBenchSumm = ''
+        #add script directory to Python path if need be
+        if scriptDir == '':
+            print fullFuncName + ': ' + \
+                  'Path to benchmarking scripts must be given.'
+            return
+        else:
+            scriptDir = os.path.abspath(scriptDir) + '/'
+            if scriptDir not in sys.path:
+                sys.path.append(scriptDir)
         #initialize the working directory
         if not os.path.isdir(workDir):
             print fullFuncName + ': ' + \
                   'Working directory does not exist.'
             return
-        if workDir = './': workDir = os.getcwd()
+        if workDir == './': workDir = os.getcwd()
         if workDir[-1] != '/': workDir += '/'
         self.workDir = workDir
-        self.currentWorkDir = self.workDir + '/' + \
+        self.currentWorkDir = self.workDir + \
                               time.strftime('%Y_%m_%dT%H_%M_%S') + '-' + \
                               socket.gethostname() + '/'
         self.currentLogDir = self.currentWorkDir + 'log_files/'
@@ -92,7 +127,7 @@ class benchmark:
         #check we were given URLs to the calibration and image guides
         if calibrationURL == '':
             print fullFuncName + ': ' + \
-                'URL to calibration CASA guide must be given.'
+                  'URL to calibration CASA guide must be given.'
             return
         else:
             self.calibrationURL = calibrationURL
@@ -175,26 +210,34 @@ class benchmark:
     def downloadData(self):
         fullFuncName = __name__ + '::downloadData'
 
+        command = 'wget -q --no-check-certificate --directory-prefix=' + \
+                  self.currentTarDir + ' ' + self.dataPath
+
         #wget the data
         print fullFuncName + ': ' + \
               'Acquiring data by HTTP.\nLogging to', self.outFile + '.'
         self.outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
+        self.outString += 'Timing command:\n' + command + '\n'
         procT = time.clock()
         wallT = time.time()
-        os.system('wget -q --no-check-certificate --directory-prefix=' + \
-                  self.currentTarDir + ' ' + self.dataPath)
+        os.system(command)
         wallT = round(time.time() - wallT, 2)
         procT = round(time.clock() - procT, 2)
-        self.outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n'
+        self.outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
         self.localTar = self.currentTarDir+ self.dataPath.split('/')[-1]
 
     def extractData(self):
         fullFuncName = __name__ + '::extractData'
 
+        command = "tar = tarfile.open('" + self.localTar + \
+                  "')\ntar.extractall(path='" + self.currentWorkDir + \
+                  "')\ntar.close()"
+
         #untar the raw data
         print fullFuncName + ': ' + \
-              'Extracting data.\nLogging to ', self.outFile + '.'
+              'Extracting data.\nLogging to', self.outFile + '.'
         self.outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
+        self.outString += 'Timing command:\n' + command + '\n'
         procT = time.clock()
         wallT = time.time()
         tar = tarfile.open(self.localTar)
@@ -202,7 +245,7 @@ class benchmark:
         tar.close()
         wallT = round(time.time() - wallT, 2)
         procT = round(time.clock() - procT, 2)
-        self.outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n'
+        self.outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
         self.currentRedDir = self.currentWorkDir + \
                              os.path.basename(self.localTar)[:-4] + '/'
 
