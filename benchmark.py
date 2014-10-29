@@ -59,6 +59,7 @@ class benchmark:
       -runGuideScript --- should also have switch for cal and imaging
       -writeOutFile
     list of attributes:
+      -CASAglobals
       -workDir
       -calibrationURL
       -imagingURL
@@ -86,9 +87,21 @@ class benchmark:
     #I want to have a set order for the attributes being initialized, group them
     #in some way or have a particular order that I could continue if I were to
     #add more later on for example
-    def __init__(self, scriptDir='',workDir='./', calibrationURL='', \
-                 imagingURL='', dataPath='', outFile='', skipDownload=False):
+    def __init__(self, CASAglobals=None, scriptDir='',workDir='./', \
+                 calibrationURL='', imagingURL='', dataPath='', outFile='', \
+                 skipDownload=False):
         fullFuncName = __name__ + '::__init__'
+
+        #check that we have CASA globals
+        if not CASAglobals:
+            raise ValueError('Returned value from globals function in ' + \
+                             'CASA environment must be given.')
+#            print fullFuncName + ': ' + \
+#                  'Returned value from globals function in CASA environment' + \
+#                  ' must be given.'
+#            return
+        else:
+            self.CASAglobals = CASAglobals
 
         self.calScript = ''
         self.calScriptLog = ''
@@ -284,9 +297,10 @@ class benchmark:
         extractCASAscript.main(self.calibrationURL, self.makeExtractOpts())
         print '---'
         extractCASAscript.main(self.imagingURL, self.makeExtractOpts())
-        sys.stdout.close()
-        sys.stdout = stdOut
-        sys.stderr = stdErr
+        stdOut, sys.stdout = sys.stdout, stdOut
+        stdOut.close()
+        stdErr, sys.stderr = sys.stderr, stdErr
+        stdErr.close
 
         #change directory back to wherever we started from
         os.chdir(oldPWD)
@@ -328,8 +342,10 @@ class benchmark:
         stdErr = sys.stderr
         sys.stdout = open(self.calScriptLog, 'w')
         sys.stderr = sys.stdout
-        execfile(self.calScript)
-        sys.stdout.close()
+        execfile(self.calScript, self.CASAglobals)
+        closeFile = sys.stdout
+        sys.stdout = stdOut
+        closeFile.close()
         #I'm not sure what the old code was trying to do and how to fit it into
         #the new directory structuring
 #        f1 = open('../' + self.calBenchSumm.split('/')[-1], 'a')
@@ -347,8 +363,11 @@ class benchmark:
               'Logging to ' + self.imageScriptLog
         sys.stdout = open(self.imageScriptLog, 'w')
         sys.stderr = sys.stdout
-        execfile(self.imageScript)
-        sys.stdout.close()
+        execfile(self.imageScript, self.CASAglobals)
+        closeFile = sys.stdout
+        sys.stdout = stdOut
+        sys.stderr = stdErr
+        closeFile.close()
         #I'm not sure what the old code was trying to do and how to fit it into
         #the new directory structuring
 #        f1 = open('../' + self.imageBenchSumm.split('/')[-1], 'a')
@@ -359,8 +378,6 @@ class benchmark:
 #        f2.close()
         print fullFuncName + ':' + \
               'Finished test of ' + self.imageScript
-        sys.stdout = stdOut
-        sys.stderr = stdErr
 
         #change directory back to wherever we started from
         os.chdir(oldPWD)
