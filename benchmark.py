@@ -7,28 +7,7 @@ from optparse import OptionParser
 import socket
 import tarfile
 
-#import CASA modules
-from taskinit import *
-import casadef
-from listobs_cli import listobs_cli as listobs
-from gencal_cli import gencal_cli as gencal
-from wvrgcal_cli import wvrgcal_cli as wvrgcal
-from flagdata_cli import flagdata_cli as flagdata
-from flagmanager_cli import flagmanager_cli as flagmanager
-from applycal_cli import applycal_cli as applycal
-from split_cli import split_cli as split
-from concat_cli import concat_cli as concat
-from fixplanets_cli import fixplanets_cli as fixplanets
-from gaincal_cli import gaincal_cli as gaincal
-from plotcal_cli import plotcal_cli as plotcal
-from bandpass_cli import bandpass_cli as bandpass
-from setjy_cli import setjy_cli as setjy
-from fluxscale_cli import fluxscale_cli as fluxscale
-from delmod_cli import delmod_cli as delmod
-from imview_cli import imview_cli as imview
-from clean_cli import clean_cli as clean
-
-#import non-standard library Python modules
+#import non-standard Python modules
 import extractCASAscript
 
 #-I want to make the "logging to file" thing actually say in the output file
@@ -47,43 +26,139 @@ import extractCASAscript
 # appearances
 
 class benchmark:
-    '''
-    list of methods:
-      -__init__
-      -createDirTree
-      -removePreviousRun
-      -downloadData
-      -extractData
-      -makeExtractOpts --- this should be private, if I keep it at all
-      -runScriptExtractor --- this should probably be split into cal and imaging
-      -runGuideScript --- should also have switch for cal and imaging
-      -writeOutFile
-    list of attributes:
-      -CASAglobals
-      -workDir
-      -calibrationURL
-      -imagingURL
-      -outString
-      -dataPath
-      -outFile
-      -skipDownload
-      -previousDir
-      -localTar
-      -extractLog
-      -calScript
-      -calScriptLog
-      -imageScript
-      -imageScriptLog
-      -calBenchOutFile
-      -imageBenchOutFile
-      -calBenchSumm
-      -imageBenchSumm
-      -currentWorkDir
-      -currentLogDir
-      -currentTarDir
-      -currentRedDir
-      -allLogDir
-    '''
+    """A class for the execution of a single CASA guide
+    on a single machine for benchmark testing and timing.
+
+    Attributes
+    ----------
+
+    CASAglobals : dict
+        Dictionary returned by Python globals() function within the CASA
+        namespace (environment). Simply pass the return value of the globals()
+        function from within CASA where this class should be instantiated
+        within.
+
+    workDir : str
+        Absolute path to directory where benchmarking directory structure will
+        be created, all data will be stored and processing will be done.
+
+    calibrationURL : str
+        URL to CASA guide calibration webpage.
+
+    imagingURL : str
+        URL to CASA guide imaging webpage.
+
+    outString : str
+        Container string that stores operations that do not automatically log
+        themselves. Primarily for things like acquiring and extracting the
+        data which are not wrapped up in a separate module.
+
+    dataPath : str
+        URL or absolute path to raw CASA guide data and calibration tables.
+
+    outFile : str
+        Log file for operations done outside of other wrapper modules such as
+        acquiring and extracting the raw data. This is where the outString is
+        saved at the end of execution.
+
+    skipDownload : bool
+        Switch to skip downloading the raw data from the web.
+
+    previousDir : str
+        Absolute path to directory of a previous benchmarking execution. This
+        will be the previous run workDir path.
+
+    localTar : str
+        Absolute path to raw data .tgz file associated with CASA guide.
+
+    extractLog : str
+        Absolute path to CASA guide script extractor output.
+
+    calScript : str
+        Absolute path to Python file containing the calibration portion of the
+        CASA guide being run through the benchmark.
+
+    calScriptLog : str
+        Absolute path to calibration script output.
+
+    imageScript : str
+        Absolute path to Python file containing the imaging portion of the CASA
+        guide being run through the benchmark.
+
+    imageScriptLog : str
+        Absolute path to imaging script output.
+
+    calBenchOutFile : str
+        Absolute path to the log file containing the complete record of
+        benchmarking output associated with running the calibration script.
+
+    calBenchSumm : str
+        Absolute path to the log file containing a summary of the calibration
+        benchmark timing. Includes the total benchmark runtime, total task
+        runtimes broken down by task and average task runtimes.
+
+    imageBenchSumm : str
+        Absolute path to the log file containing a summary of the imaging
+        benchmark timing. Includes the total benchmark runtime, total task
+        runtimes broken down by task and average task runtimes.
+
+    imageBenchOutFile : str
+        Absolute path to the log file containing the complete record of
+        benchmarking output associated with running the imaging script.
+
+    currentWorkDir : str
+        Absolute path to the directory associated with the current benchmark
+        instance. This includes the actual reduction, log file and raw data
+        tar file directories. It is made inside workDir and named as
+        YYYY_MMM_DDTHH_MM_SS-hostname.
+
+    currentLogDir : str
+        Absolute path to the directory containing the log files associated with
+        the current benchmark instance.
+
+    currentTarDir : str
+        Absolute path to the directory containing the raw data .tgz files
+        associated with the current benchmark instance.
+
+    currentRedDir : str
+        Absolute path to the directory where the calibration and/or imaging
+        scripts are actually executed.
+
+    allLogDir : str
+        Absolute path to the directory where the most pertinent log files
+        associated with each individual benchmark instance run within workDir
+        are stored.
+
+    Methods
+    -------
+
+    __init__
+        Initializes benchmark instance attributes.
+
+    createDirTree
+        Creates current benchmark instance directory structure.
+
+    removePreviousRun
+        Deletes directory associated with a previous benchmark instance.
+
+    downloadData
+        Uses wget to download raw data from the web.
+
+    extractData
+        Unpacks the raw data .tgz file.
+
+    makeExtractOpts (this should be private, if I keep it at all)
+        Returns OptionParser.parse_args options variable for extractCASAscript.
+
+    runScriptExtractor (this should probably be split into cal and imaging)
+        Calls extractCASAscript.main to create CASA guide Python scripts.
+
+    runGuideScript (should also have switch for cal and imaging)
+        Executes extracted CASA guide Python files.
+
+    writeOutFile
+        Writes outString to a text file.
+    """
     #I want to have a set order for the attributes being initialized, group them
     #in some way or have a particular order that I could continue if I were to
     #add more later on for example
@@ -193,6 +268,18 @@ class benchmark:
             self.previousDir = ''
 
     def createDirTree(self):
+        """ Creates the directory structure associated with this benchmark.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This creates currentWorkDir, currentLogDir, currentTarDir if the raw
+        data will be downloaded and allLogDir for workDir if it has not been
+        created already.
+        """
         fullFuncName = __name__ + '::createDirTree'
 
         #check if directories already exist
@@ -214,6 +301,18 @@ class benchmark:
             os.mkdir(self.allLogDir)
 
     def removePreviousRun(self):
+        """ Removes directory tree associated with a previous benchmark.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This deletes the directory at the path stored in previousDir. It should
+        be platform independent as it used shutil.rmtree (or at least as
+        platform independent as that method is).
+        """
         fullFuncName = __name__ + '::removePreviousRun'
 
         print fullFuncName + ': ' + \
@@ -221,6 +320,21 @@ class benchmark:
         shutil.rmtree(self.previousDir)
 
     def downloadData(self):
+        """ Downloads raw data .tgz file from the web.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This downloads the raw data .tgz file associated with the CASA guide
+        from the web (dataPath) into currentTarDir using wget. Here os.system
+        is used to execute wget so it is not perfectly platform independent
+        but should be find across Linux and Mac. The wget options used are:
+        
+          wget -q --no-check-certificate --directory-prefix=currentTarDir
+        """
         fullFuncName = __name__ + '::downloadData'
 
         command = 'wget -q --no-check-certificate --directory-prefix=' + \
@@ -240,6 +354,19 @@ class benchmark:
         self.localTar = self.currentTarDir+ self.dataPath.split('/')[-1]
 
     def extractData(self):
+        """ Unpacks the raw data .tgz file into the current benchmark directory.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This unpacks the raw data .tgz file in localTar and times the process.
+        It uses the tarfile module so it should be platform independent (or at
+        least as platform independent as this module is). The unpacked directory
+        goes into currentWorkDir.
+        """
         fullFuncName = __name__ + '::extractData'
 
         command = "tar = tarfile.open('" + self.localTar + \
@@ -263,6 +390,19 @@ class benchmark:
                              os.path.basename(self.localTar)[:-4] + '/'
 
     def makeExtractOpts(self):
+        """ Returns OptionParser.parse_args options so extractCASAscript.main can
+            be called directly.
+
+        Returns
+        -------
+        options : Options object from OptionParser.parse_args
+
+        Notes
+        -----
+        Returns an options object from OptionParser.parse_args to feed into
+        extractCASAscript.main since that script is originally intended to be
+        run from the command line.
+        """
         fullFuncName = __name__ + '::makeExtractOpts'
         
         usage = \
@@ -281,6 +421,21 @@ class benchmark:
         return options
 
     def runScriptExtractor(self):
+        """ Calls extractCASAscript.main to make the calibration and imaging
+            scripts.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This runs extractCASAscript.main to make the calibration and imaging
+        scripts from the CASA guide. Runs it on calibrationURL and imagingURL
+        and puts the extracted Python files into currentRedDir. This also
+        fills out the scripts, benchmarking and benchmark summary log file
+        paths in the benchmark object.
+        """
         fullFuncName = __name__ + '::runScriptExtractor'
 
         #remember where we were and change to reduction directory
@@ -328,6 +483,19 @@ class benchmark:
         self.imageBenchSumm = self.imageBenchOutFile + '.summary'
 
     def runGuideScript(self):
+        """ Executes the calibration and imaging CASA guide scripts.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This runs the calScript and imageScript files with execfile, passing in
+        all of the CASA global definitions. It also directs standard out and
+        standard error to calScriptLog and imageScriptLog. These are run inside
+        currentRedDir.
+        """
         fullFuncName = __name__ + '::runGuideScript'
 
         #remember where we were and change to reduction directory
@@ -383,6 +551,18 @@ class benchmark:
         os.chdir(oldPWD)
 
     def writeOutFile(self):
+        """ Writes outString to a text file.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This writes messages stored in outString to a text file with name from
+        outFile. These messages are the output from timing the raw data download
+        and unpacking.
+        """
         fullFuncName = __name__ + '::writeOutFile'
         
         f = open(self.outFile, 'w')
