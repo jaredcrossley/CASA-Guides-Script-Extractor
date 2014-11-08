@@ -14,16 +14,7 @@ import extractCASAscript
 # what the date and time is coming from
 #-should make the calibrationURL and imagingURL behavior reflect the fact that
 # extractCASAscript.py can take local Python files there too
-#-I should make all the multi-line print statements indented after method name
-# is printed
-#-I need to get the correct behavior when something doesn't exist etc. instead
-# of just returning
 #-all methods should probably return something
-#-alphabetize the CASA modules
-#-think of a way to automate importing CASA modules needed, maybe based on the
-# scripts generated or just on tasklist
-#-think about putting CASA module imports into a separate file just for
-# appearances
 
 class benchmark:
     """A class for the execution of a single CASA guide
@@ -165,16 +156,14 @@ class benchmark:
     def __init__(self, CASAglobals=None, scriptDir='',workDir='./', \
                  calibrationURL='', imagingURL='', dataPath='', outFile='', \
                  skipDownload=False):
+        #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
+        indent = len(fullFuncName)
 
         #check that we have CASA globals
         if not CASAglobals:
-            raise ValueError('Returned value from globals function in ' + \
+            raise ValueError('Value returned by globals() function in ' + \
                              'CASA environment must be given.')
-#            print fullFuncName + ': ' + \
-#                  'Returned value from globals function in CASA environment' + \
-#                  ' must be given.'
-#            return
         else:
             self.CASAglobals = CASAglobals
 
@@ -188,18 +177,14 @@ class benchmark:
         self.imageBenchSumm = ''
         #add script directory to Python path if need be
         if scriptDir == '':
-            print fullFuncName + ': ' + \
-                  'Path to benchmarking scripts must be given.'
-            return
+            raise ValueError('Path to benchmarking scripts must be given.')
         else:
             scriptDir = os.path.abspath(scriptDir) + '/'
             if scriptDir not in sys.path:
                 sys.path.append(scriptDir)
         #initialize the working directory
         if not os.path.isdir(workDir):
-            print fullFuncName + ': ' + \
-                  'Working directory does not exist.'
-            return
+            raise ValueError('Working directory does not exist.')
         if workDir == './': workDir = os.getcwd()
         if workDir[-1] != '/': workDir += '/'
         self.workDir = workDir
@@ -214,52 +199,41 @@ class benchmark:
         self.extractLog = self.currentLogDir + 'extractCASAscript.py.log'
         #check we were given URLs to the calibration and image guides
         if calibrationURL == '':
-            print fullFuncName + ': ' + \
-                  'URL to calibration CASA guide must be given.'
-            return
+            raise ValueError('URL to calibration CASA guide must be given.')
         else:
             self.calibrationURL = calibrationURL
         if imagingURL == '':
-            print fullFuncName + ': ' + \
-                'URL to imaging CASA guide must be given.'
-            return
+            raise ValueError('URL to imaging CASA guide must be given.')
         else:
             self.imagingURL = imagingURL
         #check we were given a URL or path to the data
         if dataPath == '':
-            print fullFuncName + ': ' + \
-                  'A URL or path must be given to the raw data.'
-            return
+            raise ValueError('A URL or path must be given pointing to the ' + \
+                             'raw data.')
         else:
             self.dataPath = dataPath
         #check we were given an output file
         if outFile == '':
-            print fullFuncName + ': ' + \
-                  'A file must be specified for the output of the script.'
-            return
+            raise ValueError('A file must be specified for the output ' + \
+                             'of the script.')
         else:
             self.outFile = self.currentLogDir + outFile
         self.skipDownload = skipDownload
         #check that the tarball does exist if not downloading it
         if self.skipDownload == True:
             if not os.path.isfile(self.dataPath):
-                print fullFuncName + ': ' + \
-                      'Cannot find tarball for extraction:' + \
-                      os.path.basename(self.dataPath)
-                print fullFuncName + ': ' + \
-                      'Download may be required.'
-                return
+                raise ValueError('Cannot find tarball for extraction:' + \
+                                 os.path.basename(self.dataPath) +  '. ' + \
+                                 'Download may be required.')
             else:
-                print fullFuncName + ': ' + \
-                      'Data available by filesystem.'
+                print 'Data available by filesystem.'
                 self.localTar = self.dataPath
         #check dataPath is a URL if we will be downloading data
         else:
             self.localTar = ''
             if self.dataPath[0:4] != 'http':
-                print fullFuncName + ': ' + \
-                      'A valid URL must be specified to download the data.'
-                return
+                raise ValueError('A valid URL must be specified to download ' + \
+                                 'the data.')
         #check current directory for previous run
         prevDir = self.dataPath.split('/')[-1].split('.tgz')[0]
         if os.path.isdir(prevDir):
@@ -280,14 +254,16 @@ class benchmark:
         data will be downloaded and allLogDir for workDir if it has not been
         created already.
         """
+        #for telling where printed messages originate from
         fullFuncName = __name__ + '::createDirTree'
+        indent = len(fullFuncName)
 
         #check if directories already exist
         if os.path.isdir(self.currentWorkDir) or \
            os.path.isdir(self.currentLogDir) or \
            os.path.isdir(self.currentTarDir):
-            print fullFuncName + ': ' + \
-                  'Current benchmark directories already exist.'
+            print 'Current benchmark directories already exist. Skipping ' + \
+                  'directory creation.'
             return
 
         #make directories specific to a benchmark instance
@@ -313,7 +289,9 @@ class benchmark:
         be platform independent as it used shutil.rmtree (or at least as
         platform independent as that method is).
         """
+        #for telling where printed messages originate from
         fullFuncName = __name__ + '::removePreviousRun'
+        indent = len(fullFuncName)
 
         print fullFuncName + ': ' + \
               'Removing preexisting data.'
@@ -335,7 +313,9 @@ class benchmark:
         
           wget -q --no-check-certificate --directory-prefix=currentTarDir
         """
+        #for telling where printed messages originate from
         fullFuncName = __name__ + '::downloadData'
+        indent = len(fullFuncName)
 
         command = 'wget -q --no-check-certificate --directory-prefix=' + \
                   self.currentTarDir + ' ' + self.dataPath
@@ -367,7 +347,9 @@ class benchmark:
         least as platform independent as this module is). The unpacked directory
         goes into currentWorkDir.
         """
+        #for telling where printed messages originate from
         fullFuncName = __name__ + '::extractData'
+        indent = len(fullFuncName)
 
         command = "tar = tarfile.open('" + self.localTar + \
                   "')\ntar.extractall(path='" + self.currentWorkDir + \
@@ -375,7 +357,8 @@ class benchmark:
 
         #untar the raw data
         print fullFuncName + ': ' + \
-              'Extracting data.\nLogging to', self.outFile + '.'
+              'Extracting data.\n' + ' '*indent + 'Logging to', self.outFile + \
+              '.'
         self.outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
         self.outString += 'Timing command:\n' + command + '\n'
         procT = time.clock()
@@ -403,12 +386,14 @@ class benchmark:
         extractCASAscript.main since that script is originally intended to be
         run from the command line.
         """
+        #for telling where printed messages originate from
         fullFuncName = __name__ + '::makeExtractOpts'
+        indent = len(fullFuncName)
         
         usage = \
-            """ %prog [options] URL
+            ''' %prog [options] URL
                 *URL* should point to a CASA Guide webpage or to a Python
-                script. *URL* can also be a local file system path."""
+                script. *URL* can also be a local file system path.'''
         parser = OptionParser(usage=usage)
         parser.add_option('-b', '--benchmark', action="store_true", \
                           default=False)
@@ -436,7 +421,9 @@ class benchmark:
         fills out the scripts, benchmarking and benchmark summary log file
         paths in the benchmark object.
         """
+        #for telling where printed messages originate from
         fullFuncName = __name__ + '::runScriptExtractor'
+        indent = len(fullFuncName)
 
         #remember where we were and change to reduction directory
         oldPWD = os.getcwd()
@@ -444,7 +431,8 @@ class benchmark:
 
         #do the script extraction
         print fullFuncName + ':' + \
-              'Extracting CASA Guide.\nLogging to ' + self.extractLog
+              'Extracting CASA Guide.\n' + ' '*indent + 'Logging to ' + \
+              self.extractLog
         stdOut = sys.stdout
         stdErr = sys.stderr
         sys.stdout = open(self.extractLog, 'w')
@@ -496,7 +484,9 @@ class benchmark:
         standard error to calScriptLog and imageScriptLog. These are run inside
         currentRedDir.
         """
+        #for telling where printed messages originate from
         fullFuncName = __name__ + '::runGuideScript'
+        indent = len(fullFuncName)
 
         #remember where we were and change to reduction directory
         oldPWD = os.getcwd()
@@ -505,7 +495,7 @@ class benchmark:
         #run calibration script
         print fullFuncName + ':' + \
               'Beginning benchmark test of ' + self.calScript + '.\n' + \
-              'Logging to ' + self.calScriptLog
+              ' '*indent + 'Logging to ' + self.calScriptLog + '.'
         stdOut = sys.stdout
         stdErr = sys.stderr
         sys.stdout = open(self.calScriptLog, 'w')
@@ -528,7 +518,7 @@ class benchmark:
         #run imaging script
         print fullFuncName + ':' + \
               'Beginning benchmark test of ' + self.imageScript + '.\n' + \
-              'Logging to ' + self.imageScriptLog
+              ' '*indent + 'Logging to ' + self.imageScriptLog + '.'
         sys.stdout = open(self.imageScriptLog, 'w')
         sys.stderr = sys.stdout
         execfile(self.imageScript, self.CASAglobals)
@@ -563,7 +553,9 @@ class benchmark:
         outFile. These messages are the output from timing the raw data download
         and unpacking.
         """
+        #for telling where printed messages originate from
         fullFuncName = __name__ + '::writeOutFile'
+        indent = len(fullFuncName)
         
         f = open(self.outFile, 'w')
         f.write(self.outString)
