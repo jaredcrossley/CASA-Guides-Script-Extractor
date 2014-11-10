@@ -118,7 +118,7 @@ function AntennaeBand7_34 ()
 }
 
 # Benchmark test parameters for IRA 16293 Band 9; casa 4.2
-function IRASBand9 ()
+function IRASBand9_42 ()
 {
     calibrationURL='http://casaguides.nrao.edu/index.php?title=IRAS16293_Band9_-_Calibration_for_CASA_4.2'
     imagingURL='http://casaguides.nrao.edu/index.php?title=IRAS16293_Band9_-_Imaging_for_CASA_4.2'
