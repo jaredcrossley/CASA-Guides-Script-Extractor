@@ -10,11 +10,17 @@ import tarfile
 #import non-standard Python modules
 import extractCASAscript
 
-#-I want to make the "logging to file" thing actually say in the output file
-# what the date and time is coming from
 #-should make the calibrationURL and imagingURL behavior reflect the fact that
 # extractCASAscript.py can take local Python files there too
+#  -this may require some reqorking of the object's attributes and the execution
+#   method
+#  -maybe change have a switch for __init__ that differentiates between a guide
+#   and just a Python file to be benchmarked
 #-all methods should probably return something
+#-need to deal with how to keep extractCASAscript.py current with the tasklist
+# and potentially changing parameters or functionality
+#-implement using the full function names in simple print statements (explained
+# in 2014-11-7 entry to notes
 
 class benchmark:
     """A class for the execution of a single CASA guide
@@ -55,7 +61,7 @@ class benchmark:
     skipDownload : bool
         Switch to skip downloading the raw data from the web.
 
-    previousDir : str
+    previousDir (is this needed with the directory structure I'm using?): str
         Absolute path to directory of a previous benchmarking execution. This
         will be the previous run workDir path.
 
@@ -88,14 +94,14 @@ class benchmark:
         benchmark timing. Includes the total benchmark runtime, total task
         runtimes broken down by task and average task runtimes.
 
+    imageBenchOutFile : str
+        Absolute path to the log file containing the complete record of
+        benchmarking output associated with running the imaging script.
+
     imageBenchSumm : str
         Absolute path to the log file containing a summary of the imaging
         benchmark timing. Includes the total benchmark runtime, total task
         runtimes broken down by task and average task runtimes.
-
-    imageBenchOutFile : str
-        Absolute path to the log file containing the complete record of
-        benchmarking output associated with running the imaging script.
 
     currentWorkDir : str
         Absolute path to the directory associated with the current benchmark
@@ -141,10 +147,10 @@ class benchmark:
     makeExtractOpts (this should be private, if I keep it at all)
         Returns OptionParser.parse_args options variable for extractCASAscript.
 
-    runScriptExtractor (this should probably be split into cal and imaging)
+    runScriptExtractor (this should probably be split into cal, imaging and .py)
         Calls extractCASAscript.main to create CASA guide Python scripts.
 
-    runGuideScript (should also have switch for cal and imaging)
+    runGuideScript (should also have switch for cal, imaging and .py files)
         Executes extracted CASA guide Python files.
 
     writeOutFile
@@ -153,7 +159,7 @@ class benchmark:
     #I want to have a set order for the attributes being initialized, group them
     #in some way or have a particular order that I could continue if I were to
     #add more later on for example
-    def __init__(self, CASAglobals=None, scriptDir='',workDir='./', \
+    def __init__(self, CASAglobals=None, scriptDir='', workDir='./', \
                  calibrationURL='', imagingURL='', dataPath='', outFile='', \
                  skipDownload=False):
         #for telling where printed messages originate from
@@ -167,14 +173,6 @@ class benchmark:
         else:
             self.CASAglobals = CASAglobals
 
-        self.calScript = ''
-        self.calScriptLog = ''
-        self.imageScript = ''
-        self.imageScriptLog = ''
-        self.calBenchOutFile = ''
-        self.imageBenchOutFile = ''
-        self.calBenchSumm = ''
-        self.imageBenchSumm = ''
         #add script directory to Python path if need be
         if scriptDir == '':
             raise ValueError('Path to benchmarking scripts must be given.')
@@ -182,22 +180,16 @@ class benchmark:
             scriptDir = os.path.abspath(scriptDir) + '/'
             if scriptDir not in sys.path:
                 sys.path.append(scriptDir)
+
         #initialize the working directory
         if not os.path.isdir(workDir):
-            raise ValueError('Working directory does not exist.')
+            raise ValueError("Working directory '" + workDir + "' " + \
+                             'does not exist.')
         if workDir == './': workDir = os.getcwd()
         if workDir[-1] != '/': workDir += '/'
         self.workDir = workDir
-        self.currentWorkDir = self.workDir + \
-                              time.strftime('%Y_%m_%dT%H_%M_%S') + '-' + \
-                              socket.gethostname() + '/'
-        self.currentLogDir = self.currentWorkDir + 'log_files/'
-        self.currentTarDir = self.currentWorkDir + 'tarballs/'
-        self.currentRedDir = ''
-        self.allLogDir = self.workDir + 'all_logs/'
-        self.outString = ''
-        self.extractLog = self.currentLogDir + 'extractCASAscript.py.log'
-        #check we were given URLs to the calibration and image guides
+
+        #check other necessary parameters were specified
         if calibrationURL == '':
             raise ValueError('URL to calibration CASA guide must be given.')
         else:
@@ -206,40 +198,61 @@ class benchmark:
             raise ValueError('URL to imaging CASA guide must be given.')
         else:
             self.imagingURL = imagingURL
-        #check we were given a URL or path to the data
         if dataPath == '':
             raise ValueError('A URL or path must be given pointing to the ' + \
                              'raw data.')
         else:
             self.dataPath = dataPath
-        #check we were given an output file
         if outFile == '':
             raise ValueError('A file must be specified for the output ' + \
                              'of the script.')
-        else:
-            self.outFile = self.currentLogDir + outFile
-        self.skipDownload = skipDownload
+
         #check that the tarball does exist if not downloading it
+        self.skipDownload = skipDownload
         if self.skipDownload == True:
             if not os.path.isfile(self.dataPath):
-                raise ValueError('Cannot find tarball for extraction:' + \
-                                 os.path.basename(self.dataPath) +  '. ' + \
+                raise ValueError('Cannot find local tarball for extraction ' + \
+                                 'at ' + self.dataPath + '. ' + \
                                  'Download may be required.')
             else:
                 print 'Data available by filesystem.'
                 self.localTar = self.dataPath
-        #check dataPath is a URL if we will be downloading data
+        #check dataPath is a URL if we will be downloading data instead
         else:
             self.localTar = ''
             if self.dataPath[0:4] != 'http':
-                raise ValueError('A valid URL must be specified to download ' + \
-                                 'the data.')
+                raise ValueError("'" + self.dataPath + "' is not a valid " + \
+                                 'URL for downloading the data.')
+
         #check current directory for previous run
         prevDir = self.dataPath.split('/')[-1].split('.tgz')[0]
         if os.path.isdir(prevDir):
             self.previousDir = os.path.abspath(prevDir)
         else:
             self.previousDir = ''
+
+        #initialize the current benchmark instance directories and files
+        self.currentWorkDir = self.workDir + \
+                              time.strftime('%Y_%m_%dT%H_%M_%S') + '-' + \
+                              socket.gethostname() + '/'
+        self.currentLogDir = self.currentWorkDir + 'log_files/'
+        self.outFile = self.currentLogDir + outFile
+        self.currentTarDir = self.currentWorkDir + 'tarballs/'
+        self.currentRedDir = ''
+        self.allLogDir = self.workDir + 'all_logs/'
+        self.outString = ''
+        self.extractLog = self.currentLogDir + 'extractCASAscript.py.log'
+
+        #strings that can be filled out by later methods
+        self.calScript = ''
+        self.calScriptLog = ''
+        self.imageScript = ''
+        self.imageScriptLog = ''
+        self.calBenchOutFile = ''
+        self.imageBenchOutFile = ''
+        self.calBenchSumm = ''
+        self.imageBenchSumm = ''
+
 
     def createDirTree(self):
         """ Creates the directory structure associated with this benchmark.
@@ -272,9 +285,10 @@ class benchmark:
         if not self.skipDownload:
             os.mkdir(self.currentTarDir)
 
-        #check if all_logs needs to be made
+        #check if all_logs directory needs to be made
         if not os.path.isdir(self.allLogDir):
             os.mkdir(self.allLogDir)
+
 
     def removePreviousRun(self):
         """ Removes directory tree associated with a previous benchmark.
@@ -296,6 +310,7 @@ class benchmark:
         print fullFuncName + ': ' + \
               'Removing preexisting data.'
         shutil.rmtree(self.previousDir)
+
 
     def downloadData(self):
         """ Downloads raw data .tgz file from the web.
@@ -332,6 +347,7 @@ class benchmark:
         procT = round(time.clock() - procT, 2)
         self.outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
         self.localTar = self.currentTarDir+ self.dataPath.split('/')[-1]
+
 
     def extractData(self):
         """ Unpacks the raw data .tgz file into the current benchmark directory.
@@ -372,6 +388,7 @@ class benchmark:
         self.currentRedDir = self.currentWorkDir + \
                              os.path.basename(self.localTar)[:-4] + '/'
 
+
     def makeExtractOpts(self):
         """ Returns OptionParser.parse_args options so extractCASAscript.main can
             be called directly.
@@ -404,6 +421,7 @@ class benchmark:
         (options, args) = parser.parse_args()
         options.benchmark = True
         return options
+
 
     def runScriptExtractor(self):
         """ Calls extractCASAscript.main to make the calibration and imaging
@@ -469,6 +487,7 @@ class benchmark:
         self.imageBenchOutFile = self.imageScript[:-3] + '.benchmark.txt'
         self.calBenchSumm = self.calBenchOutFile + '.summary'
         self.imageBenchSumm = self.imageBenchOutFile + '.summary'
+
 
     def runGuideScript(self):
         """ Executes the calibration and imaging CASA guide scripts.
@@ -539,6 +558,7 @@ class benchmark:
 
         #change directory back to wherever we started from
         os.chdir(oldPWD)
+
 
     def writeOutFile(self):
         """ Writes outString to a text file.
