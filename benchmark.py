@@ -19,8 +19,7 @@ import extractCASAscript
 #-all methods should probably return something
 #-need to deal with how to keep extractCASAscript.py current with the tasklist
 # and potentially changing parameters or functionality
-#-implement using the full function names in simple print statements (explained
-# in 2014-11-7 entry to notes
+#-figure out previous run stuff and about deleting them if that makes sense
 
 class benchmark:
     """A class for the execution of a single CASA guide
@@ -156,9 +155,6 @@ class benchmark:
     writeOutFile
         Writes outString to a text file.
     """
-    #I want to have a set order for the attributes being initialized, group them
-    #in some way or have a particular order that I could continue if I were to
-    #add more later on for example
     def __init__(self, CASAglobals=None, scriptDir='', workDir='./', \
                  calibrationURL='', imagingURL='', dataPath='', outFile='', \
                  skipDownload=False):
@@ -215,7 +211,7 @@ class benchmark:
                                  'at ' + self.dataPath + '. ' + \
                                  'Download may be required.')
             else:
-                print 'Data available by filesystem.'
+                print fullFuncName + ':', 'Data available by filesystem.'
                 self.localTar = self.dataPath
         #check dataPath is a URL if we will be downloading data instead
         else:
@@ -265,7 +261,11 @@ class benchmark:
         -----
         This creates currentWorkDir, currentLogDir, currentTarDir if the raw
         data will be downloaded and allLogDir for workDir if it has not been
-        created already.
+        created already. Those directories are structured as:
+            |-- currentWorkDir/
+            |   |-- currentTarDir/
+            |   |-- currentLogDir/
+            |-- allLogDir/
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::createDirTree'
@@ -275,11 +275,11 @@ class benchmark:
         if os.path.isdir(self.currentWorkDir) or \
            os.path.isdir(self.currentLogDir) or \
            os.path.isdir(self.currentTarDir):
-            print 'Current benchmark directories already exist. Skipping ' + \
-                  'directory creation.'
+            print fullFuncName + ':', 'Current benchmark directories ' + \
+                  'already exist. Skipping directory creation.'
             return
 
-        #make directories specific to a benchmark instance
+        #make directories for current benchmark instance
         os.mkdir(self.currentWorkDir)
         os.mkdir(self.currentLogDir)
         if not self.skipDownload:
@@ -307,9 +307,11 @@ class benchmark:
         fullFuncName = __name__ + '::removePreviousRun'
         indent = len(fullFuncName)
 
-        print fullFuncName + ': ' + \
-              'Removing preexisting data.'
-        shutil.rmtree(self.previousDir)
+        if self.previousDir != '':
+            print fullFuncName + ':', 'Removing preexisting data.'
+            shutil.rmtree(self.previousDir)
+        else:
+            print fullFuncName + ':', 'No previous run to remove.'
 
 
     def downloadData(self):
@@ -336,8 +338,8 @@ class benchmark:
                   self.currentTarDir + ' ' + self.dataPath
 
         #wget the data
-        print fullFuncName + ': ' + \
-              'Acquiring data by HTTP.\nLogging to', self.outFile + '.'
+        print fullFuncName + ':', 'Acquiring data by HTTP.\nLogging to', \
+              self.outFile + '.'
         self.outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
         self.outString += 'Timing command:\n' + command + '\n'
         procT = time.clock()
@@ -372,9 +374,8 @@ class benchmark:
                   "')\ntar.close()"
 
         #untar the raw data
-        print fullFuncName + ': ' + \
-              'Extracting data.\n' + ' '*indent + 'Logging to', self.outFile + \
-              '.'
+        print fullFuncName + ':', 'Extracting data.\n' + ' '*indent + \
+              'Logging to', self.outFile + '.'
         self.outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
         self.outString += 'Timing command:\n' + command + '\n'
         procT = time.clock()
@@ -448,9 +449,8 @@ class benchmark:
         os.chdir(self.currentRedDir)
 
         #do the script extraction
-        print fullFuncName + ':' + \
-              'Extracting CASA Guide.\n' + ' '*indent + 'Logging to ' + \
-              self.extractLog
+        print fullFuncName + ':', 'Extracting CASA Guide.\n' + ' '*indent + \
+              'Logging to ' + self.extractLog
         stdOut = sys.stdout
         stdErr = sys.stderr
         sys.stdout = open(self.extractLog, 'w')
@@ -512,9 +512,9 @@ class benchmark:
         os.chdir(self.currentRedDir)
 
         #run calibration script
-        print fullFuncName + ':' + \
-              'Beginning benchmark test of ' + self.calScript + '.\n' + \
-              ' '*indent + 'Logging to ' + self.calScriptLog + '.'
+        print fullFuncName + ':', 'Beginning benchmark test of ' + \
+              self.calScript + '.\n' + ' '*indent + 'Logging to ' + \
+              self.calScriptLog + '.'
         stdOut = sys.stdout
         stdErr = sys.stderr
         sys.stdout = open(self.calScriptLog, 'w')
@@ -531,13 +531,12 @@ class benchmark:
 #        f1.write(f2.read())
 #        f1.close()
 #        f2.close()
-        print fullFuncName + ':' + \
-              'Finished test of ' + self.calScript
+        print fullFuncName + ':', 'Finished test of ' + self.calScript
 
         #run imaging script
-        print fullFuncName + ':' + \
-              'Beginning benchmark test of ' + self.imageScript + '.\n' + \
-              ' '*indent + 'Logging to ' + self.imageScriptLog + '.'
+        print fullFuncName + ':', 'Beginning benchmark test of ' + \
+              self.imageScript + '.\n' + ' '*indent + 'Logging to ' + \
+              self.imageScriptLog + '.'
         sys.stdout = open(self.imageScriptLog, 'w')
         sys.stderr = sys.stdout
         execfile(self.imageScript, self.CASAglobals)
@@ -553,8 +552,7 @@ class benchmark:
 #        f1.write(f2.read())
 #        f1.close()
 #        f2.close()
-        print fullFuncName + ':' + \
-              'Finished test of ' + self.imageScript
+        print fullFuncName + ':', 'Finished test of ' + self.imageScript
 
         #change directory back to wherever we started from
         os.chdir(oldPWD)
