@@ -161,9 +161,8 @@ class benchmark:
     writeOutFile
         Writes outString to a text file.
     """
-    def __init__(self, CASAglobals=None, scriptDir='', workDir='./', \
-                 calibrationURL='', imagingURL='', dataPath='', outFile='', \
-                 skipDownload=False):
+    def __init__(self, CASAglobals=None, workDir='./', calibrationURL='', \
+                 imagingURL='', dataPath='', outFile='', skipDownload=False):
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
         indent = len(fullFuncName)
@@ -175,20 +174,15 @@ class benchmark:
         else:
             self.CASAglobals = CASAglobals
 
-        #add script directory to Python path if need be
-        if scriptDir == '':
-            raise ValueError('Path to benchmarking scripts must be given.')
-        else:
-            scriptDir = os.path.abspath(scriptDir) + '/'
-            if scriptDir not in sys.path:
-                sys.path.append(scriptDir)
-
         #initialize the working directory
         if not os.path.isdir(workDir):
             raise ValueError("Working directory '" + workDir + "' " + \
                              'does not exist.')
         if workDir == './': workDir = os.getcwd()
         if workDir[-1] != '/': workDir += '/'
+        if workDir[0] != '/':
+            raise ValueError('Working directory must be specified as an ' + \
+                             'absolute path.')
         self.workDir = workDir
 
         #check other necessary parameters were specified
