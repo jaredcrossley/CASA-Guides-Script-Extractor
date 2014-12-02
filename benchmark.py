@@ -1,4 +1,3 @@
-#import Python modules
 import os
 import sys
 import shutil
@@ -16,6 +15,13 @@ import extractCASAscript
 #   method
 #  -maybe change have a switch for __init__ that differentiates between a guide
 #   and just a Python file to be benchmarked
+#  -I think the best option would actually to remove the specifics of calibration
+#   and imaging from the benchmark class
+#    -make it literally a class for benchmarking scripts
+#    -externally you deal with the calibration or imaging script and possibly the
+#     process of extracting them from some webpage but the benchmark class just
+#     deals with the directory structure and logging of a Python script run
+#     inside CASA
 #-all methods should probably return something
 #-need to deal with how to keep extractCASAscript.py current with the tasklist
 # and potentially changing parameters or functionality
