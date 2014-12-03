@@ -3,9 +3,13 @@ Python Translation
 ==================
 Files unique to translated architecture:
   -benchmark.py
+  -machine.py
+  -parameters.py
   
 All files included in translated architecture:
   -benchmark.py
+  -machine.py
+  -parameters.py
   -extractCASAscript.py
   -casa_call.py
   -readcol.py
