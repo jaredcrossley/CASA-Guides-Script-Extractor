@@ -1,18 +1,21 @@
 #CASA benchmarking parameters
+#   Some variable names have a meaningles "x" prepended since variable names
+#   can't start with numbers.
 
 ##2011.0.00099.S##
+#THIS DATA IS NOT ON THE SCIENCE PORTAL
 #CASA 4.0
-2011_0_00099_S_40 = {'calibrationURL': \
-                         '/lustre/naasc/jcrossle/benchmark/scripts/' + \
-                         '2011.0.00099.S_calibration_casa4p0.py', \
-                     'imagingURL': \
-                         '/lustre/naasc/jcrossle/benchmark/scripts/' + \
-                         '2011.0.00099.S_imaging_casa4p0.py', \
-                     'dataURL': \
-                         None, \ #THIS DATA IS NOT ON THE SCIENCE PORTAL
-                     'dataPath': \
-                         '/lustre/naasc/jcrossle/benchmark/data/' + \
-                         '2011.0.00099.S/2011.0.00099.S.tgz'}
+x2011_0_00099_S_40 = {'calibrationURL': \
+                          '/lustre/naasc/jcrossle/benchmark/scripts/' + \
+                          '2011.0.00099.S_calibration_casa4p0.py', \
+                      'imagingURL': \
+                          '/lustre/naasc/jcrossle/benchmark/scripts/' + \
+                          '2011.0.00099.S_imaging_casa4p0.py', \
+                      'dataURL': \
+                          None, \
+                      'dataPath': \
+                          '/lustre/naasc/jcrossle/benchmark/data/' + \
+                          '2011.0.00099.S/2011.0.00099.S.tgz'}
 ##=============================================================================##
 
 ##NGC3256 Band 3
@@ -228,18 +231,19 @@ IRASBand9_40 = {'calibrationURL': \
 ##=============================================================================##
 
 ##2011.0.00367.S##
+#THIS DATA IS NOT ON THE SCIENCE PORTAL
 #CASA 3.3
-2011_0_00367_S_33 = {'calibrationURL': \
+x2011_0_00367_S_33 = {'calibrationURL': \
+                          '/export/lustre/jcrossle/benchmark/scripts/' + \
+                          '2011.0.00367.S_sb_calibration.py', \
+                      'imagingURL': \
                          '/export/lustre/jcrossle/benchmark/scripts/' + \
-                         '2011.0.00367.S_sb_calibration.py', \
-                     'imagingURL': \
-                        '/export/lustre/jcrossle/benchmark/scripts/' + \
-                        '2011.0.00367.S_calibration_image.py', \
-                     'dataURL': \
-                         None, \ #THIS DATA IS NOT ON THE SCIENCE PORTAL
-                     'dataPath': \
-                         '/export/lustre/jcrossle/benchmark/data/' + \
-                         '2011.0.00367.S.tgz'}
+                         '2011.0.00367.S_calibration_image.py', \
+                      'dataURL': \
+                          None, \
+                      'dataPath': \
+                          '/export/lustre/jcrossle/benchmark/data/' + \
+                          '2011.0.00367.S.tgz'}
 ##=============================================================================##
 
 ##M100 Band 3##
