@@ -11,7 +11,7 @@ import extractCASAscript
 
 #-should make the calibrationURL and imagingURL behavior reflect the fact that
 # extractCASAscript.py can take local Python files there too
-#  -this may require some reqorking of the object's attributes and the execution
+#  -this may require some reworking of the object's attributes and the execution
 #   method
 #  -maybe change have a switch for __init__ that differentiates between a guide
 #   and just a Python file to be benchmarked
@@ -26,6 +26,8 @@ import extractCASAscript
 #-need to deal with how to keep extractCASAscript.py current with the tasklist
 # and potentially changing parameters or functionality
 #-figure out previous run stuff and about deleting them if that makes sense
+#  -maybe instead of removing previous run, have a method for removing the
+#   current run. something like a cleanup that would be used at the higher level
 #-if I split up the runGuideScript into separate calibration and imaging methods
 # then I should think about making CASAglobals an input parameter to them so that
 # I potentially wouldn't need to do the .pop stuff to clear out accreted
@@ -595,6 +597,18 @@ class benchmark:
         shutil.copy(self.imageBenchOutFile, self.currentLogDir)
         shutil.copy(self.calBenchSumm, self.currentLogDir)
         shutil.copy(self.imageBenchSumm, self.currentLogDir)
+
+        #copy pertinent logs to all_logs directory
+        prefix = self.allLogDir + os.path.basename(self.currentWorkDir[:-1]) + \
+                 '__'
+        shutil.copy(self.calBenchOutFile, prefix + \
+                    os.path.basename(self.calBenchOutFile))
+        shutil.copy(self.imageBenchOutFile, prefix + \
+                    os.path.basename(self.imageBenchOutFile))
+        shutil.copy(self.calBenchSumm, prefix + \
+                    os.path.basename(self.calBenchSumm))
+        shutil.copy(self.imageBenchSumm, prefix + \
+                    os.path.basename(self.imageBenchSumm))
 
         #change directory back to wherever we started from
         os.chdir(oldPWD)
