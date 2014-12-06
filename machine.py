@@ -21,6 +21,9 @@ import parameters
 # machine that things aren't actually setup to be running from a directory that
 # isn't the actual scriptDir itself (d'oh)
 #-need to make real decision on what outFile should be in runBenchmarks
+#-could shorten up lines that use the jobs dict by defining variables local to
+# the particular method for the parts needed e.g. look under runBenchmarks in
+# the for loop that actually runs the benchmarks
 
 def makeReport(files):
     """Generate report from casa_call.summarize_bench output (.summary files).
@@ -187,44 +190,27 @@ class machine:
 
             #actually run the benchmarks
             for i in range(self.jobs[dataSet]['nIters']):
-                self.jobs[dataSet]['benchmarks'].append(
-                    benchmark.benchmark(CASAglobals=self.CASAglobals,
+                b = benchmark.benchmark(CASAglobals=self.CASAglobals,
                                         scriptDir=self.scriptDir,
                                         workDir=dataSetDir,
                                         calibrationURL=params['calibrationURL'],
                                         imagingURL=params['imagingURL'],
                                         dataPath=dataPath,
                                         outFile='shell.log.txt',
-                                        skipDownload=self.jobs[dataSet]['skipDownload']))
-                self.jobs[dataSet]['benchmarks'][i].createDirTree()
-                #self.jobs[dataSet]['benchmarks'][i].removePreviousRun()
+                                        skipDownload=self.jobs[dataSet]['skipDownload'])
+                self.jobs[dataSet]['benchmarks'].append(b)
+                b.createDirTree()
+                #b[i].removePreviousRun()
                 if not self.jobs[dataSet]['skipDownload']:
-                    self.jobs[dataSet]['benchmarks'][i].downloadData()
-                self.jobs[dataSet]['benchmarks'][i].extractData()
-                self.jobs[dataSet]['benchmarks'][i].runScriptExtractor()
-                self.jobs[dataSet]['benchmarks'][i].runGuideScript()
-                self.jobs[dataSet]['benchmarks'][i].writeOutFile()
-
-
-    def createBenchmark(self, CASAglobals, workDir, calibrationURL, imagingURL, \
-                        dataPath, outFile, skipDownload):
-        #for telling where printed messages originate from
-        fullFuncName = __name__ + '::createBenchmark'
-        indent = len(fullFuncName) + 2
-
-        x = benchmark.benchmark(CASAglobals=CASAglobals, workDir=workDir, \
-                                calibrationURL=calibrationURL, \
-                                imagingURL=imagingURL, dataPath=dataPath, \
-                                outFile=outFile, skipDownload=skipDownload)
-        x.createDirTree()
-        x.removePreviousRun()
-        if not skipDownload:
-            x.downloadData()
-        x.extractData()
-        x.runScriptExtractor()
-
-
-    def executeBenchmark(self):
-        #for telling where printed messages originate from
-        fullFuncName = __name__ + '::executeBenchmark'
-        indent = len(fullFuncName) + 2
+                    b.downloadData()
+                b.extractData()
+                #try to only extract scripts once
+                if i == 0:
+                    b.doScriptExtraction()
+                elif self.jobs[dataSet]['benchmarks'][i-1].status == 'normal':
+                    b.useOtherBmarkScripts(self.jobs[dataSet]['benchmarks'][i-1])
+                else:
+                    b.doScriptExtraction()
+                if b.status == 'failure': continue
+                b.runGuideScript()
+                b.writeOutFile()
