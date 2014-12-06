@@ -2,6 +2,7 @@ import os
 import sys
 import socket
 import platform
+import numpy as np #this is a big import for three functions... :(
 
 #import non-standard Python modules
 import benchmark
@@ -16,6 +17,29 @@ import parameters
 #-need to include check for trying to use dataURL when it is set to None in the
 # parameters dictionary
 #-need to check that running version of CASA matches the data set name given
+#-need to decide where scriptDir really needs to be, i found upon testing
+# machine that things aren't actually setup to be running from a directory that
+# isn't the actual scriptDir itself (d'oh)
+#-need to make real decision on what outFile should be in runBenchmarks
+
+def makeReport(files):
+    """Generate report from casa_call.summarize_bench output (.summary files).
+    """
+    times = np.empty(len(files))
+    for i,f in enumerate(files):
+        fileObj = open(f)
+        for line in fileObj.readlines():
+            if line[0:12] == 'Total time: ':
+                time = line.split(' ')
+                time = time[2]
+                time = float(time)
+                times[i] = time
+                break
+        fileObj.close()
+    avg = times.mean()
+    std = times.std()
+    return (avg, std, times)
+        
 
 class machine:
     """A class associated with a single computer and all of
@@ -75,7 +99,6 @@ class machine:
     executeBenchmark
         Runs the benchmark calibration and imaging stages.
     """
-
     def __init__(self, CASAglobals=None, scriptDir='', dataSets=list(), \
                  nIters=list(), skipDownloads=list(), workDir='./'):
         #for telling where printed messages originate from
@@ -123,15 +146,13 @@ class machine:
         if len(skipDownloads) != len(dataSets):
             raise ValueError('skipDownloads boolean list must be of same ' + \
                              'length as dataSets list.')
-        index = 0
-        for dataSet in self.dataSets:
-            if type(nIters[index]) != int:
+        for i,dataSet in enumerate(self.dataSets):
+            if type(nIters[i]) != int:
                 raise TypeError('nIters must be a list of all integers.')
-            if type(skipDownloads[index]) != bool:
+            if type(skipDownloads[i]) != bool:
                 raise ValueError('skipDownloads must be a list of all booleans.')
-            self.jobs[dataSet]['niters'] = nIters[index]
-            self.jobs[dataSet]['skipDownload'] = skipDownloads[index]
-            index += 1
+            self.jobs[dataSet]['nIters'] = nIters[i]
+            self.jobs[dataSet]['skipDownload'] = skipDownloads[i]
 
         #initialize the working directory
         if not os.path.isdir(workDir):
@@ -150,26 +171,33 @@ class machine:
         fullFuncName = __name__ + '::runBenchmarks'
         indent = len(fullFuncName) + 2
 
+        #run each data set the specified number of iterations
         for dataSet in self.dataSets:
+            #setup data set directory
             dataSetDir = self.workDir + dataSet + '/'
             if not os.path.isdir(dataSetDir):
                 os.mkdir(dataSetDir)
             params = getattr(parameters, dataSet)
+
+            #determine source of raw data
             if self.jobs[dataSet]['skipDownload']:
                 dataPath = params['dataPath']
             else:
                 dataPath = params['dataURL']
+
+            #actually run the benchmarks
             for i in range(self.jobs[dataSet]['nIters']):
                 self.jobs[dataSet]['benchmarks'].append(
                     benchmark.benchmark(CASAglobals=self.CASAglobals,
+                                        scriptDir=self.scriptDir,
                                         workDir=dataSetDir,
                                         calibrationURL=params['calibrationURL'],
                                         imagingURL=params['imagingURL'],
                                         dataPath=dataPath,
-                                        outFile=outFile,
+                                        outFile='shell.log.txt',
                                         skipDownload=self.jobs[dataSet]['skipDownload']))
                 self.jobs[dataSet]['benchmarks'][i].createDirTree()
-                self.jobs[dataSet]['benchmarks'][i].removePreviousRun()
+                #self.jobs[dataSet]['benchmarks'][i].removePreviousRun()
                 if not self.jobs[dataSet]['skipDownload']:
                     self.jobs[dataSet]['benchmarks'][i].downloadData()
                 self.jobs[dataSet]['benchmarks'][i].extractData()
