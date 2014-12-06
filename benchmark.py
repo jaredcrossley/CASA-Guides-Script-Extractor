@@ -26,6 +26,10 @@ import extractCASAscript
 #-need to deal with how to keep extractCASAscript.py current with the tasklist
 # and potentially changing parameters or functionality
 #-figure out previous run stuff and about deleting them if that makes sense
+#-if I split up the runGuideScript into separate calibration and imaging methods
+# then I should think about making CASAglobals an input parameter to them so that
+# I potentially wouldn't need to do the .pop stuff to clear out accreted
+# variables
 
 class benchmark:
     """A class for the execution of a single CASA guide
@@ -86,6 +90,14 @@ class benchmark:
     imageScript : str
         Absolute path to Python file containing the imaging portion of the CASA
         guide being run through the benchmark.
+
+    calScriptExpect : str
+        Absolute path to CASA guide script extractor output of expected
+        calibraton task calls.
+
+    imageScriptExpect : str
+        Absolute path to CASA guide script extractor output of expected
+        imaging task calls.
 
     imageScriptLog : str
         Absolute path to imaging script output.
@@ -161,18 +173,25 @@ class benchmark:
     writeOutFile
         Writes outString to a text file.
     """
-    def __init__(self, CASAglobals=None, workDir='./', calibrationURL='', \
-                 imagingURL='', dataPath='', outFile='', skipDownload=False):
+    def __init__(self, CASAglobals=None, scriptDir='', workDir='./', \
+                 calibrationURL='', imagingURL='', dataPath='', outFile='', \
+                 skipDownload=False):
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
-        indent = len(fullFuncName)
+        indent = len(fullFuncName) + 2
 
         #check that we have CASA globals
         if not CASAglobals:
             raise ValueError('Value returned by globals() function in ' + \
                              'CASA environment must be given.')
-        else:
-            self.CASAglobals = CASAglobals
+        self.CASAglobals = CASAglobals
+
+        #add script directory to Python path if need be
+        if scriptDir == '':
+            raise ValueError('Path to benchmarking scripts must be given.')
+        scriptDir = os.path.abspath(scriptDir) + '/'
+        if scriptDir not in sys.path:
+            sys.path.append(scriptDir)
 
         #initialize the working directory
         if not os.path.isdir(workDir):
@@ -188,17 +207,14 @@ class benchmark:
         #check other necessary parameters were specified
         if calibrationURL == '':
             raise ValueError('URL to calibration CASA guide must be given.')
-        else:
-            self.calibrationURL = calibrationURL
+        self.calibrationURL = calibrationURL
         if imagingURL == '':
             raise ValueError('URL to imaging CASA guide must be given.')
-        else:
-            self.imagingURL = imagingURL
+        self.imagingURL = imagingURL
         if dataPath == '':
             raise ValueError('A URL or path must be given pointing to the ' + \
                              'raw data.')
-        else:
-            self.dataPath = dataPath
+        self.dataPath = dataPath
         if outFile == '':
             raise ValueError('A file must be specified for the output ' + \
                              'of the script.')
@@ -210,9 +226,8 @@ class benchmark:
                 raise ValueError('Cannot find local tarball for extraction ' + \
                                  'at ' + self.dataPath + '. ' + \
                                  'Download may be required.')
-            else:
-                print fullFuncName + ':', 'Data available by filesystem.'
-                self.localTar = self.dataPath
+            print fullFuncName + ':', 'Data available by filesystem.'
+            self.localTar = self.dataPath
         #check dataPath is a URL if we will be downloading data instead
         else:
             self.localTar = ''
@@ -269,7 +284,7 @@ class benchmark:
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::createDirTree'
-        indent = len(fullFuncName)
+        indent = len(fullFuncName) + 2
 
         #check if directories already exist
         if os.path.isdir(self.currentWorkDir) or \
@@ -305,7 +320,7 @@ class benchmark:
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::removePreviousRun'
-        indent = len(fullFuncName)
+        indent = len(fullFuncName) + 2
 
         if self.previousDir != '':
             print fullFuncName + ':', 'Removing preexisting data.'
@@ -332,14 +347,14 @@ class benchmark:
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::downloadData'
-        indent = len(fullFuncName)
+        indent = len(fullFuncName) + 2
 
         command = 'wget -q --no-check-certificate --directory-prefix=' + \
                   self.currentTarDir + ' ' + self.dataPath
 
         #wget the data
-        print fullFuncName + ':', 'Acquiring data by HTTP.\nLogging to', \
-              self.outFile + '.'
+        print fullFuncName + ':', 'Acquiring data by HTTP.\n' + ' '*indent + \
+              'Logging to', self.outFile + '.'
         self.outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
         self.outString += 'Timing command:\n' + command + '\n'
         procT = time.clock()
@@ -367,7 +382,7 @@ class benchmark:
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::extractData'
-        indent = len(fullFuncName)
+        indent = len(fullFuncName) + 2
 
         command = "tar = tarfile.open('" + self.localTar + \
                   "')\ntar.extractall(path='" + self.currentWorkDir + \
@@ -406,7 +421,7 @@ class benchmark:
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::makeExtractOpts'
-        indent = len(fullFuncName)
+        indent = len(fullFuncName) + 2
         
         usage = \
             ''' %prog [options] URL
@@ -442,7 +457,7 @@ class benchmark:
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::runScriptExtractor'
-        indent = len(fullFuncName)
+        indent = len(fullFuncName) + 2
 
         #remember where we were and change to reduction directory
         oldPWD = os.getcwd()
@@ -456,7 +471,11 @@ class benchmark:
         sys.stdout = open(self.extractLog, 'w')
         sys.stderr = sys.stdout
         extractCASAscript.main(self.calibrationURL, self.makeExtractOpts())
+        print '\n'
+        print '-'
         print '---'
+        print '-'
+        print '\n'
         extractCASAscript.main(self.imagingURL, self.makeExtractOpts())
         stdOut, sys.stdout = sys.stdout, stdOut
         stdOut.close()
@@ -481,12 +500,17 @@ class benchmark:
             self.imageScript = self.currentRedDir + scripts[0]
 
         #store the log name(s) in the object
+        self.calScriptExpect = self.calScript + '.expected'
+        self.imageScriptExpect = self.imageScript + '.expected'
         self.calScriptLog = self.calScript + '.log'
         self.imageScriptLog = self.imageScript + '.log'
         self.calBenchOutFile = self.calScript[:-3] + '.benchmark.txt'
         self.imageBenchOutFile = self.imageScript[:-3] + '.benchmark.txt'
         self.calBenchSumm = self.calBenchOutFile + '.summary'
         self.imageBenchSumm = self.imageBenchOutFile + '.summary'
+
+        shutil.copy(self.calScriptExpect, self.currentLogDir)
+        shutil.copy(self.imageScriptExpect, self.currentLogDir)
 
 
     def runGuideScript(self):
@@ -505,11 +529,14 @@ class benchmark:
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::runGuideScript'
-        indent = len(fullFuncName)
+        indent = len(fullFuncName) + 2
 
         #remember where we were and change to reduction directory
         oldPWD = os.getcwd()
         os.chdir(self.currentRedDir)
+
+        #remember what is in the CASA global namespace
+        preKeys = self.CASAglobals.keys()
 
         #run calibration script
         print fullFuncName + ':', 'Beginning benchmark test of ' + \
@@ -519,19 +546,23 @@ class benchmark:
         stdErr = sys.stderr
         sys.stdout = open(self.calScriptLog, 'w')
         sys.stderr = sys.stdout
+        print 'CASA Version ' + self.CASAglobals['casadef'].casa_version + \
+              ' (r' + self.CASAglobals['casadef'].subversion_revision + \
+              ')\n  Compiled on: ' + self.CASAglobals['casadef'].build_time + \
+              '\n\n'
+        origLog = self.CASAglobals['casalog'].logfile()
+        self.CASAglobals['casalog'].setlogfile(self.calScriptLog)
         execfile(self.calScript, self.CASAglobals)
         closeFile = sys.stdout
         sys.stdout = stdOut
+        self.CASAglobals['casalog'].setlogfile(origLog)
         closeFile.close()
-        #I'm not sure what the old code was trying to do and how to fit it into
-        #the new directory structuring
-#        f1 = open('../' + self.calBenchSumm.split('/')[-1], 'a')
-#        f2 = open(self.calBenchSumm, 'r')
-#        f1.write('\n')
-#        f1.write(f2.read())
-#        f1.close()
-#        f2.close()
         print fullFuncName + ':', 'Finished test of ' + self.calScript
+
+        #remove anything the calibration script added
+        for key in self.CASAglobals.keys():
+            if key not in preKeys:
+                self.CASAglobals.pop(key, None)
 
         #run imaging script
         print fullFuncName + ':', 'Beginning benchmark test of ' + \
@@ -539,20 +570,31 @@ class benchmark:
               self.imageScriptLog + '.'
         sys.stdout = open(self.imageScriptLog, 'w')
         sys.stderr = sys.stdout
+        print 'CASA Version ' + self.CASAglobals['casadef'].casa_version + \
+              ' (r' + self.CASAglobals['casadef'].subversion_revision + \
+              ')\n  Compiled on: ' + self.CASAglobals['casadef'].build_time + \
+              '\n\n'
+        self.CASAglobals['casalog'].setlogfile(self.imageScriptLog)
         execfile(self.imageScript, self.CASAglobals)
         closeFile = sys.stdout
         sys.stdout = stdOut
         sys.stderr = stdErr
+        self.CASAglobals['casalog'].setlogfile(origLog)
         closeFile.close()
-        #I'm not sure what the old code was trying to do and how to fit it into
-        #the new directory structuring
-#        f1 = open('../' + self.imageBenchSumm.split('/')[-1], 'a')
-#        f2 = open(self.imageBenchSumm, 'r')
-#        f1.write('\n')
-#        f1.write(f2.read())
-#        f1.close()
-#        f2.close()
         print fullFuncName + ':', 'Finished test of ' + self.imageScript
+
+        #remove anything the imaging script added
+        for key in self.CASAglobals.keys():
+            if key not in preKeys:
+                self.CASAglobals.pop(key, None)
+
+        #copy logs to the current log directory
+        shutil.copy(self.calScriptLog, self.currentLogDir)
+        shutil.copy(self.imageScriptLog, self.currentLogDir)
+        shutil.copy(self.calBenchOutFile, self.currentLogDir)
+        shutil.copy(self.imageBenchOutFile, self.currentLogDir)
+        shutil.copy(self.calBenchSumm, self.currentLogDir)
+        shutil.copy(self.imageBenchSumm, self.currentLogDir)
 
         #change directory back to wherever we started from
         os.chdir(oldPWD)
@@ -573,7 +615,7 @@ class benchmark:
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::writeOutFile'
-        indent = len(fullFuncName)
+        indent = len(fullFuncName) + 2
         
         f = open(self.outFile, 'w')
         f.write(self.outString)

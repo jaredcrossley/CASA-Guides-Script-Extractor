@@ -15,7 +15,7 @@ import parameters
 # benchmark and machine classes right now
 #-need to include check for trying to use dataURL when it is set to None in the
 # parameters dictionary
-#-need to check that running version of CASA matching the data set name given
+#-need to check that running version of CASA matches the data set name given
 
 class machine:
     """A class associated with a single computer and all of
@@ -51,7 +51,8 @@ class machine:
         Revision number for currently running CASA.
 
     dataSets : list
-        List of strings containing names of data sets to be benchmarked.
+        List of strings containing names of data sets to be benchmarked. Names
+        must match the dictionary variable names in parameters.py.
 
     jobs: dict
         Container for each benchmark instance to be run on this machine along
@@ -79,7 +80,7 @@ class machine:
                  nIters=list(), skipDownloads=list(), workDir='./'):
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
-        indent = len(fullFuncName)
+        indent = len(fullFuncName) + 2
 
         #check that we have CASA globals
         if not CASAglobals:
@@ -147,7 +148,7 @@ class machine:
     def runBenchmarks(self):
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::runBenchmarks'
-        indent = len(fullFuncName)
+        indent = len(fullFuncName) + 2
 
         for dataSet in self.dataSets:
             dataSetDir = self.workDir + dataSet + '/'
@@ -181,7 +182,7 @@ class machine:
                         dataPath, outFile, skipDownload):
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::createBenchmark'
-        indent = len(fullFuncName)
+        indent = len(fullFuncName) + 2
 
         x = benchmark.benchmark(CASAglobals=CASAglobals, workDir=workDir, \
                                 calibrationURL=calibrationURL, \
@@ -198,4 +199,4 @@ class machine:
     def executeBenchmark(self):
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::executeBenchmark'
-        indent = len(fullFuncName)
+        indent = len(fullFuncName) + 2
