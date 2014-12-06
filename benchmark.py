@@ -5,6 +5,8 @@ import time
 from optparse import OptionParser
 import socket
 import tarfile
+from urllib2 import HTTPError
+from time import sleep
 
 #import non-standard Python modules
 import extractCASAscript
@@ -32,6 +34,8 @@ import extractCASAscript
 # then I should think about making CASAglobals an input parameter to them so that
 # I potentially wouldn't need to do the .pop stuff to clear out accreted
 # variables
+#-put in script extraction error handling (see notes.txt first entry for
+# 2014-12-06)
 
 class benchmark:
     """A class for the execution of a single CASA guide
@@ -93,6 +97,9 @@ class benchmark:
         Absolute path to Python file containing the imaging portion of the CASA
         guide being run through the benchmark.
 
+    imageScriptLog : str
+        Absolute path to imaging script output.
+
     calScriptExpect : str
         Absolute path to CASA guide script extractor output of expected
         calibraton task calls.
@@ -100,9 +107,6 @@ class benchmark:
     imageScriptExpect : str
         Absolute path to CASA guide script extractor output of expected
         imaging task calls.
-
-    imageScriptLog : str
-        Absolute path to imaging script output.
 
     calBenchOutFile : str
         Absolute path to the log file containing the complete record of
@@ -145,6 +149,13 @@ class benchmark:
         associated with each individual benchmark instance run within workDir
         are stored.
 
+    status : str
+        Code for the current benchmark instance determining what state the
+        object is in. The primary use is to record if a handled error occurred
+        that renders the benchmark useless. When the object is first
+        instantiated this will be initialed to "normal" and will only be
+        changed (to "failure") if a handled error is encountered.
+
     Methods
     -------
 
@@ -166,7 +177,10 @@ class benchmark:
     makeExtractOpts (this should be private, if I keep it at all)
         Returns OptionParser.parse_args options variable for extractCASAscript.
 
-    runScriptExtractor (this should probably be split into cal, imaging and .py)
+    runextractCASAscript (this should be private)
+        Actually runs extractCASAscript.main with some checks for flaky URLs.
+
+    doScriptExtraction (this should probably be split into cal, imaging and .py)
         Calls extractCASAscript.main to create CASA guide Python scripts.
 
     runGuideScript (should also have switch for cal, imaging and .py files)
@@ -174,6 +188,9 @@ class benchmark:
 
     writeOutFile
         Writes outString to a text file.
+
+    useOtherBmarkScripts
+        Copies extracted scripts and extraction logs into current benchmark.
     """
     def __init__(self, CASAglobals=None, scriptDir='', workDir='./', \
                  calibrationURL='', imagingURL='', dataPath='', outFile='', \
@@ -181,6 +198,9 @@ class benchmark:
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
         indent = len(fullFuncName) + 2
+
+        #default to an error unless __init__ at least finishes
+        self.status = 'failure'
 
         #check that we have CASA globals
         if not CASAglobals:
@@ -265,6 +285,9 @@ class benchmark:
         self.imageBenchOutFile = ''
         self.calBenchSumm = ''
         self.imageBenchSumm = ''
+
+        #object is good to go at this point
+        self.status = 'normal'
 
 
     def createDirTree(self):
@@ -441,7 +464,41 @@ class benchmark:
         return options
 
 
-    def runScriptExtractor(self):
+    def runextractCASAscript(self, url):
+        """ This should be a private method methinks. Calls
+            extractCASAscript.main to make the calibration and imaging scripts.
+
+        Returns
+        -------
+        bool
+        True if extractCASAscript.main worked, False if it failed 3 times.
+
+        Notes
+        -----
+        so do the docs for doScriptExtraction
+        """
+        #for telling where printed messages originate from
+        fullFuncName = __name__ + '::runextractCASAscript'
+        indent = len(fullFuncName) + 2
+
+        #try three times at most to extract the script
+        for i in range(3):
+            try:
+                extractCASAscript.main(url, self.makeExtractOpts())
+                return True
+            except HTTPError, e:
+                if i != 2:
+                    sleep(30)
+                else:
+                    print fullFuncName + ':', 'Ran into HTTPError 3 times.\n' + \
+                          ' '*indent + 'Giving up on extracting a script ' + \
+                          'from ' + url + '.'
+                    print fullFuncName + ':', 'Particular HTTPError info:\n' + \
+                          ' '*indent + 'Code ' + e.code + ': ' + e.reason
+                    return False
+
+
+    def doScriptExtraction(self):
         """ Calls extractCASAscript.main to make the calibration and imaging
             scripts.
 
@@ -465,20 +522,37 @@ class benchmark:
         oldPWD = os.getcwd()
         os.chdir(self.currentRedDir)
 
-        #do the script extraction
+        #set the output to the extraction log
         print fullFuncName + ':', 'Extracting CASA Guide.\n' + ' '*indent + \
               'Logging to ' + self.extractLog
         stdOut = sys.stdout
         stdErr = sys.stderr
         sys.stdout = open(self.extractLog, 'w')
         sys.stderr = sys.stdout
-        extractCASAscript.main(self.calibrationURL, self.makeExtractOpts())
+
+        #try extracting calibration script
+        if not self.runextractCASAscript(self.calibrationURL):
+            stdOut, sys.stdout = sys.stdout, stdOut
+            stdOut.close()
+            stdErr, sys.stderr = sys.stderr, stdErr
+            stdErr.close
+            os.chdir(oldPWD)
+            self.status = 'failure'
+            return
         print '\n'
         print '-'
         print '---'
         print '-'
         print '\n'
-        extractCASAscript.main(self.imagingURL, self.makeExtractOpts())
+        #try extracting imaging script
+        if not self.runextractCASAscript(self.imagingURL):
+            stdOut, sys.stdout = sys.stdout, stdOut
+            stdOut.close()
+            stdErr, sys.stderr = sys.stderr, stdErr
+            stdErr.close
+            os.chdir(oldPWD)
+            self.status = 'failure'
+            return
         stdOut, sys.stdout = sys.stdout, stdOut
         stdOut.close()
         stdErr, sys.stderr = sys.stderr, stdErr
@@ -634,3 +708,58 @@ class benchmark:
         f = open(self.outFile, 'w')
         f.write(self.outString)
         f.close()
+
+    def useOtherBmarkScripts(self, prevBmark):
+        """ Sets this benchmark instance up to use extracted scripts from
+            another benchmark object.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        Copies the extracted scripts, .expected files and extraction log
+        from another benchmark object to the directory tree associated with
+        this benchmark instance. Also fills out the script related attributes
+        for this instance. These attributes are: extractLog, calScript,
+        calScriptLog, imageScript, imageScriptLog, calScriptExpect,
+        imageScriptExpect, calBenchOutFile, calBenchSumm, imageBenchOutFile and
+        imageBenchSumm.
+        """
+        #for telling where printed messages originate from
+        fullFuncName = __name__ + '::useOtherBmarkScripts'
+        indent = len(fullFuncName) + 2
+
+        #copy the files to current directory tree
+        shutil.copy(prevBmark.calScript, self.currentRedDir)
+        shutil.copy(prevBmark.imageScript, self.currentRedDir)
+        shutil.copy(prevBmark.calScriptExpect, self.currentRedDir)
+        shutil.copy(prevBmark.calScriptExpect, self.currentLogDir)
+        shutil.copy(prevBmark.imageScriptExpect, self.currentRedDir)
+        shutil.copy(prevBmark.imageScriptExpect, self.currentLogDir)
+        shutil.copy(prevBmark.extractLog, self.currentLogDir)
+
+        #setup current scrtipt associated attributes
+        self.extractLog = self.currentLogDir + \
+                          os.path.basename(prevBmark.extractLog)
+        self.calScript = self.currentRedDir + \
+                         os.path.basename(prevBmark.calScript)
+        self.calScriptLog = self.currentRedDir + \
+                            os.path.basename(prevBmark.calScriptLog)
+        self.imageScript = self.currentRedDir + \
+                           os.path.basename(prevBmark.imageScript)
+        self.imageScriptLog = self.currentRedDir + \
+                              os.path.basename(prevBmark.imageScriptLog)
+        self.calScriptExpect = self.currentRedDir + \
+                               os.path.basename(prevBmark.calScriptExpect)
+        self.imageScriptExpect = self.currentRedDir + \
+                                os.path.basename(prevBmark.imageScriptExpect)
+        self.calBenchOutFile = self.currentRedDir + \
+                               os.path.basename(prevBmark.calBenchOutFile)
+        self.calBenchSumm = self.currentRedDir + \
+                            os.path.basename(prevBmark.calBenchSumm)
+        self.imageBenchOutFile = self.currentRedDir + \
+                                 os.path.basename(prevBmark.imageBenchOutFile)
+        self.imageBenchSumm = self.currentRedDir + \
+                              os.path.basename(prevBmark.imageBenchSumm)
