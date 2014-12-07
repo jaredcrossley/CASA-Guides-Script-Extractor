@@ -24,9 +24,28 @@ import parameters
 #-could shorten up lines that use the jobs dict by defining variables local to
 # the particular method for the parts needed e.g. look under runBenchmarks in
 # the for loop that actually runs the benchmarks
+#-figure out how I want to do the currentWorkDir in benchmark class so it doesn't
+# need to find the hostname (get rid of socket import there)
 
 def makeReport(files):
-    """Generate report from casa_call.summarize_bench output (.summary files).
+    """ Gather total times and caluclate the mean and standard deviation from
+    casa_call.summarize_bench output (.summary files).
+
+    Parameters
+    ----------
+    files : list (of str)
+       List of strings specifying the absolute paths to .summary files from
+       benchmarking to gather total times from.
+
+    Returns
+    -------
+    Tuple containing (average, standard deviation, list of all total times)
+
+    Notes
+    -----
+    This simply loops over the list in files, searches each for a line starting
+    with 'Total time: ' and grabs the total time from that line. From those times
+    the average and standard deviation are computed.
     """
     times = np.empty(len(files))
     for i,f in enumerate(files):
@@ -42,11 +61,44 @@ def makeReport(files):
     avg = times.mean()
     std = times.std()
     return (avg, std, times)
-        
+
 
 class machine:
-    """A class associated with a single computer and all of
+    """ A class associated with a single computer and all of
     the benchmarking done on it.
+
+    Parameters
+    ----------
+
+    CASAglobals : dict
+        Dictionary returned by Python globals() function within the CASA
+        namespace (environment). Simply pass the return value of the globals()
+        function from within CASA where this class should be instantiated
+        within.
+
+    scriptDir : str
+        Absolute path to directory containing the benchmarking module files.
+
+    dataSets : list
+        List of strings containing names of data sets to be benchmarked. Names
+        must match the dictionary variable names in parameters.py.
+
+    nIters : list
+        List of integers specifying how many times each data set should be run
+        through benchmarking. These are matched to the data set in the same
+        position in the dataSets list.
+
+    skipDownloads : list
+        List of booleans specifying if the raw data download step should be
+        skipped or not. False means download the data from the URL provided in
+        parameters.py variable. These are matched to the data set in the same
+        position in the dataSets list.
+
+    workDir : str
+        Absolute path to directory where all benchmarking will run. A separate
+        directory for each data set will be created here and each benchmark
+        iteration will be contained in a dedicated directory below that. Defaults
+        to current directory.
 
     Attributes
     ----------
@@ -57,7 +109,21 @@ class machine:
         function from within CASA where this class should be instantiated
         within.
 
-    hostName : str
+    dataSets : list
+        List of strings containing names of data sets to be benchmarked. Names
+        must match the dictionary variable names in parameters.py.
+
+    jobs: dict
+        Container for each benchmark instance to be run on this machine along
+        with information on whether to download the raw data and number of
+        benchmarking iterations desired.
+
+    workDir : str
+        Absolute path to directory where all benchmarking will run. A separate
+        directory for each data set will be created here and each benchmark
+        iteration will be contained in a dedicated directory below that.
+
+        hostName : str
         Name of the computer this class is associated with.
 
     os : str
@@ -77,17 +143,6 @@ class machine:
     casaRevision : str
         Revision number for currently running CASA.
 
-    dataSets : list
-        List of strings containing names of data sets to be benchmarked. Names
-        must match the dictionary variable names in parameters.py.
-
-    jobs: dict
-        Container for each benchmark instance to be run on this machine along
-        with information on whether to download the raw data and number of
-        benchmarking iterations desired.
-
-    workDir : str
-
     Methods
     -------
 
@@ -95,12 +150,7 @@ class machine:
         Initializes machine instance attributes.
 
     runBenchmarks
-
-    prepareBenchmark
-        Creates a benchmark object and sets up the directories and data.
-
-    executeBenchmark
-        Runs the benchmark calibration and imaging stages.
+        Loops over each data set to run all iterations of benchmarking.
     """
     def __init__(self, CASAglobals=None, scriptDir='', dataSets=list(), \
                  nIters=list(), skipDownloads=list(), workDir='./'):
@@ -114,14 +164,6 @@ class machine:
                              'CASA environment must be given.')
         self.CASAglobals = CASAglobals
 
-        #gather details of computer and installed packages
-        self.hostName = socket.gethostname()
-        self.os = platform.platform()
-        self.lustreAccess = os.path.isdir('/lustre/naasc/')
-        self.pythonVersion = platform.python_version()
-        self.casaVersion = self.CASAglobals['casadef'].casa_version
-        self.casaRevision = self.CASAglobals['casadef'].subversion_revision
-
         #add script directory to Python path if need be
         if scriptDir == '':
             raise ValueError('Path to benchmarking scripts must be given.')
@@ -130,7 +172,7 @@ class machine:
         if scriptDir not in sys.path:
             sys.path.append(self.scriptDir)
 
-        #store which data sets will be benchmarked
+        #store info about which data sets will be benchmarked
         if len(dataSets) == 0:
             raise ValueError('At least one data set must be specified for ' + \
                              'benchmarking.')
@@ -168,13 +210,21 @@ class machine:
                              'absolute path.')
         self.workDir = workDir
 
+        #gather details of computer and installed packages
+        self.hostName = socket.gethostname()
+        self.os = platform.platform()
+        self.lustreAccess = os.path.isdir('/lustre/naasc/')
+        self.pythonVersion = platform.python_version()
+        self.casaVersion = self.CASAglobals['casadef'].casa_version
+        self.casaRevision = self.CASAglobals['casadef'].subversion_revision
+
 
     def runBenchmarks(self):
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::runBenchmarks'
         indent = len(fullFuncName) + 2
 
-        #run each data set the specified number of iterations
+        #setup and run each data set the specified number of iterations
         for dataSet in self.dataSets:
             #setup data set directory
             dataSetDir = self.workDir + dataSet + '/'
@@ -190,20 +240,24 @@ class machine:
 
             #actually run the benchmarks
             for i in range(self.jobs[dataSet]['nIters']):
-                b = benchmark.benchmark(CASAglobals=self.CASAglobals,
-                                        scriptDir=self.scriptDir,
-                                        workDir=dataSetDir,
-                                        calibrationURL=params['calibrationURL'],
-                                        imagingURL=params['imagingURL'],
-                                        dataPath=dataPath,
-                                        outFile='shell.log.txt',
-                                        skipDownload=self.jobs[dataSet]['skipDownload'])
+                b = benchmark.benchmark(CASAglobals=self.CASAglobals, \
+                                 scriptDir=self.scriptDir, \
+                                 workDir=dataSetDir, \
+                                 calibrationURL=params['calibrationURL'], \
+                                 imagingURL=params['imagingURL'], \
+                                 dataPath=dataPath, \
+                                 outFile='shell.log.txt', \ 
+                                 skipDownload=self.jobs[dataSet]['skipDownload'])
                 self.jobs[dataSet]['benchmarks'].append(b)
+
                 b.createDirTree()
                 #b[i].removePreviousRun()
+
                 if not self.jobs[dataSet]['skipDownload']:
                     b.downloadData()
+
                 b.extractData()
+
                 #try to only extract scripts once
                 if i == 0:
                     b.doScriptExtraction()
@@ -212,5 +266,6 @@ class machine:
                 else:
                     b.doScriptExtraction()
                 if b.status == 'failure': continue
+
                 b.runGuideScript()
                 b.writeOutFile()

@@ -41,6 +41,40 @@ class benchmark:
     """A class for the execution of a single CASA guide
     on a single machine for benchmark testing and timing.
 
+    Parameters
+    ----------
+
+    CASAglobals : dict
+        Dictionary returned by Python globals() function within the CASA
+        namespace (environment). Simply pass the return value of the globals()
+        function from within CASA where this class should be instantiated
+        within.
+
+    scriptDir : str
+        Absolute path to directory containing the benchmarking module files.
+
+    workDir : str
+        Absolute path to directory where benchmarking directory structure will
+        be created, all data will be stored and processing will be done.
+
+    calibrationURL : str
+        URL to CASA guide calibration webpage.
+
+    imagingURL : str
+        URL to CASA guide imaging webpage.
+
+    dataPath : str
+        URL or absolute path to raw CASA guide data and calibration tables.
+
+    outFile : str
+        Log file for operations done outside of other wrapper modules such as
+        acquiring and extracting the raw data.
+
+    skipDownload : bool
+        Switch to skip downloading the raw data from the web. False means
+        download the data from the URL provided in parameters.py variable.
+        Defaults to False.
+
     Attributes
     ----------
 
@@ -178,7 +212,7 @@ class benchmark:
         Returns OptionParser.parse_args options variable for extractCASAscript.
 
     runextractCASAscript (this should be private)
-        Actually runs extractCASAscript.main with some checks for flaky URLs.
+        Actually runs extractCASAscript.main with minimal checks for flaky URLs.
 
     doScriptExtraction (this should probably be split into cal, imaging and .py)
         Calls extractCASAscript.main to create CASA guide Python scripts.
@@ -432,7 +466,7 @@ class benchmark:
 
     def makeExtractOpts(self):
         """ Returns OptionParser.parse_args options so extractCASAscript.main can
-            be called directly.
+        be called directly.
 
         Returns
         -------
@@ -465,17 +499,20 @@ class benchmark:
 
 
     def runextractCASAscript(self, url):
-        """ This should be a private method methinks. Calls
-            extractCASAscript.main to make the calibration and imaging scripts.
+        """ Calls extractCASAscript.main on given url to make CASA script.
+        (should probably be private)
 
         Returns
         -------
-        bool
         True if extractCASAscript.main worked, False if it failed 3 times.
 
         Notes
         -----
-        so do the docs for doScriptExtraction
+        This runs extractCASAscript.main on the given url to make scripts from
+        associated the CASA guide. Tries running the extraction 3 times, handling
+        HTTPError exceptions. If an attempt fails then it waits 30 seconds and
+        tries again. If it fails all 3 times then it gives up and returns False.
+        Otherwise it returns True.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::runextractCASAscript'
@@ -499,8 +536,8 @@ class benchmark:
 
 
     def doScriptExtraction(self):
-        """ Calls extractCASAscript.main to make the calibration and imaging
-            scripts.
+        """ Runs the script extractor for the calibration and imaging scripts and
+        arranges all of the associated details.
 
         Returns
         -------
@@ -508,11 +545,9 @@ class benchmark:
 
         Notes
         -----
-        This runs extractCASAscript.main to make the calibration and imaging
-        scripts from the CASA guide. Runs it on calibrationURL and imagingURL
-        and puts the extracted Python files into currentRedDir. This also
-        fills out the scripts, benchmarking and benchmark summary log file
-        paths in the benchmark object.
+        This ensures the extraction output is logged, runs the script extraction
+        and fills out all of the associated attributes. Scripts are made from
+        calibrationURL and imagingURL and are put into currentRedDir.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::runScriptExtractor'
@@ -711,7 +746,13 @@ class benchmark:
 
     def useOtherBmarkScripts(self, prevBmark):
         """ Sets this benchmark instance up to use extracted scripts from
-            another benchmark object.
+        another benchmark object.
+
+        Parameters
+        ----------
+        prevBmark : benchmark object
+           Source object for copying scripts etc. from. Wisest choice would be
+           one that already finshed and was successful.
 
         Returns
         -------
@@ -740,7 +781,7 @@ class benchmark:
         shutil.copy(prevBmark.imageScriptExpect, self.currentLogDir)
         shutil.copy(prevBmark.extractLog, self.currentLogDir)
 
-        #setup current scrtipt associated attributes
+        #setup current script associated attributes
         self.extractLog = self.currentLogDir + \
                           os.path.basename(prevBmark.extractLog)
         self.calScript = self.currentRedDir + \
