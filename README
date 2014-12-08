@@ -1,6 +1,151 @@
 ==================
 Python Translation
 ==================
+
+Quick Start Guide
+=================
+For the impatient, follow the bullets below and use examples to see what's
+happening at each step. For the less impatient, this quick start is only to get
+you going. Read the module docs for all the juicy details. Presented here is
+a general list of steps with some notes on how different options may change the
+the flow, and following that are some simple examples.
+
+**Note: Expect these steps and notes to change as more of the fuctionality is
+        filled out. This also means you should be careful to make sure your
+        local copy of the repo is current.
+
+1) Download the repo and put it somewhere the machine you intend to benchmark
+   can access.
+2) Make a directory where you intend all benchmarking on this machine to take
+   place.
+3) Start a Python file which you will use primarily to keep track of the
+   commands used in the current benchmarking.
+4) Add these lines to the start of your file:
+     import sys
+     import copy
+     CASAglobals = copy.copy(globals())
+     scriptDir = '/path/to/copy/of/this/repo/'
+     sys.path.append(scriptDir)
+5) Following those lines import either benchmark (single benchmark executions)
+   or machine (single or multiple executions, recommended).
+6m) (steps with "m" will be if import machine was used) Set some variables that
+    determine which data sets you want to benchmark, how many times you want
+    each data set executed and if the data should be downloaded from the science
+    portal or retrieved from lustre.
+      -names of data sets must match the dictionary variables in parameters.py
+       so if you want to run Antennae Band 7 with CASA 4.2 the string you need
+       to use will be 'AntennaeBand7_42'
+      -see examples below for how to actually set these variables
+7m) Instantiate a machine.machine object with the CASAglobals, scriptDir,
+    dataSets, nIters, skipDownloads and (optionally) workDir parameters. This
+    should be set to a variable so you can run the other machine class methods.
+8m) Run the runBenchmarks() method.
+9m) Include code to run machine.makeReport on the .summary files from your
+    benchmarks. See below for a simple example of this.
+10) Start CASA with --nologger set
+      -nothing from the benchmarking will be sent to the logger so there's no
+       point having the extra window
+      -you can start CASA wherever you like
+11) Run execfile on your Python file at the CASA prompt.
+6b) (steps with "b" will be if import benchmark was used) Set variables that
+    specify where the calibration and imaging scripts are located (URL to CASA
+    guide allowed), where the raw data can be retrieved (URL allowed) and what
+    to name the shell commands output log file.
+7b) Instantiate a benchmark.benchmark object with the CASAglobals, scriptDir,
+    calibrationURL, imagingURL, dataPath, outFile and (optionally) workDir
+    parameters. This should be set to a variable so you can run the subsequent
+    benchmark class methods.
+      -values from parameters.py can be used here by adding the line
+       "import parameters" and then using the different keys within the desired
+       dictionary
+8b) Run the createDirTree, (optionally) downloadData, extractData,
+    doScriptExtraction, runGuideScript and writeOutFile methods. If you skip
+    the downloadData method be sure to set skipDownloads=True in
+    benchmark.benchmark call.
+
+
+Examples
+========
+###############################################################################
+#script using machine module
+import sys
+import copy
+CASAglobals = copy.copy(globals())
+scriptDir = '/lustre/naasc/nbrunett/bench_code_devel/' + \
+            'CASA-Guides-Script-Extractor'
+sys.path.append(scriptDir)
+import machine
+
+#set benchmark options
+dataSets = ['AntennaeBand7_42', 'NGC3256Band3_42']
+nIters = [1, 3]
+skipDownloads = [False, False]
+
+#run benchmarking
+#workDir defaults to current directory here
+multivac = machine.machine(CASAglobals=CASAglobals,
+                           scriptDir=scriptDir,
+                           dataSets=dataSets,
+                           nIters=nIters,
+                           skipDownloads=skipDownloads)
+multivac.runBenchmarks()
+
+#print results to terminal
+print '\n\n\n'
+print "here's my preliminary report, VERY rudimentary"
+for i,dataSet in enumerate(dataSets):
+    files = list()
+    for i in range(nIters[i]):
+        files.append(multivac.jobs[dataSet]['benchmarks'][i].calBenchSumm)
+    report = machine.makeReport(files)
+    print 'data set   host name   avg time   std time   run times'
+    print '##Calibration:'
+    print dataSet, multivac.hostName, report[0], report[1], report[2]
+
+    files = list()
+    for i in range(nIters[i]):
+        files.append(multivac.jobs[dataSet]['benchmarks'][i].imageBenchSumm)
+    report = machine.makeReport(files)
+    print '##Imaging'
+    print dataSet, multivac.hostName, report[0], report[1], report[2]
+###############################################################################
+
+###############################################################################
+#script using benchmark module directly
+import sys
+import copy
+CASAglobals = copy.copy(globals())
+scriptDir = '/lustre/naasc/nbrunett/bench_code_devel/' + \
+            'CASA-Guides-Script-Extractor'
+sys.path.append(scriptDir)
+import benchmark
+
+#set benchmark variables
+calibrationURL = 'http://casaguides.nrao.edu/index.php?title=NGC3256_Band3_' + \
+                 'Calibration_for_CASA_4.2'
+imagingURL = 'http://casaguides.nrao.edu/index.php?title=NGC3256_Band3_' + \
+             'Imaging_for_CASA_4.2'
+dataPath = 'http://fatman.cv.nrao.edu/almadata/sciver/NGC3256/NGC3256_Band3_' + \
+           'UnCalibratedMSandTablesForReduction.tgz'
+outFile = 'shell.log.txt'
+
+#run benchmarking
+#workDir defaults to current directory and skipDownload to False here
+x = benchmark.benchmark(CASAglobals=CASAglobals,
+                        scriptDir=scriptDir,
+                        calibrationURL=calibrationURL,
+                        imagingURL=imagingURL,
+                        dataPath=dataPath,
+                        outFile=outFile)
+x.createDirTree()
+x.downloadData()
+x.extractData()
+x.doScriptExtraction()
+x.runGuideScript()
+x.writeOutFile()
+###############################################################################
+
+
 Files unique to translated architecture:
   -benchmark.py
   -machine.py
