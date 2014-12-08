@@ -58,11 +58,10 @@ the flow, and following that are some simple examples.
       -values from parameters.py can be used here by adding the line
        "import parameters" and then using the different keys within the desired
        dictionary
+      -if you plan on not downloading the data then be sure to set
+       skipDownload=True here
 8b) Run the createDirTree, (optionally) downloadData, extractData,
-    doScriptExtraction, runGuideScript and writeOutFile methods. If you skip
-    the downloadData method be sure to set skipDownloads=True in
-    benchmark.benchmark call.
-
+    doScriptExtraction, runGuideScript and writeOutFile methods.
 
 Examples
 ========
