@@ -37,9 +37,9 @@ the flow, and following that are some simple examples.
        to use will be 'AntennaeBand7_42'
       -see examples below for how to actually set these variables
 7m) Instantiate a machine.machine object with the CASAglobals, scriptDir,
-    dataSets, nIters, skipDownloads and (optionally) workDir parameters. This
+    dataSets, nIters, skipDownloads, and (optionally) workDir parameters. This
     should be set to a variable so you can run the other machine class methods.
-8m) Run the runBenchmarks() method.
+8m) Run the runBenchmarks() method optionally setting the cleanUp parameter.
 9m) Include code to run machine.makeReport on the .summary files from your
     benchmarks. See below for a simple example of this.
 10) Start CASA with --nologger set
@@ -82,12 +82,13 @@ skipDownloads = [False, False]
 
 #run benchmarking
 #workDir defaults to current directory here
+#cleanUp defaults to False here
 multivac = machine.machine(CASAglobals=CASAglobals,
                            scriptDir=scriptDir,
                            dataSets=dataSets,
                            nIters=nIters,
                            skipDownloads=skipDownloads)
-multivac.runBenchmarks()
+multivac.runBenchmarks(cleanUp=True)
 
 #print results to terminal
 print '\n\n\n'
@@ -129,7 +130,8 @@ dataPath = 'http://fatman.cv.nrao.edu/almadata/sciver/NGC3256/NGC3256_Band3_' + 
 outFile = 'shell.log.txt'
 
 #run benchmarking
-#workDir defaults to current directory and skipDownload to False here
+#workDir defaults to current directory here
+#skipDownload defaults to False here
 x = benchmark.benchmark(CASAglobals=CASAglobals,
                         scriptDir=scriptDir,
                         calibrationURL=calibrationURL,
@@ -141,7 +143,6 @@ x.downloadData()
 x.extractData()
 x.doScriptExtraction()
 x.runGuideScript()
-x.writeOutFile()
 ###############################################################################
 
 
