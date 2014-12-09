@@ -27,15 +27,25 @@ import extractCASAscript
 #-all methods should probably return something
 #-need to deal with how to keep extractCASAscript.py current with the tasklist
 # and potentially changing parameters or functionality
-#-figure out previous run stuff and about deleting them if that makes sense
-#  -maybe instead of removing previous run, have a method for removing the
-#   current run. something like a cleanup that would be used at the higher level
 #-if I split up the runGuideScript into separate calibration and imaging methods
 # then I should think about making CASAglobals an input parameter to them so that
 # I potentially wouldn't need to do the .pop stuff to clear out accreted
 # variables
 #-put in script extraction error handling (see notes.txt first entry for
 # 2014-12-06)
+#-consider getting rid of createDirTree method and incorporating that code into
+# __init__
+#  -there's really no reason for that to be an external thing that you have to do
+#  -just instantiate the benchmark and it's ready to go
+#  -the other methods, like downloadData and doScriptExtraction, are things that
+#   can be conditional (not always used)
+#  -the only reason it might be good to have is that instantiated an object
+#   might be a surprising time to have directories simply appear in your working
+#   (potentially current) directory
+#-investigate this message: "WARNING: reading as string array because float array
+# failed"
+#  -I see it from both calibration and imaging scripts for every test I run in
+#   the .py.log files
 
 class benchmark:
     """A class for the execution of a single CASA guide
@@ -94,25 +104,15 @@ class benchmark:
     imagingURL : str
         URL to CASA guide imaging webpage.
 
-    outString : str
-        Container string that stores operations that do not automatically log
-        themselves. Primarily for things like acquiring and extracting the
-        data which are not wrapped up in a separate module.
-
     dataPath : str
         URL or absolute path to raw CASA guide data and calibration tables.
 
     outFile : str
         Log file for operations done outside of other wrapper modules such as
-        acquiring and extracting the raw data. This is where the outString is
-        saved at the end of execution.
+        acquiring and extracting the raw data.
 
     skipDownload : bool
         Switch to skip downloading the raw data from the web.
-
-    previousDir (is this needed with the directory structure I'm using?): str
-        Absolute path to directory of a previous benchmarking execution. This
-        will be the previous run workDir path.
 
     localTar : str
         Absolute path to raw data .tgz file associated with CASA guide.
@@ -199,9 +199,6 @@ class benchmark:
     createDirTree
         Creates current benchmark instance directory structure.
 
-    removePreviousRun
-        Deletes directory associated with a previous benchmark instance.
-
     downloadData
         Uses wget to download raw data from the web.
 
@@ -220,8 +217,8 @@ class benchmark:
     runGuideScript (should also have switch for cal, imaging and .py files)
         Executes extracted CASA guide Python files.
 
-    writeOutFile
-        Writes outString to a text file.
+    writeToOutFile
+        Appends a string to outFile.
 
     useOtherBmarkScripts
         Copies extracted scripts and extraction logs into current benchmark.
@@ -291,13 +288,6 @@ class benchmark:
                 raise ValueError("'" + self.dataPath + "' is not a valid " + \
                                  'URL for downloading the data.')
 
-        #check current directory for previous run
-        prevDir = self.dataPath.split('/')[-1].split('.tgz')[0]
-        if os.path.isdir(prevDir):
-            self.previousDir = os.path.abspath(prevDir)
-        else:
-            self.previousDir = ''
-
         #initialize the current benchmark instance directories and files
         self.currentWorkDir = self.workDir + \
                               time.strftime('%Y_%m_%dT%H_%M_%S') + '-' + \
@@ -307,7 +297,6 @@ class benchmark:
         self.currentTarDir = self.currentWorkDir + 'tarballs/'
         self.currentRedDir = ''
         self.allLogDir = self.workDir + 'all_logs/'
-        self.outString = ''
         self.extractLog = self.currentLogDir + 'extractCASAscript.py.log'
 
         #strings that can be filled out by later methods
@@ -364,30 +353,6 @@ class benchmark:
             os.mkdir(self.allLogDir)
 
 
-    def removePreviousRun(self):
-        """ Removes directory tree associated with a previous benchmark.
-
-        Returns
-        -------
-        None
-
-        Notes
-        -----
-        This deletes the directory at the path stored in previousDir. It should
-        be platform independent as it used shutil.rmtree (or at least as
-        platform independent as that method is).
-        """
-        #for telling where printed messages originate from
-        fullFuncName = __name__ + '::removePreviousRun'
-        indent = len(fullFuncName) + 2
-
-        if self.previousDir != '':
-            print fullFuncName + ':', 'Removing preexisting data.'
-            shutil.rmtree(self.previousDir)
-        else:
-            print fullFuncName + ':', 'No previous run to remove.'
-
-
     def downloadData(self):
         """ Downloads raw data .tgz file from the web.
 
@@ -414,14 +379,16 @@ class benchmark:
         #wget the data
         print fullFuncName + ':', 'Acquiring data by HTTP.\n' + ' '*indent + \
               'Logging to', self.outFile + '.'
-        self.outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
-        self.outString += 'Timing command:\n' + command + '\n'
+        outString = ''
+        outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
+        outString += 'Timing command:\n' + command + '\n'
         procT = time.clock()
         wallT = time.time()
         os.system(command)
         wallT = round(time.time() - wallT, 2)
         procT = round(time.clock() - procT, 2)
-        self.outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
+        outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
+        self.writeToOutFile(outString)
         self.localTar = self.currentTarDir+ self.dataPath.split('/')[-1]
 
 
@@ -450,8 +417,9 @@ class benchmark:
         #untar the raw data
         print fullFuncName + ':', 'Extracting data.\n' + ' '*indent + \
               'Logging to', self.outFile + '.'
-        self.outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
-        self.outString += 'Timing command:\n' + command + '\n'
+        outString = ''
+        outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
+        outString += 'Timing command:\n' + command + '\n'
         procT = time.clock()
         wallT = time.time()
         tar = tarfile.open(self.localTar)
@@ -459,7 +427,8 @@ class benchmark:
         tar.close()
         wallT = round(time.time() - wallT, 2)
         procT = round(time.clock() - procT, 2)
-        self.outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
+        outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
+        self.writeToOutFile(outString)
         self.currentRedDir = self.currentWorkDir + \
                              os.path.basename(self.localTar)[:-4] + '/'
 
@@ -550,7 +519,7 @@ class benchmark:
         calibrationURL and imagingURL and are put into currentRedDir.
         """
         #for telling where printed messages originate from
-        fullFuncName = __name__ + '::runScriptExtractor'
+        fullFuncName = __name__ + '::doScriptExtraction'
         indent = len(fullFuncName) + 2
 
         #remember where we were and change to reduction directory
@@ -723,7 +692,7 @@ class benchmark:
         os.chdir(oldPWD)
 
 
-    def writeOutFile(self):
+    def writeToOutFile(self, outString):
         """ Writes outString to a text file.
 
         Returns
@@ -737,11 +706,11 @@ class benchmark:
         and unpacking.
         """
         #for telling where printed messages originate from
-        fullFuncName = __name__ + '::writeOutFile'
+        fullFuncName = __name__ + '::writeToOutFile'
         indent = len(fullFuncName) + 2
         
-        f = open(self.outFile, 'w')
-        f.write(self.outString)
+        f = open(self.outFile, 'a')
+        f.write(outString)
         f.close()
 
     def useOtherBmarkScripts(self, prevBmark):
@@ -804,3 +773,53 @@ class benchmark:
                                  os.path.basename(prevBmark.imageBenchOutFile)
         self.imageBenchSumm = self.currentRedDir + \
                               os.path.basename(prevBmark.imageBenchSumm)
+
+
+    def removeCurrentRedDir(self):
+        """ Deletes the current reduction directory and reassigns affected
+        attributes.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        The intention is to use this once a benchmark execution is complete so
+        that disk space can be conserved, but this can technically be run
+        anytime after the extractData method is run. This uses shutil.rmtree so
+        it should be as platform-independent as that module. After the directory
+        is removed all attributes associated with removed files are set to None
+        and the rest are changed to references to the log_files/ directory.
+        Affected attributes are calScript (None), calScriptLog, imageScript
+        (None), imageScriptLog, calScriptExpect, imageScriptExpect,
+        calBenchOutFile, calBenchSumm, imageBenchOutFile, imageBenchSumm and
+        currentRedDir (None).
+        """
+        #for telling where printed messages originate from
+        fullFuncName = __name__ + '::removeCurrentRedDir'
+        indent = len(fullFuncName) + 2
+
+        #remove the current reduction directory
+        shutil.rmtree(self.currentRedDir)
+
+        #change path attributes based on directory removal
+        self.calScript = None
+        self.calScriptLog = self.currentLogDir + \
+                            os.path.basename(self.calScriptLog)
+        self.imageScript = None
+        self.imageScriptLog = self.currentLogDir + \
+                              os.path.basename(self.imageScriptLog)
+        self.calScriptExpect = self.currentLogDir + \
+                               os.path.basename(self.calScriptExpect)
+        self.imageScriptExpect = self.currentLogDir + \
+                                 os.path.basename(self.imageScriptExpect)
+        self.calBenchOutFile = self.currentLogDir + \
+                               os.path.basename(self.calBenchOutFile)
+        self.calBenchSumm = self.currentLogDir + \
+                            os.path.basename(self.calBenchSumm)
+        self.imageBenchOutFile = self.currentLogDir + \
+                                 os.path.basename(self.imageBenchOutFile)
+        self.imageBenchSumm = self.currentLogDir + \
+                              os.path.basename(self.imageBenchSumm)
+        self.currentRedDir = None
