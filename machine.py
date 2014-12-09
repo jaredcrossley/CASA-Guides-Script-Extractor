@@ -219,7 +219,37 @@ class machine:
         self.casaRevision = self.CASAglobals['casadef'].subversion_revision
 
 
-    def runBenchmarks(self):
+    def runBenchmarks(self, cleanUp=False):
+        """ Runs all necessary benchmark class methods for each data set the
+        specified number of iterations.
+
+        Parameters
+        ----------
+        cleanUp : bool
+           Determine whether benchmark::removeCurrentRedDir is run at the end of
+           each benchmark to conserve disk space. Defaults to False (do not
+           remove reduction directory).
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This iterates over each data set setup for benchmarking for the
+        associated number of iterations. For each iteration it instantiaes a
+        dedicated benchmark object and stores it in the jobs attribute. benchmark
+        class methods run are benchmark, createDirTree, downloadData (optional),
+        extractData, doScriptExtraction, useOtherBmarkScripts (optional),
+        runGuideScript and removeCurrentRedDir (optional). It makes the data set
+        directories if they are not already present. It also tries to only do
+        the data extraction once:
+          -does the extration on the first iteration
+          -if the previous benchmark was successful the next iteration runs
+           useOtherBmarkScripts on the previous benchmark instance
+          -if the previous failed then it does the extraction on the next like
+           normal
+        """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::runBenchmarks'
         indent = len(fullFuncName) + 2
@@ -268,4 +298,5 @@ class machine:
                 if b.status == 'failure': continue
 
                 b.runGuideScript()
-                b.writeOutFile()
+                if cleanUp:
+                    b.removeCurrentRedDir()
