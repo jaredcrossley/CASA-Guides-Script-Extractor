@@ -276,7 +276,7 @@ class machine:
                                  calibrationURL=params['calibrationURL'], \
                                  imagingURL=params['imagingURL'], \
                                  dataPath=dataPath, \
-                                 outFile='shell.log.txt', \ 
+                                 outFile='shell.log.txt', \
                                  skipDownload=self.jobs[dataSet]['skipDownload'])
                 self.jobs[dataSet]['benchmarks'].append(b)
 
@@ -299,4 +299,4 @@ class machine:
 
                 b.runGuideScript()
                 if cleanUp:
-                    b.removeCurrentRedDir()
+                    b.emptyCurrentRedDir()
