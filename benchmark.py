@@ -222,6 +222,9 @@ class benchmark:
 
     useOtherBmarkScripts
         Copies extracted scripts and extraction logs into current benchmark.
+
+    emptyCurrentRedDir
+        Empties current reduction directory of everything except for scripts.
     """
     def __init__(self, CASAglobals=None, scriptDir='', workDir='./', \
                  calibrationURL='', imagingURL='', dataPath='', outFile='', \
@@ -775,9 +778,9 @@ class benchmark:
                               os.path.basename(prevBmark.imageBenchSumm)
 
 
-    def removeCurrentRedDir(self):
-        """ Deletes the current reduction directory and reassigns affected
-        attributes.
+    def emptyCurrentRedDir(self):
+        """ Empties out the current reduction directory (except for the
+        calibration and imaging scripts) and reassigns affected attributes.
 
         Returns
         -------
@@ -788,26 +791,38 @@ class benchmark:
         The intention is to use this once a benchmark execution is complete so
         that disk space can be conserved, but this can technically be run
         anytime after the extractData method is run. This uses shutil.rmtree so
-        it should be as platform-independent as that module. After the directory
-        is removed all attributes associated with removed files are set to None
-        and the rest are changed to references to the log_files/ directory.
-        Affected attributes are calScript (None), calScriptLog, imageScript
-        (None), imageScriptLog, calScriptExpect, imageScriptExpect,
-        calBenchOutFile, calBenchSumm, imageBenchOutFile, imageBenchSumm and
-        currentRedDir (None).
+        it should be as platform-independent as that module. Everything in the
+        current reduction directory is removed except for the calibration and
+        imaging scripts. After directory is emptied, all attributes associated
+        with removed files are changed to references to the log_files/ directory.
+        Affected attributes are calScriptLog, imageScriptLog, calScriptExpect,
+        imageScriptExpect, calBenchOutFile, calBenchSumm, imageBenchOutFile and
+        imageBenchSumm.
         """
         #for telling where printed messages originate from
-        fullFuncName = __name__ + '::removeCurrentRedDir'
+        fullFuncName = __name__ + '::emptyCurrentRedDir'
         indent = len(fullFuncName) + 2
 
-        #remove the current reduction directory
-        shutil.rmtree(self.currentRedDir)
+        #move scripts to save them
+        oldPWD = os.getcwd()
+        os.chdir(self.currentRedDir)
+        shutil.move(self.calScript, '..')
+        shutil.move(self.imageScript, '..')
 
-        #change path attributes based on directory removal
-        self.calScript = None
+        #empty out the current reduction directory
+        os.chdir(self.currentLogDir)
+        shutil.rmtree(self.currentRedDir)
+        os.mkdir(self.currentRedDir)
+
+        #move scripts back
+        os.chdir(self.currentRedDir)
+        shutil.move('../' + os.path.basename(self.calScript), '.')
+        shutil.move('../' + os.path.basename(self.imageScript), '.')
+        os.chdir(oldPWD)
+
+        #change path attributes based on emptying directory
         self.calScriptLog = self.currentLogDir + \
                             os.path.basename(self.calScriptLog)
-        self.imageScript = None
         self.imageScriptLog = self.currentLogDir + \
                               os.path.basename(self.imageScriptLog)
         self.calScriptExpect = self.currentLogDir + \
@@ -822,4 +837,3 @@ class benchmark:
                                  os.path.basename(self.imageBenchOutFile)
         self.imageBenchSumm = self.currentLogDir + \
                               os.path.basename(self.imageBenchSumm)
-        self.currentRedDir = None
