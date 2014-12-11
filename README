@@ -161,6 +161,16 @@ e.g. benchmarking an SB from ALMA project 2012.1.00912.S should be named
 x2012_1_00912_S_42 (for CASA 4.2).
 
 
+Updating extractCASAscript.py
+=============================
+In the module documentation for extractCASAscript it says that the global
+casa_tasks list must be updated when using new versions of CASA. This is not the
+case when using this benchmarking package since extractCASAscript is imported
+within CASA. It does not hurt anything to fill out the casa_tasks variable in
+extractCASAscript.py but it will be ignored by this package since it builds the
+list automatically on its own.
+
+
 Files unique to translated architecture:
   -benchmark.py
   -machine.py
