@@ -24,8 +24,6 @@ import parameters
 #-could shorten up lines that use the jobs dict by defining variables local to
 # the particular method for the parts needed e.g. look under runBenchmarks in
 # the for loop that actually runs the benchmarks
-#-figure out how I want to do the currentWorkDir in benchmark class so it doesn't
-# need to find the hostname (get rid of socket import there)
 
 def makeReport(files):
     """ Gather total times and caluclate the mean and standard deviation from
@@ -257,7 +255,7 @@ class machine:
         #setup and run each data set the specified number of iterations
         for dataSet in self.dataSets:
             #setup data set directory
-            dataSetDir = self.workDir + dataSet + '/'
+            dataSetDir = self.workDir + dataSet + '-' + self.hostName + '/'
             if not os.path.isdir(dataSetDir):
                 os.mkdir(dataSetDir)
             params = getattr(parameters, dataSet)
