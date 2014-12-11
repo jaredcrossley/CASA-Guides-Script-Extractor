@@ -2,6 +2,24 @@
 #   Some variable names have a meaningles "x" prepended since variable names
 #   can't start with numbers.
 
+##2012.1.00912.S##
+#THIS DATA IS NOT ON THE SCIENCE PORTAL
+#CASA 4.2
+x2012_1_00912_S_42 = {'calibrationURL': \
+                          '/lustre/naasc/nbrunett/benchmark/' + \
+                          '2012.1.00912.S/422/' + \
+                          'nates_modified_scriptForCalibration.py', \
+                      'imagingURL': \
+                          '/lustre/naasc/nbrunett/benchmark/' + \
+                          '2012.1.00912.S/422/' + \
+                          'scriptForImaging.py', \
+                      'dataURL': \
+                          None, \
+                      'dataPath': \
+                          '/lustre/naasc/nbrunett/benchmark/2012.1.00912.S/' + \
+                          '912_reduction.tgz'}
+##=============================================================================##
+
 ##2011.0.00099.S##
 #THIS DATA IS NOT ON THE SCIENCE PORTAL
 #CASA 4.0
