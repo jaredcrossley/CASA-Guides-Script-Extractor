@@ -5,46 +5,29 @@ import time
 from optparse import OptionParser
 import tarfile
 from urllib2 import HTTPError
-from time import sleep
 
 #import non-standard Python modules
 import extractCASAscript
 
-#-should make the calibrationURL and imagingURL behavior reflect the fact that
-# extractCASAscript.py can take local Python files there too
-#  -this may require some reworking of the object's attributes and the execution
-#   method
-#  -maybe change have a switch for __init__ that differentiates between a guide
-#   and just a Python file to be benchmarked
-#  -I think the best option would actually to remove the specifics of calibration
-#   and imaging from the benchmark class
-#    -make it literally a class for benchmarking scripts
-#    -externally you deal with the calibration or imaging script and possibly the
-#     process of extracting them from some webpage but the benchmark class just
-#     deals with the directory structure and logging of a Python script run
-#     inside CASA
 #-all methods should probably return something
-#-need to deal with how to keep extractCASAscript.py current with the tasklist
-# and potentially changing parameters or functionality
-#-if I split up the runGuideScript into separate calibration and imaging methods
-# then I should think about making CASAglobals an input parameter to them so that
-# I potentially wouldn't need to do the .pop stuff to clear out accreted
-# variables
+#-think about splitting up runGuideScript into calibration and imaging
+#  -best way might be to do this with a switch and have runGuideScript be
+#   general
+#  -should then think about making benchmark class work with just one
+#  -if I split up the runGuideScript into separate calibration and imaging
+#   methods then I should think about making CASAglobals an input parameter to
+#   them so that I don't need to do .pop stuff
+#  -need to split up doScriptExtraction as well
+#-I might not need to do the .pop stuff in runGuideScript now that it's
+# generalized
 #-put in script extraction error handling (see notes.txt first entry for
 # 2014-12-06)
-#-consider getting rid of createDirTree method and incorporating that code into
-# __init__
-#  -there's really no reason for that to be an external thing that you have to do
-#  -just instantiate the benchmark and it's ready to go
-#  -the other methods, like downloadData and doScriptExtraction, are things that
-#   can be conditional (not always used)
-#  -the only reason it might be good to have is that instantiated an object
-#   might be a surprising time to have directories simply appear in your working
-#   (potentially current) directory
 #-investigate this message: "WARNING: reading as string array because float array
 # failed"
 #  -I see it from both calibration and imaging scripts for every test I run in
 #   the .py.log files
+#-does copy.copy need to be used when passing in CASAglobals to machine and
+# benchmark?
 
 class benchmark:
     """A class for the execution of a single CASA guide
@@ -213,8 +196,8 @@ class benchmark:
     doScriptExtraction (this should probably be split into cal, imaging and .py)
         Calls extractCASAscript.main to create CASA guide Python scripts.
 
-    runGuideScript (should also have switch for cal, imaging and .py files)
-        Executes extracted CASA guide Python files.
+    runGuideScript
+        Executes either calibration or imaging extracted Python scripts.
 
     writeToOutFile
         Appends a string to outFile.
@@ -313,6 +296,9 @@ class benchmark:
 
         #object is good to go at this point
         self.status = 'normal'
+
+        #fill out casa_tasks with current CASA task list
+        extractCASAscript.casa_tasks = extractCASAscript.listCASATasks()
 
 
     def createDirTree(self):
@@ -496,7 +482,7 @@ class benchmark:
                 return True
             except HTTPError, e:
                 if i != 2:
-                    sleep(30)
+                    time.sleep(30)
                 else:
                     print fullFuncName + ':', 'Ran into HTTPError 3 times.\n' + \
                           ' '*indent + 'Giving up on extracting a script ' + \
@@ -506,9 +492,15 @@ class benchmark:
                     return False
 
 
-    def doScriptExtraction(self):
-        """ Runs the script extractor for the calibration and imaging scripts and
+    def doScriptExtraction(self, stage):
+        """ Runs the script extractor for the calibration or imaging script and
         arranges all of the associated details.
+
+        Parameters
+        ----------
+        stage : str
+           Specifies which script to extract, calibration or imaging. Can be
+           either "cal" or "im" and will raise a ValueError otherwise.
 
         Returns
         -------
@@ -518,11 +510,15 @@ class benchmark:
         -----
         This ensures the extraction output is logged, runs the script extraction
         and fills out all of the associated attributes. Scripts are made from
-        calibrationURL and imagingURL and are put into currentRedDir.
+        calibrationURL or imagingURL and are put into currentRedDir.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::doScriptExtraction'
         indent = len(fullFuncName) + 2
+
+        #check input
+        if stage != 'cal' and stage != 'im':
+            raise ValueError('stage must be either "cal" or "im".')
 
         #remember where we were and change to reduction directory
         oldPWD = os.getcwd()
@@ -536,67 +532,61 @@ class benchmark:
         sys.stdout = open(self.extractLog, 'w')
         sys.stderr = sys.stdout
 
-        #try extracting calibration script
-        if not self.runextractCASAscript(self.calibrationURL):
-            stdOut, sys.stdout = sys.stdout, stdOut
-            stdOut.close()
-            stdErr, sys.stderr = sys.stderr, stdErr
-            stdErr.close
-            os.chdir(oldPWD)
-            self.status = 'failure'
-            return
+        #set local variables based on stage
+        if stage == 'cal':
+            scriptURL = self.calibrationURL
+        else:
+            scriptURL = self.imagingURL
+
+        result = self.runextractCASAscript(scriptURL)
         print '\n'
-        print '-'
-        print '---'
-        print '-'
+        print '='*80
         print '\n'
-        #try extracting imaging script
-        if not self.runextractCASAscript(self.imagingURL):
-            stdOut, sys.stdout = sys.stdout, stdOut
-            stdOut.close()
-            stdErr, sys.stderr = sys.stderr, stdErr
-            stdErr.close
-            os.chdir(oldPWD)
-            self.status = 'failure'
-            return
+
+        #change logs back and go back to wherever we were before
         stdOut, sys.stdout = sys.stdout, stdOut
         stdOut.close()
         stdErr, sys.stderr = sys.stderr, stdErr
         stdErr.close
-
-        #change directory back to wherever we started from
         os.chdir(oldPWD)
 
-        #store the script name(s) in the object
-        scripts = list()
+        #report failure if extraction didn't work
+        if not result:
+            self.status = 'failure'
+            return
+
+        #grab the new script name
         f = open(self.extractLog, 'r')
-        for line in f:
+        for line in reversed(f.readlines()):
             if 'New file' in line:
-                scripts.append(line.split(' ')[2])
+                scriptName = line.split(' ')[2]
         f.close()
-        if 'Calibration' in  scripts[0]:
-            self.calScript = self.currentRedDir + scripts[0]
-            self.imageScript = self.currentRedDir + scripts[1]
+
+        #store file names in the object
+        if stage == 'cal':
+            self.calScript = self.currentRedDir + scriptName
+            self.calScriptExpect = self.calScript + '.expected'
+            self.calScriptLog = self.calScript + '.log'
+            self.calBenchOutFile = self.calScript[:-3] + '.benchmark.txt'
+            self.calBenchSumm = self.calBenchOutFile + '.summary'
+            shutil.copy(self.calScriptExpect, self.currentLogDir)
         else:
-            self.calScript = self.currentRedDir + scripts[1]
-            self.imageScript = self.currentRedDir + scripts[0]
-
-        #store the log name(s) in the object
-        self.calScriptExpect = self.calScript + '.expected'
-        self.imageScriptExpect = self.imageScript + '.expected'
-        self.calScriptLog = self.calScript + '.log'
-        self.imageScriptLog = self.imageScript + '.log'
-        self.calBenchOutFile = self.calScript[:-3] + '.benchmark.txt'
-        self.imageBenchOutFile = self.imageScript[:-3] + '.benchmark.txt'
-        self.calBenchSumm = self.calBenchOutFile + '.summary'
-        self.imageBenchSumm = self.imageBenchOutFile + '.summary'
-
-        shutil.copy(self.calScriptExpect, self.currentLogDir)
-        shutil.copy(self.imageScriptExpect, self.currentLogDir)
+            self.imageScript = self.currentRedDir + scriptName
+            self.imageScriptExpect = self.imageScript + '.expected'
+            self.imageScriptLog = self.imageScript + '.log'
+            self.imageBenchOutFile = self.imageScript[:-3] + '.benchmark.txt'
+            self.imageBenchSumm = self.imageBenchOutFile + '.summary'
+            shutil.copy(self.imageScriptExpect, self.currentLogDir)
 
 
-    def runGuideScript(self):
-        """ Executes the calibration and imaging CASA guide scripts.
+    def runGuideScript(self, stage):
+        """ Executes the calibration or imaging CASA guide script.
+
+        Parameters
+        ----------
+        stage : str
+           Specifies which script to run, calibration or imaging. Can be either
+           "cal" or "im" and will raise a ValueError otherwise.
 
         Returns
         -------
@@ -604,14 +594,21 @@ class benchmark:
 
         Notes
         -----
-        This runs the calScript and imageScript files with execfile, passing in
-        all of the CASA global definitions. It also directs standard out and
-        standard error to calScriptLog and imageScriptLog. These are run inside
-        currentRedDir.
+        This runs either the calScript or imageScript file with execfile, passing
+        in all of the CASA global definitions, depending on the setting of stage.
+        It directs standard out and standard error to calScriptLog or
+        imageScriptLog during execution. These are run inside currentRedDir.
+        Lastly, it copies the calScriptLog, calBenchOutFile and calBenchSumm
+        files or imageScriptLog, imageBenchOutFile and imageBenchSumm files to
+        currentLogDir and (sans script logs) to allLogDir.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::runGuideScript'
         indent = len(fullFuncName) + 2
+
+        #check input
+        if stage != 'cal' and stage != 'im':
+            raise ValueError('stage must be either "cal" or "im".')
 
         #remember where we were and change to reduction directory
         oldPWD = os.getcwd()
@@ -620,75 +617,56 @@ class benchmark:
         #remember what is in the CASA global namespace
         preKeys = self.CASAglobals.keys()
 
-        #run calibration script
+        #set local variables based on stage
+        if stage == 'cal':
+            script = self.calScript
+            scriptLog = self.calScriptLog
+            benchOutFile = self.calBenchOutFile
+            benchSumm = self.calBenchSumm
+        else:
+            script = self.imageScript
+            scriptLog = self.imageScriptLog
+            benchOutFile = self.imageBenchOutFile
+            benchSumm = self.imageBenchSumm
+
+        #setup logging
         print fullFuncName + ':', 'Beginning benchmark test of ' + \
-              self.calScript + '.\n' + ' '*indent + 'Logging to ' + \
-              self.calScriptLog + '.'
+              script + '.\n' + ' '*indent + 'Logging to ' + scriptLog + '.'
         stdOut = sys.stdout
         stdErr = sys.stderr
-        sys.stdout = open(self.calScriptLog, 'w')
+        sys.stdout = open(scriptLog, 'w')
         sys.stderr = sys.stdout
         print 'CASA Version ' + self.CASAglobals['casadef'].casa_version + \
               ' (r' + self.CASAglobals['casadef'].subversion_revision + \
               ')\n  Compiled on: ' + self.CASAglobals['casadef'].build_time + \
               '\n\n'
         origLog = self.CASAglobals['casalog'].logfile()
-        self.CASAglobals['casalog'].setlogfile(self.calScriptLog)
-        execfile(self.calScript, self.CASAglobals)
+        self.CASAglobals['casalog'].setlogfile(scriptLog)
+
+        execfile(script, self.CASAglobals)
+
+        #put logs back
         closeFile = sys.stdout
         sys.stdout = stdOut
         self.CASAglobals['casalog'].setlogfile(origLog)
         closeFile.close()
-        print fullFuncName + ':', 'Finished test of ' + self.calScript
+        print fullFuncName + ':', 'Finished test of ' + script
 
-        #remove anything the calibration script added
+        #remove anything the script added
         for key in self.CASAglobals.keys():
             if key not in preKeys:
                 self.CASAglobals.pop(key, None)
 
-        #run imaging script
-        print fullFuncName + ':', 'Beginning benchmark test of ' + \
-              self.imageScript + '.\n' + ' '*indent + 'Logging to ' + \
-              self.imageScriptLog + '.'
-        sys.stdout = open(self.imageScriptLog, 'w')
-        sys.stderr = sys.stdout
-        print 'CASA Version ' + self.CASAglobals['casadef'].casa_version + \
-              ' (r' + self.CASAglobals['casadef'].subversion_revision + \
-              ')\n  Compiled on: ' + self.CASAglobals['casadef'].build_time + \
-              '\n\n'
-        self.CASAglobals['casalog'].setlogfile(self.imageScriptLog)
-        execfile(self.imageScript, self.CASAglobals)
-        closeFile = sys.stdout
-        sys.stdout = stdOut
-        sys.stderr = stdErr
-        self.CASAglobals['casalog'].setlogfile(origLog)
-        closeFile.close()
-        print fullFuncName + ':', 'Finished test of ' + self.imageScript
-
-        #remove anything the imaging script added
-        for key in self.CASAglobals.keys():
-            if key not in preKeys:
-                self.CASAglobals.pop(key, None)
-
-        #copy logs to the current log directory
-        shutil.copy(self.calScriptLog, self.currentLogDir)
-        shutil.copy(self.imageScriptLog, self.currentLogDir)
-        shutil.copy(self.calBenchOutFile, self.currentLogDir)
-        shutil.copy(self.imageBenchOutFile, self.currentLogDir)
-        shutil.copy(self.calBenchSumm, self.currentLogDir)
-        shutil.copy(self.imageBenchSumm, self.currentLogDir)
+        #copy logs to current log directory
+        shutil.copy(scriptLog, self.currentLogDir)
+        shutil.copy(benchOutFile, self.currentLogDir)
+        shutil.copy(benchSumm, self.currentLogDir)
 
         #copy pertinent logs to all_logs directory
         prefix = self.allLogDir + os.path.basename(self.currentWorkDir[:-1]) + \
                  '__'
-        shutil.copy(self.calBenchOutFile, prefix + \
-                    os.path.basename(self.calBenchOutFile))
-        shutil.copy(self.imageBenchOutFile, prefix + \
-                    os.path.basename(self.imageBenchOutFile))
-        shutil.copy(self.calBenchSumm, prefix + \
-                    os.path.basename(self.calBenchSumm))
-        shutil.copy(self.imageBenchSumm, prefix + \
-                    os.path.basename(self.imageBenchSumm))
+        shutil.copy(benchOutFile, prefix + os.path.basename(benchOutFile))
+        shutil.copy(benchSumm, prefix + os.path.basename(benchSumm)
 
         #change directory back to wherever we started from
         os.chdir(oldPWD)
