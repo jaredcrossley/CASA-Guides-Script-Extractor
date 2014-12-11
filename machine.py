@@ -24,6 +24,7 @@ import parameters
 #-could shorten up lines that use the jobs dict by defining variables local to
 # the particular method for the parts needed e.g. look under runBenchmarks in
 # the for loop that actually runs the benchmarks
+#-need condition for only extracting and running calibration or imaging
 
 def makeReport(files):
     """ Gather total times and caluclate the mean and standard deviation from
@@ -288,13 +289,16 @@ class machine:
 
                 #try to only extract scripts once
                 if i == 0:
-                    b.doScriptExtraction()
+                    b.doScriptExtraction(stage='cal')
+                    b.doScriptExtraction(stage='im')
                 elif self.jobs[dataSet]['benchmarks'][i-1].status == 'normal':
                     b.useOtherBmarkScripts(self.jobs[dataSet]['benchmarks'][i-1])
                 else:
-                    b.doScriptExtraction()
+                    b.doScriptExtraction(stage='cal')
+                    b.doScriptExtraction(stage='im')
                 if b.status == 'failure': continue
 
-                b.runGuideScript()
+                b.runGuideScript(stage='cal')
+                b.runGuideScript(stage='im')
                 if cleanUp:
                     b.emptyCurrentRedDir()
