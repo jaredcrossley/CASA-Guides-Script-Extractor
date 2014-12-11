@@ -146,6 +146,21 @@ x.runGuideScript()
 ###############################################################################
 
 
+Updating parameters.py
+======================
+There are two standard reasons parameters.py would need to be updated:
+
+  1) a new version of CASA has been released so the URLs or paths to the scripts
+     need to be added for the new version
+  2) we want to benchmark a new data set that is not included yet
+
+Both of these updates are pretty straightforward if you follow the stylistic
+conventions from all the other data sets. You must make sure though that new
+data set variable names do not start with a number and do not contain periods
+e.g. benchmarking an SB from ALMA project 2012.1.00912.S should be named
+x2012_1_00912_S_42 (for CASA 4.2).
+
+
 Files unique to translated architecture:
   -benchmark.py
   -machine.py
