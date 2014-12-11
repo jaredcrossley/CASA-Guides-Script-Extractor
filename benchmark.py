@@ -3,7 +3,6 @@ import sys
 import shutil
 import time
 from optparse import OptionParser
-import socket
 import tarfile
 from urllib2 import HTTPError
 from time import sleep
@@ -164,7 +163,7 @@ class benchmark:
         Absolute path to the directory associated with the current benchmark
         instance. This includes the actual reduction, log file and raw data
         tar file directories. It is made inside workDir and named as
-        YYYY_MMM_DDTHH_MM_SS-hostname.
+        YYYY_MMM_DDTHH_MM_SS-benchmark.
 
     currentLogDir : str
         Absolute path to the directory containing the log files associated with
@@ -293,8 +292,8 @@ class benchmark:
 
         #initialize the current benchmark instance directories and files
         self.currentWorkDir = self.workDir + \
-                              time.strftime('%Y_%m_%dT%H_%M_%S') + '-' + \
-                              socket.gethostname() + '/'
+                              time.strftime('%Y_%m_%dT%H_%M_%S') + \
+                              '-benchmark/'
         self.currentLogDir = self.currentWorkDir + 'log_files/'
         self.outFile = self.currentLogDir + outFile
         self.currentTarDir = self.currentWorkDir + 'tarballs/'
