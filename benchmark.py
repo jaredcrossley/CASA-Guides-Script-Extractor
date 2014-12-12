@@ -576,6 +576,7 @@ class benchmark:
         for line in reversed(f.readlines()):
             if 'New file' in line:
                 scriptName = line.split(' ')[2]
+                break
         f.close()
 
         #store file names in the object
