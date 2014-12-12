@@ -55,48 +55,103 @@ interactive=re.compile("[\s;]*(plotxy|plotcal|plotms|viewer|plotants)")
 
 # CASA task list (used for benchmarking markup, else ignored)
 # Check and update this list using function listCASATasks(), below.
-# for CASA 4.0...
-casa_tasks = ['accum', 'applycal', 'asap_init', 'bandpass', 'blcal', 'boxi',
-'browsetable', 'calstat', 'caltabconvert', 'clean', 'clearcal', 'clearplot',
-'clearstat', 'concat', 'conjugatevis', 'csvclea', 'cvel', 'deconvolve',
-'delmod', 'exportasdm', 'exportfits', 'exportuvfits', 'feather', 'find',
-'fixplanets', 'fixvis', 'flagcmd', 'flagdata', 'flagmanager', 'fluxscale',
-'ft', 'gaincal', 'gencal', 'hanningsmooth', 
-'imcollapse', 'imcontsub', 'imfit', 'imhead', 'immath', 'immoments',
-'impbcor', 'importasdm', 'importevl', 'importfits', 'importfitsidi',
-'importgmr', 'importuvfits', 'importvla', 'imregrid', 'imsmooth', 'imstat',
-'imsubimage', 'imtrans', 'imval', 'imview', 'listcal', 'listfits',
-'listhistory', 'listobs', 'listpartitio', 'listsd', 'listvis', 'makemas',
-'mosai', 'msmoments', 'msview', 'partitio', 'plotants', 'plotcal', 'plotms',
-'plotuv', 'plotweathe', 'plotxy', 'polcal', 'predictcomp', 'rmtables',
-'sdbaseline', 'sdcal', 'sdcoadd', 'sdfit', 'sdflag', 'sdflagmanager', 'sdgrid',
-'sdimaging', 'sdimprocess', 'sdlist', 'sdmath', 'sdplot', 'sdreduce', 'sdsave',
-'sdscale', 'sdsmooth', 'sdstat', 'sdtpimaging', 'setjy', 'simalm',
-'simanalyze', 'simobserve', 'slsearch', 'smoothcal', 'specfi', 'splattotable',
-'split', 'startup', 'statw', 'taskhelp', 'tasklist', 'testconcat', 'toolhelp',
-'uvcontsub', 'uvmodelfit', 'uvsub', 'viewer', 'virtualconcat', 'vishead',
-'visstat', 'widebandpbco', 'widefiel', 'wvrgcal']
-# # for CASA 3.4...
-# casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummar', 'bandpass',
-# 'blcal', 'boxi', 'browsetable', 'calstat', 'caltabconvert', 'clean',
-# 'clearcal', 'clearplot', 'clearstat', 'concat', 'conjugatevis', 'csvclea',
+# for CASA 4.2...
+casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummary', 'bandpass',
+'blcal', 'boxit', 'browsetable', 'calstat', 'caltabconvert', 'clean',
+'clearcal', 'clearplot', 'clearstat', 'concat', 'conjugatevis', 'csvclean',
+'cvel', 'deconvolve', 'delmod', 'exportasdm', 'exportfits', 'exportuvfits',
+'feather', 'find', 'fixplanets', 'fixvis', 'flagcmd', 'flagdata', 'flagmanager',
+'fluxscale', 'ft', 'gaincal', 'gencal', 'hanningsmooth',
+'help par.parametername', 'help taskname', 'imcollapse', 'imcontsub', 'imfit',
+'imhead', 'immath', 'immoments', 'impbcor', 'importasdm', 'importevla',
+'importfits', 'importfitsidi', 'importgmrt', 'importuvfits', 'importvla',
+'impv', 'imreframe', 'imregrid', 'imsmooth', 'imstat', 'imsubimage', 'imtrans',
+'imval', 'imview', 'listcal', 'listfits', 'listhistory', 'listobs',
+'listpartition', 'listsdm', 'listvis', 'makemask', 'mosaic', 'msmoments',
+'mstransform', 'msview', 'partition', 'plotants', 'plotbandpass', 'plotcal',
+'plotms', 'plotuv', 'plotweather', 'plotxy', 'polcal', 'predictcomp', 'rmfit',
+'rmtables', 'sdaverage', 'sdbaseline', 'sdbaselineold', 'sdcal', 'sdcal2',
+'sdcal2old', 'sdcalold', 'sdcoadd', 'sdfit', 'sdfitold', 'sdflag',
+'sdflag2old', 'sdflagmanager', 'sdflagold', 'sdgrid', 'sdgridold', 'sdimaging',
+'sdimagingold', 'sdimprocess', 'sdlist', 'sdmath', 'sdmathold', 'sdplot',
+'sdplotold', 'sdreduce', 'sdreduceold', 'sdsave', 'sdsaveold', 'sdscale',
+'sdsmoothold', 'sdstat', 'sdstatold', 'sdtpimaging', 'setjy', 'simalma',
+'simanalyze', 'simobserve', 'slsearch', 'smoothcal', 'specfit', 'splattotable',
+'split', 'spxfit', 'startup', 'statwt', 'taskhelp', 'tasklist', 'tclean',
+'testconcat', 'toolhelp', 'uvcontsub', 'uvcontsub3', 'uvmodelfit', 'uvsub',
+'viewer', 'virtualconcat', 'vishead', 'visstat', 'widebandpbcor', 'widefield',
+'wvrgcal']
+# # for CASA 4.1...
+# casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummary', 'bandpass',
+# 'blcal', 'boxit', 'browsetable', 'calstat', 'caltabconvert', 'clean',
+# 'clearcal', 'clearplot', 'clearstat', 'concat', 'conjugatevis', 'csvclean',
 # 'cvel', 'deconvolve', 'delmod', 'exportasdm', 'exportfits', 'exportuvfits',
-# 'feather', 'find', 'fixplanets', 'fixvis', 'flagautocorr', 'flagcmd',
-# 'flagdata', 'flagmanager', 'fluxscale', 'ft', 'gaincal', 'gencal',
-# 'hanningsmooth', 'help par.parametername', 'help taskname', 'imcollapse',
-# 'imcontsub', 'imfit', 'imhead', 'immath', 'immoments', 'impbcor', 'importasdm',
-# 'importevl', 'importfits', 'importfitsidi', 'importgmr', 'importuvfits',
-# 'importvla', 'imregrid', 'imsmooth', 'imstat', 'imtrans', 'imval', 'imview',
-# 'listcal', 'listfits', 'listhistory', 'listobs', 'listsd', 'listvis', 'mosai',
-# 'msmoments', 'msview', 'oldflagcmd', 'plotants', 'plotcal', 'plotms', 'plotuv',
-# 'plotweathe', 'plotxy', 'polcal', 'predictcomp', 'rmtables', 'sdbaseline',
-# 'sdcal', 'sdcoadd', 'sdfit', 'sdflag', 'sdflagmanager', 'sdgrid', 'sdimaging',
-# 'sdimprocess', 'sdlist', 'sdmath', 'sdplot', 'sdreduce', 'sdsave', 'sdscale',
-# 'sdsmooth', 'sdstat', 'sdtpimaging', 'setjy', 'simanalyze', 'simdata',
-# 'simobserve', 'slsearch', 'smoothcal', 'specfi', 'splattotable', 'split',
-# 'startup', 'statw', 'taskhelp', 'tasklist', 'testautofla', 'testconcat',
-# 'tflagdata', 'toolhelp', 'uvcontsub', 'uvmodelfit', 'uvsub', 'viewer',
-# 'vishead', 'visstat', 'widefiel', 'wvrgcal']
+# 'feather', 'find', 'fixplanets', 'fixvis', 'flagcmd', 'flagdata',
+# 'flagmanager', 'fluxscale', 'ft', 'gaincal', 'gencal', 'hanningsmooth',
+# 'help par.parametername', 'help taskname', 'imcollapse', 'imcontsub', 'imfit',
+# 'imhead', 'immath', 'immoments', 'impbcor', 'importasdm', 'importevla',
+# 'importfits', 'importfitsidi', 'importgmrt', 'importuvfits', 'importvla',
+# 'impv', 'imreframe', 'imregrid', 'imsmooth', 'imstat', 'imsubimage', 'imtrans',
+# 'imval', 'imview', 'listcal', 'listfits', 'listhistory', 'listobs',
+# 'listpartition', 'listsdm', 'listvis', 'makemask', 'mosaic', 'msmoments',
+# 'mstransform', 'msview', 'partition', 'plotants', 'plotbandpass', 'plotcal',
+# 'plotms', 'plotuv', 'plotweather', 'plotxy', 'polcal', 'predictcomp',
+# 'rmtables', 'sdbaseline', 'sdcal', 'sdcal2', 'sdcoadd', 'sdfit', 'sdflag',
+# 'sdflagmanager', 'sdgrid', 'sdimaging', 'sdimprocess', 'sdlist', 'sdmath',
+# 'sdplot', 'sdreduce', 'sdsave', 'sdscale', 'sdsmooth', 'sdstat', 'sdtpimaging',
+# 'setjy', 'simalma', 'simanalyze', 'simobserve', 'slsearch', 'smoothcal',
+# 'specfit', 'splattotable', 'split', 'startup', 'statwt', 'taskhelp',
+# 'tasklist', 'tclean', 'testconcat', 'toolhelp', 'uvcontsub', 'uvcontsub2',
+# 'uvcontsub3', 'uvmodelfit', 'uvsub', 'viewer', 'virtualconcat', 'vishead',
+# 'visstat', 'widebandpbcor', 'widefield', 'wvrgcal']
+# # for CASA 4.0...
+# casa_tasks = ['accum', 'applycal', 'asap_init', 'bandpass', 'blcal', 'boxit',
+# 'browsetable', 'calstat', 'caltabconvert', 'clean', 'clearcal', 'clearplot',
+# 'clearstat', 'concat', 'conjugatevis', 'csvclean', 'cvel', 'deconvolve',
+# 'delmod', 'exportasdm', 'exportfits', 'exportuvfits', 'feather', 'find',
+# 'fixplanets', 'fixvis', 'flagcmd', 'flagdata', 'flagmanager', 'fluxscale',
+# 'ft', 'gaincal', 'gencal', 'hanningsmooth', 'help par.parametername',
+# 'help taskname', 'imcollapse', 'imcontsub', 'imfit', 'imhead', 'immath',
+# 'immoments', 'impbcor', 'importasdm', 'importevla', 'importfits',
+# 'importfitsidi', 'importgmrt', 'importuvfits', 'importvla', 'imregrid',
+# 'imsmooth', 'imstat', 'imsubimage', 'imtrans', 'imval', 'imview', 'listcal',
+# 'listfits', 'listhistory', 'listobs', 'listpartition', 'listsdm', 'listvis',
+# 'makemask', 'mosaic', 'msmoments', 'msview', 'partition', 'plotants',
+# 'plotcal', 'plotms', 'plotuv', 'plotweather', 'plotxy', 'polcal',
+# 'predictcomp', 'rmtables', 'sdbaseline', 'sdcal', 'sdcoadd', 'sdfit',
+# 'sdflag', 'sdflagmanager', 'sdgrid', 'sdimaging', 'sdimprocess', 'sdlist',
+# 'sdmath', 'sdplot', 'sdreduce', 'sdsave', 'sdscale', 'sdsmooth', 'sdstat',
+# 'sdtpimaging', 'setjy', 'simalma', 'simanalyze', 'simobserve', 'slsearch',
+# 'smoothcal', 'specfit', 'splattotable', 'split', 'startup', 'statwt',
+# 'taskhelp', 'tasklist', 'testconcat', 'toolhelp', 'uvcontsub', 'uvcontsub2',
+# 'uvcontsub3', 'uvmodelfit', 'uvsub', 'viewer', 'virtualconcat', 'vishead',
+# 'visstat', 'widebandpbcor', 'widefield', 'wvrgcal']
+# # for CASA 3.4...
+# casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummary', 'bandpass',
+# 'blcal', 'boxit', 'browsetable', 'calstat', 'caltabconvert', 'clean',
+# 'clearcal', 'clearplot', 'clearstat', 'concat', 'conjugatevis', 'csvclean',
+# 'cvel', 'deconvolve', 'delmod', 'exportasdm', 'exportfits', 'exportuvfits',
+# 'feather', 'find', 'fixplanets', 'fixvis', 'flagcmd', 'flagdata',
+# 'flagmanager', 'fluxscale', 'ft', 'gaincal', 'gencal', 'hanningsmooth',
+# 'help par.parametername', 'help taskname', 'imcollapse', 'imcontsub',
+# 'imfit', 'imhead', 'immath', 'immoments', 'impbcor', 'importasdm',
+# 'importevla', 'importfits', 'importfitsidi', 'importgmrt', 'importuvfits',
+# 'importvla', 'impv', 'imreframe', 'imregrid', 'imsmooth', 'imstat',
+# 'imsubimage', 'imtrans', 'imval', 'imview', 'listcal', 'listfits',
+# 'listhistory', 'listobs', 'listpartition', 'listsdm', 'listvis', 'makemask',
+# 'mosaic', 'msmoments', 'mstransform', 'msview', 'partition', 'plotants',
+# 'plotbandpass', 'plotcal', 'plotms', 'plotuv', 'plotweather', 'plotxy',
+# 'polcal', 'predictcomp', 'rmfit', 'rmtables', 'sdaverage', 'sdbaseline',
+# 'sdbaselineold', 'sdcal', 'sdcal2', 'sdcal2old', 'sdcalold', 'sdcoadd',
+# 'sdfit', 'sdfitold', 'sdflag', 'sdflag2old', 'sdflagmanager', 'sdflagold',
+# 'sdgrid', 'sdgridold', 'sdimaging', 'sdimagingold', 'sdimprocess', 'sdlist',
+# 'sdmath', 'sdmathold', 'sdplot', 'sdplotold', 'sdreduce', 'sdreduceold',
+# 'sdsave', 'sdsaveold', 'sdscale', 'sdsmoothold', 'sdstat', 'sdstatold',
+# 'sdtpimaging', 'setjy', 'simalma', 'simanalyze', 'simobserve', 'slsearch',
+# 'smoothcal', 'specfit', 'splattotable', 'split', 'spxfit', 'startup',
+# 'statwt', 'taskhelp', 'tasklist', 'tclean', 'testconcat', 'toolhelp',
+# 'uvcontsub', 'uvcontsub3', 'uvmodelfit', 'uvsub', 'viewer', 'virtualconcat',
+# 'vishead', 'visstat', 'widebandpbcor', 'widefield', 'wvrgcal']
 # # CASA 3.3...
 # casa_tasks = ['accum', 'applycal', 'asap_init', 'bandpass', 'blcal', 'boxi',
 # 'browsetable', 'calstat', 'clean', 'clearcal', 'clearplot', 'clearstat',
@@ -446,7 +501,7 @@ def listCASATasks():
     task list obtained from CASA. Note that the appropriate list will vary
     with the version of CASA.
 
-    This function requires casapy modlue *tasks*.
+    This function requires casapy module *tasks*.
 
     In casapy:
     >>> import extractCASAscript
@@ -467,15 +522,16 @@ def listCASATasks():
     for key in allcat.keys():
         for taskname in allcat[key]:
             if (taskname[0] == '(') or (taskname[0]=='{'):
-                length = len(taskname)
-                taskname = taskname[1:length-2]
+                taskname = taskname[1:-1]
             if (taskname in all_tasks) == False:
                 all_tasks.append(taskname)
     all_tasks.sort()
     all_tasks_set = set(all_tasks)
     casa_tasks_set = set(casa_tasks)
-    print "Tasks in casapy but not in this module: " + str(all_tasks_set.difference(casa_tasks_set))
-    print "Tasks in this module but not in casapy: " + str(casa_tasks_set.difference(all_tasks_set))
+    print "Tasks in casapy but not in this module: " + \
+          str(all_tasks_set.difference(casa_tasks_set))
+    print "Tasks in this module but not in casapy: " + \
+          str(casa_tasks_set.difference(all_tasks_set))
     return all_tasks
 
 def checkModules():
