@@ -10,16 +10,10 @@ from urllib2 import HTTPError
 import extractCASAscript
 
 #-all methods should probably return something
-#-think about splitting up runGuideScript into calibration and imaging
-#  -best way might be to do this with a switch and have runGuideScript be
-#   general
-#  -should then think about making benchmark class work with just one
-#  -if I split up the runGuideScript into separate calibration and imaging
-#   methods then I should think about making CASAglobals an input parameter to
-#   them so that I don't need to do .pop stuff
-#  -need to split up doScriptExtraction as well
+#-make benchmark class work with just calibration or imaging script
 #-I might not need to do the .pop stuff in runGuideScript now that it's
 # generalized
+#  -might be able to just pass CASAglobals an input parameter which could help
 #-put in script extraction error handling (see notes.txt first entry for
 # 2014-12-06)
 #-investigate this message: "WARNING: reading as string array because float array
@@ -547,7 +541,7 @@ class benchmark:
         stdOut, sys.stdout = sys.stdout, stdOut
         stdOut.close()
         stdErr, sys.stderr = sys.stderr, stdErr
-        stdErr.close
+        stdErr.close()
         os.chdir(oldPWD)
 
         #report failure if extraction didn't work
