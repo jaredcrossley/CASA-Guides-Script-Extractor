@@ -2,6 +2,7 @@ import os
 import sys
 import shutil
 import time
+from cStringIO import StringIO
 from optparse import OptionParser
 import tarfile
 from urllib2 import HTTPError
@@ -166,6 +167,12 @@ class benchmark:
         instantiated this will be initialed to "normal" and will only be
         changed (to "failure") if a handled error is encountered.
 
+    listTasksOut : str
+        Holds the couple lines of output from the extractCASAscript.listCASAtasks
+        call in __init__. It is written to extractLog just before the first
+        script extraction is done. While the output should always be a couple of
+        empty sets, it would be useful information if they are ever not empty.
+
     Methods
     -------
 
@@ -292,7 +299,15 @@ class benchmark:
         self.status = 'normal'
 
         #fill out casa_tasks with current CASA task list
+        stdOut = sys.stdout
+        stdErr = sys.stderr
+        sys.stdout = StringIO()
+        sys.stderr = sys.stdout
+        myStdOut = sys.stdout
         extractCASAscript.casa_tasks = extractCASAscript.listCASATasks()
+        stdOut, sys.stdout = sys.stdout, stdOut
+        stdErr, sys.stderr = sys.stderr, stdErr
+        self.listTaskOut = myStdOut.getvalue()
 
 
     def createDirTree(self):
@@ -504,7 +519,9 @@ class benchmark:
         -----
         This ensures the extraction output is logged, runs the script extraction
         and fills out all of the associated attributes. Scripts are made from
-        calibrationURL or imagingURL and are put into currentRedDir.
+        calibrationURL or imagingURL and are put into currentRedDir. If this is
+        the first script extraction, then it will also write listTasksOut to
+        extractLog.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::doScriptExtraction'
@@ -523,8 +540,13 @@ class benchmark:
               'Logging to ' + self.extractLog
         stdOut = sys.stdout
         stdErr = sys.stderr
-        sys.stdout = open(self.extractLog, 'w')
+        sys.stdout = open(self.extractLog, 'a')
         sys.stderr = sys.stdout
+
+        #write listTasksOut if this is first extraction
+        if os.stat(self.extractLog).st_size == 0:
+            print self.listTasksOut
+            print
 
         #set local variables based on stage
         if stage == 'cal':
@@ -628,7 +650,7 @@ class benchmark:
               script + '.\n' + ' '*indent + 'Logging to ' + scriptLog + '.'
         stdOut = sys.stdout
         stdErr = sys.stderr
-        sys.stdout = open(scriptLog, 'w')
+        sys.stdout = open(scriptLog, 'a')
         sys.stderr = sys.stdout
         print 'CASA Version ' + self.CASAglobals['casadef'].casa_version + \
               ' (r' + self.CASAglobals['casadef'].subversion_revision + \
@@ -660,7 +682,7 @@ class benchmark:
         prefix = self.allLogDir + os.path.basename(self.currentWorkDir[:-1]) + \
                  '__'
         shutil.copy(benchOutFile, prefix + os.path.basename(benchOutFile))
-        shutil.copy(benchSumm, prefix + os.path.basename(benchSumm)
+        shutil.copy(benchSumm, prefix + os.path.basename(benchSumm))
 
         #change directory back to wherever we started from
         os.chdir(oldPWD)
