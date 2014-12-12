@@ -8,11 +8,11 @@
 x2012_1_00912_S_42 = {'calibrationURL': \
                           '/lustre/naasc/nbrunett/benchmark/' + \
                           '2012.1.00912.S/422/' + \
-                          'nates_modified_scriptForCalibration.py', \
+                          '2012.1.00912.S_calibration4.2.py', \
                       'imagingURL': \
                           '/lustre/naasc/nbrunett/benchmark/' + \
                           '2012.1.00912.S/422/' + \
-                          'scriptForImaging.py', \
+                          '2012.1.00912.S_imaging4.2.py', \
                       'dataURL': \
                           None, \
                       'dataPath': \
