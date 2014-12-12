@@ -307,7 +307,7 @@ class benchmark:
         extractCASAscript.casa_tasks = extractCASAscript.listCASATasks()
         stdOut, sys.stdout = sys.stdout, stdOut
         stdErr, sys.stderr = sys.stderr, stdErr
-        self.listTaskOut = myStdOut.getvalue()
+        self.listTasksOut = myStdOut.getvalue()
 
 
     def createDirTree(self):
