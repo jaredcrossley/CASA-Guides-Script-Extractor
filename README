@@ -42,9 +42,7 @@ the flow, and following that are some simple examples.
 8m) Run the runBenchmarks() method optionally setting the cleanUp parameter.
 9m) Include code to run machine.makeReport on the .summary files from your
     benchmarks. See below for a simple example of this.
-10) Start CASA with --nologger set
-      -nothing from the benchmarking will be sent to the logger so there's no
-       point having the extra window
+10) Start CASA
       -you can start CASA wherever you like
 11) Run execfile on your Python file at the CASA prompt.
 6b) (steps with "b" will be if import benchmark was used) Set variables that
