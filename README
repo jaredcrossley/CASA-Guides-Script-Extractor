@@ -66,8 +66,7 @@ Examples
 ###############################################################################
 #script using machine module
 import sys
-import copy
-CASAglobals = copy.copy(globals())
+CASAglobals = globals()
 scriptDir = '/lustre/naasc/nbrunett/bench_code_devel/' + \
             'CASA-Guides-Script-Extractor'
 sys.path.append(scriptDir)
@@ -111,8 +110,7 @@ for i,dataSet in enumerate(dataSets):
 ###############################################################################
 #script using benchmark module directly
 import sys
-import copy
-CASAglobals = copy.copy(globals())
+CASAglobals = globals()
 scriptDir = '/lustre/naasc/nbrunett/bench_code_devel/' + \
             'CASA-Guides-Script-Extractor'
 sys.path.append(scriptDir)
@@ -130,8 +128,7 @@ outFile = 'shell.log.txt'
 #run benchmarking
 #workDir defaults to current directory here
 #skipDownload defaults to False here
-x = benchmark.benchmark(CASAglobals=CASAglobals,
-                        scriptDir=scriptDir,
+x = benchmark.benchmark(scriptDir=scriptDir,
                         calibrationURL=calibrationURL,
                         imagingURL=imagingURL,
                         dataPath=dataPath,
@@ -140,7 +137,8 @@ x.createDirTree()
 x.downloadData()
 x.extractData()
 x.doScriptExtraction()
-x.runGuideScript()
+x.runGuideScript(stage='cal', CASAglobals=CASAglobals)
+x.runGuideScript(stage='im', CASAglobals=CASAglobals)
 ###############################################################################
 
 
