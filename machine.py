@@ -3,6 +3,7 @@ import sys
 import socket
 import platform
 import numpy as np #this is a big import for three functions... :(
+import copy
 
 #import non-standard Python modules
 import benchmark
@@ -269,8 +270,7 @@ class machine:
 
             #actually run the benchmarks
             for i in range(self.jobs[dataSet]['nIters']):
-                b = benchmark.benchmark(CASAglobals=self.CASAglobals, \
-                                 scriptDir=self.scriptDir, \
+                b = benchmark.benchmark(scriptDir=self.scriptDir, \
                                  workDir=dataSetDir, \
                                  calibrationURL=params['calibrationURL'], \
                                  imagingURL=params['imagingURL'], \
@@ -298,7 +298,7 @@ class machine:
                     b.doScriptExtraction(stage='im')
                 if b.status == 'failure': continue
 
-                b.runGuideScript(stage='cal')
-                b.runGuideScript(stage='im')
+                b.runGuideScript(stage='cal', CASAglobals=self.CASAglobals)
+                b.runGuideScript(stage='im', CASAglobals=self.CASAglobals)
                 if cleanUp:
                     b.emptyCurrentRedDir()
