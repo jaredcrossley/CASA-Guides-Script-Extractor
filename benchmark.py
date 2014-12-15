@@ -14,15 +14,15 @@ import extractCASAscript
 #-make benchmark class work with just calibration or imaging script
 #-I might not need to do the .pop stuff in runGuideScript now that it's
 # generalized
-#  -might be able to just pass CASAglobals an input parameter which could help
-#-put in script extraction error handling (see notes.txt first entry for
-# 2014-12-06)
+#  -might be able to just pass CASAglobals as an input parameter
+#-does copy.copy need to be used when passing in CASAglobals to machine and
+# benchmark?
 #-investigate this message: "WARNING: reading as string array because float array
 # failed"
 #  -I see it from both calibration and imaging scripts for every test I run in
 #   the .py.log files
-#-does copy.copy need to be used when passing in CASAglobals to machine and
-# benchmark?
+#-make sure I have checks in methods with parameters that make sure required
+# params are input
 
 class benchmark:
     """A class for the execution of a single CASA guide
@@ -30,12 +30,6 @@ class benchmark:
 
     Parameters
     ----------
-
-    CASAglobals : dict
-        Dictionary returned by Python globals() function within the CASA
-        namespace (environment). Simply pass the return value of the globals()
-        function from within CASA where this class should be instantiated
-        within.
 
     scriptDir : str
         Absolute path to directory containing the benchmarking module files.
@@ -64,12 +58,6 @@ class benchmark:
 
     Attributes
     ----------
-
-    CASAglobals : dict
-        Dictionary returned by Python globals() function within the CASA
-        namespace (environment). Simply pass the return value of the globals()
-        function from within CASA where this class should be instantiated
-        within.
 
     workDir : str
         Absolute path to directory where benchmarking directory structure will
@@ -209,8 +197,8 @@ class benchmark:
     emptyCurrentRedDir
         Empties current reduction directory of everything except for scripts.
     """
-    def __init__(self, CASAglobals=None, scriptDir='', workDir='./', \
-                 calibrationURL='', imagingURL='', dataPath='', outFile='', \
+    def __init__(self, scriptDir='', workDir='./', calibrationURL='', \
+                 imagingURL='', dataPath='', outFile='', \
                  skipDownload=False):
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
@@ -218,12 +206,6 @@ class benchmark:
 
         #default to an error unless __init__ at least finishes
         self.status = 'failure'
-
-        #check that we have CASA globals
-        if not CASAglobals:
-            raise ValueError('Value returned by globals() function in ' + \
-                             'CASA environment must be given.')
-        self.CASAglobals = CASAglobals
 
         #add script directory to Python path if need be
         if scriptDir == '':
@@ -596,7 +578,7 @@ class benchmark:
             shutil.copy(self.imageScriptExpect, self.currentLogDir)
 
 
-    def runGuideScript(self, stage):
+    def runGuideScript(self, stage, CASAglobals):
         """ Executes the calibration or imaging CASA guide script.
 
         Parameters
@@ -604,6 +586,11 @@ class benchmark:
         stage : str
            Specifies which script to run, calibration or imaging. Can be either
            "cal" or "im" and will raise a ValueError otherwise.
+
+        CASAglobals : dict
+           Dictionary returned by Python globals() function within the CASA
+           namespace (environment). Simply pass the return value of the globals()
+           function.
 
         Returns
         -------
@@ -632,7 +619,7 @@ class benchmark:
         os.chdir(self.currentRedDir)
 
         #remember what is in the CASA global namespace
-        preKeys = self.CASAglobals.keys()
+        preKeys = CASAglobals.keys()
 
         #set local variables based on stage
         if stage == 'cal':
@@ -653,26 +640,25 @@ class benchmark:
         stdErr = sys.stderr
         sys.stdout = open(scriptLog, 'a')
         sys.stderr = sys.stdout
-        print 'CASA Version ' + self.CASAglobals['casadef'].casa_version + \
-              ' (r' + self.CASAglobals['casadef'].subversion_revision + \
-              ')\n  Compiled on: ' + self.CASAglobals['casadef'].build_time + \
-              '\n\n'
-        origLog = self.CASAglobals['casalog'].logfile()
-        self.CASAglobals['casalog'].setlogfile(scriptLog)
+        print 'CASA Version ' + CASAglobals['casadef'].casa_version + ' (r' + \
+              CASAglobals['casadef'].subversion_revision + ')\n  Compiled ' + \
+              'on: ' + CASAglobals['casadef'].build_time + '\n\n'
+        origLog = CASAglobals['casalog'].logfile()
+        CASAglobals['casalog'].setlogfile(scriptLog)
 
-        execfile(script, self.CASAglobals)
+        execfile(script, CASAglobals)
 
         #put logs back
         closeFile = sys.stdout
         sys.stdout = stdOut
-        self.CASAglobals['casalog'].setlogfile(origLog)
+        CASAglobals['casalog'].setlogfile(origLog)
         closeFile.close()
         print fullFuncName + ':', 'Finished test of ' + script
 
         #remove anything the script added
-        for key in self.CASAglobals.keys():
+        for key in CASAglobals.keys():
             if key not in preKeys:
-                self.CASAglobals.pop(key, None)
+                CASAglobals.pop(key, None)
 
         #copy logs to current log directory
         shutil.copy(scriptLog, self.currentLogDir)
