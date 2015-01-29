@@ -11,18 +11,14 @@ from urllib2 import HTTPError
 import extractCASAscript
 
 #-all methods should probably return something
+#-figure out Python's version of private and public
 #-make benchmark class work with just calibration or imaging script
-#-I might not need to do the .pop stuff in runGuideScript now that it's
-# generalized
-#  -might be able to just pass CASAglobals as an input parameter
-#-does copy.copy need to be used when passing in CASAglobals to machine and
-# benchmark?
 #-investigate this message: "WARNING: reading as string array because float array
 # failed"
 #  -I see it from both calibration and imaging scripts for every test I run in
 #   the .py.log files
-#-make sure I have checks in methods with parameters that make sure required
-# params are input
+#-check that calibrationURL and imagingURL can be paths to scripts and make sure
+# documentation makes that clear (maybe change variable names too)
 
 class benchmark:
     """A class for the execution of a single CASA guide
