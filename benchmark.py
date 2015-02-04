@@ -10,6 +10,7 @@ from urllib2 import HTTPError
 #import non-standard Python modules
 import extractCASAscript
 
+#-add parameter documentation for methods that have additional inputs beyond self
 #-all methods should probably return something
 #-figure out Python's version of private and public
 #-make benchmark class work with just calibration or imaging script
@@ -222,11 +223,10 @@ class benchmark:
         self.workDir = workDir
 
         #check other necessary parameters were specified
-        if calibrationURL == '':
-            raise ValueError('URL to calibration CASA guide must be given.')
+        if calibrationURL == '' and imagingURL == '':
+            raise ValueError('URL to calibration and/or imaging CASA guides ' + \
+                             'must be given.')
         self.calibrationURL = calibrationURL
-        if imagingURL == '':
-            raise ValueError('URL to imaging CASA guide must be given.')
         self.imagingURL = imagingURL
         if dataPath == '':
             raise ValueError('A URL or path must be given pointing to the ' + \
@@ -340,7 +340,7 @@ class benchmark:
         This downloads the raw data .tgz file associated with the CASA guide
         from the web (dataPath) into currentTarDir using wget. Here os.system
         is used to execute wget so it is not perfectly platform independent
-        but should be find across Linux and Mac. The wget options used are:
+        but should be fine across Linux and Mac. The wget options used are:
         
           wget -q --no-check-certificate --directory-prefix=currentTarDir
         """
@@ -377,9 +377,8 @@ class benchmark:
         Notes
         -----
         This unpacks the raw data .tgz file in localTar and times the process.
-        It uses the tarfile module so it should be platform independent (or at
-        least as platform independent as this module is). The unpacked directory
-        goes into currentWorkDir.
+        It uses the tarfile module so it should be as platform independent as
+        that module is. The unpacked directory goes into currentWorkDir.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::extractData'
@@ -446,6 +445,11 @@ class benchmark:
         """ Calls extractCASAscript.main on given url to make CASA script.
         (should probably be private)
 
+        Parameters
+        ----------
+        url : str
+           Specifies URL to run extractCASAscript.main on.
+
         Returns
         -------
         True if extractCASAscript.main worked, False if it failed 3 times.
@@ -453,7 +457,7 @@ class benchmark:
         Notes
         -----
         This runs extractCASAscript.main on the given url to make scripts from
-        associated the CASA guide. Tries running the extraction 3 times, handling
+        the associated CASA guide. Tries running the extraction 3 times, handling
         HTTPError exceptions. If an attempt fails then it waits 30 seconds and
         tries again. If it fails all 3 times then it gives up and returns False.
         Otherwise it returns True.
@@ -508,6 +512,12 @@ class benchmark:
         #check input
         if stage != 'cal' and stage != 'im':
             raise ValueError('stage must be either "cal" or "im".')
+        if stage == 'cal' and self.calibrationURL == '':
+            raise ValueError('stage is set to "cal" but no calibrationURL ' + \
+                             'is specified.')
+        if stage =='im' and self.imagingURL =='':
+            raise ValueError('stage is set to "im" but no imagingURL is ' + \
+                             'specified.')
 
         #remember where we were and change to reduction directory
         oldPWD = os.getcwd()
@@ -609,6 +619,12 @@ class benchmark:
         #check input
         if stage != 'cal' and stage != 'im':
             raise ValueError('stage must be either "cal" or "im".')
+        if stage == 'cal' and self.calibrationURL == '':
+            raise ValueError('stage is set to "cal" but no calibrationURL ' + \
+                             'is specified.')
+        if stage =='im' and self.imagingURL =='':
+            raise ValueError('stage is set to "im" but no imagingURL is ' + \
+                             'specified.')
 
         #remember where we were and change to reduction directory
         oldPWD = os.getcwd()
