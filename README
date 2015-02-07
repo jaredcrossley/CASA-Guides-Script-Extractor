@@ -167,6 +167,13 @@ extractCASAscript.py but it will be ignored by this package since it builds the
 list automatically on its own.
 
 
+Additional Notes
+================
+-It is possible to run the benchmark class on just a calibration or imaging
+ CASA guide (or script). Just specify the stage parameter in
+ benchmark.doScriptExtraction and benchmark.runGuideScript.
+
+
 Files unique to translated architecture:
   -benchmark.py
   -machine.py
