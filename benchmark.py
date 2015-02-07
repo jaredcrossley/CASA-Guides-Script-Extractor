@@ -10,16 +10,18 @@ from urllib2 import HTTPError
 #import non-standard Python modules
 import extractCASAscript
 
-#-add parameter documentation for methods that have additional inputs beyond self
 #-all methods should probably return something
 #-figure out Python's version of private and public
-#-make benchmark class work with just calibration or imaging script
 #-investigate this message: "WARNING: reading as string array because float array
 # failed"
 #  -I see it from both calibration and imaging scripts for every test I run in
 #   the .py.log files
-#-check that calibrationURL and imagingURL can be paths to scripts and make sure
-# documentation makes that clear (maybe change variable names too)
+#-need to change class docstring to standard Python style so information isn't
+# redundant but I also still have a record of all the included attributes and
+# methods
+#-change docstrings to prescribe the function or method's effect as a command
+# ("Do this", "Return that"), not as a description; e.g. don't write "Returns
+# the pathname ...", instead write "Return the pathname..."
 
 class benchmark:
     """A class for the execution of a single CASA guide
@@ -35,11 +37,13 @@ class benchmark:
         Absolute path to directory where benchmarking directory structure will
         be created, all data will be stored and processing will be done.
 
-    calibrationURL : str
-        URL to CASA guide calibration webpage.
+    calSource : str
+        URL to CASA guide calibration webpage or path to Python script to
+        extract the calibration commands from.
 
-    imagingURL : str
-        URL to CASA guide imaging webpage.
+    imSource : str
+        URL to CASA guide imaging webpage or path to Python script to extract
+        the imaging commands from.
 
     dataPath : str
         URL or absolute path to raw CASA guide data and calibration tables.
@@ -60,11 +64,13 @@ class benchmark:
         Absolute path to directory where benchmarking directory structure will
         be created, all data will be stored and processing will be done.
 
-    calibrationURL : str
-        URL to CASA guide calibration webpage.
+    calSource : str
+        URL to CASA guide calibration webpage or path to Python script to
+        extract the calibration commands from.
 
-    imagingURL : str
-        URL to CASA guide imaging webpage.
+    imSource : str
+        URL to CASA guide imaging webpage or path to Python script to extract
+        the imaging commands from.
 
     dataPath : str
         URL or absolute path to raw CASA guide data and calibration tables.
@@ -157,45 +163,9 @@ class benchmark:
         call in __init__. It is written to extractLog just before the first
         script extraction is done. While the output should always be a couple of
         empty sets, it would be useful information if they are ever not empty.
-
-    Methods
-    -------
-
-    __init__
-        Initializes benchmark instance attributes.
-
-    createDirTree
-        Creates current benchmark instance directory structure.
-
-    downloadData
-        Uses wget to download raw data from the web.
-
-    extractData
-        Unpacks the raw data .tgz file.
-
-    makeExtractOpts (this should be private, if I keep it at all)
-        Returns OptionParser.parse_args options variable for extractCASAscript.
-
-    runextractCASAscript (this should be private)
-        Actually runs extractCASAscript.main with minimal checks for flaky URLs.
-
-    doScriptExtraction (this should probably be split into cal, imaging and .py)
-        Calls extractCASAscript.main to create CASA guide Python scripts.
-
-    runGuideScript
-        Executes either calibration or imaging extracted Python scripts.
-
-    writeToOutFile
-        Appends a string to outFile.
-
-    useOtherBmarkScripts
-        Copies extracted scripts and extraction logs into current benchmark.
-
-    emptyCurrentRedDir
-        Empties current reduction directory of everything except for scripts.
     """
-    def __init__(self, scriptDir='', workDir='./', calibrationURL='', \
-                 imagingURL='', dataPath='', outFile='', \
+    def __init__(self, scriptDir='', workDir='./', calSource='', \
+                 imSource='', dataPath='', outFile='', \
                  skipDownload=False):
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
@@ -223,11 +193,11 @@ class benchmark:
         self.workDir = workDir
 
         #check other necessary parameters were specified
-        if calibrationURL == '' and imagingURL == '':
+        if calSource == '' and imSource == '':
             raise ValueError('URL to calibration and/or imaging CASA guides ' + \
                              'must be given.')
-        self.calibrationURL = calibrationURL
-        self.imagingURL = imagingURL
+        self.calSource = calSource
+        self.imSource = imSource
         if dataPath == '':
             raise ValueError('A URL or path must be given pointing to the ' + \
                              'raw data.')
@@ -501,8 +471,8 @@ class benchmark:
         -----
         This ensures the extraction output is logged, runs the script extraction
         and fills out all of the associated attributes. Scripts are made from
-        calibrationURL or imagingURL and are put into currentRedDir. If this is
-        the first script extraction, then it will also write listTasksOut to
+        calSource or imSource and are put into currentRedDir. If this is the
+        first script extraction, then it will also write listTasksOut to
         extractLog.
         """
         #for telling where printed messages originate from
@@ -512,11 +482,11 @@ class benchmark:
         #check input
         if stage != 'cal' and stage != 'im':
             raise ValueError('stage must be either "cal" or "im".')
-        if stage == 'cal' and self.calibrationURL == '':
-            raise ValueError('stage is set to "cal" but no calibrationURL ' + \
+        if stage == 'cal' and self.calSource == '':
+            raise ValueError('stage is set to "cal" but no calSource ' + \
                              'is specified.')
-        if stage =='im' and self.imagingURL =='':
-            raise ValueError('stage is set to "im" but no imagingURL is ' + \
+        if stage =='im' and self.imSource =='':
+            raise ValueError('stage is set to "im" but no imSource is ' + \
                              'specified.')
 
         #remember where we were and change to reduction directory
@@ -538,9 +508,9 @@ class benchmark:
 
         #set local variables based on stage
         if stage == 'cal':
-            scriptURL = self.calibrationURL
+            scriptURL = self.calSource
         else:
-            scriptURL = self.imagingURL
+            scriptURL = self.imSource
 
         result = self.runextractCASAscript(scriptURL)
         print '\n'
@@ -619,11 +589,11 @@ class benchmark:
         #check input
         if stage != 'cal' and stage != 'im':
             raise ValueError('stage must be either "cal" or "im".')
-        if stage == 'cal' and self.calibrationURL == '':
-            raise ValueError('stage is set to "cal" but no calibrationURL ' + \
+        if stage == 'cal' and self.calSource == '':
+            raise ValueError('stage is set to "cal" but no calSource ' + \
                              'is specified.')
-        if stage =='im' and self.imagingURL =='':
-            raise ValueError('stage is set to "im" but no imagingURL is ' + \
+        if stage =='im' and self.imSource =='':
+            raise ValueError('stage is set to "im" but no imSource is ' + \
                              'specified.')
 
         #remember where we were and change to reduction directory
@@ -689,6 +659,11 @@ class benchmark:
 
     def writeToOutFile(self, outString):
         """ Writes outString to a text file.
+
+        Parameters
+        ----------
+        outString : str
+           String containing characters to be written to outFile.
 
         Returns
         -------
