@@ -26,6 +26,12 @@ import parameters
 # the particular method for the parts needed e.g. look under runBenchmarks in
 # the for loop that actually runs the benchmarks
 #-need condition for only extracting and running calibration or imaging
+#-need to change class docstring to standard Python style so information isn't
+# redundant but I also still have a record of all the included attributes and
+# methods
+#-change docstrings to prescribe the function or method's effect as a command
+# ("Do this", "Return that"), not as a description; e.g. don't write "Returns
+# the pathname ...", instead write "Return the pathname..."
 
 def makeReport(files):
     """ Gather total times and caluclate the mean and standard deviation from
@@ -142,15 +148,6 @@ class machine:
 
     casaRevision : str
         Revision number for currently running CASA.
-
-    Methods
-    -------
-
-    __init__
-        Initializes machine instance attributes.
-
-    runBenchmarks
-        Loops over each data set to run all iterations of benchmarking.
     """
     def __init__(self, CASAglobals=None, scriptDir='', dataSets=list(), \
                  nIters=list(), skipDownloads=list(), workDir='./'):
