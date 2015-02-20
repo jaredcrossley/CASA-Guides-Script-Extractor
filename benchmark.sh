@@ -127,6 +127,7 @@ do
         echo "  -h = print usage instructions and exit" >&2
         echo "" >&2
         echo "  Available CASA Guide Names:" >&2
+        echo "  NGC3256Band3_43  TWHydraBand7_43  AntennaeBand7_43  IRASBand9_43  (CASA 4.3)" >&2
 	echo "  NGC3256Band3_42  TWHydraBand7_42  AntennaeBand7_42  IRASBand9_42  (CASA 4.2)" >&2
         echo "  NGC3256Band3_41  TWHydraBand7_41  AntennaeBand7_41  (CASA 4.1)" >&2
         echo "  NGC3256Band3     TWHydraBand7     AntennaeBand7     (CASA 4.0)" >&2
