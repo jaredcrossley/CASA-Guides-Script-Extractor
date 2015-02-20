@@ -269,15 +269,14 @@ class machine:
             for i in range(self.jobs[dataSet]['nIters']):
                 b = benchmark.benchmark(scriptDir=self.scriptDir, \
                                  workDir=dataSetDir, \
-                                 calibrationURL=params['calibrationURL'], \
-                                 imagingURL=params['imagingURL'], \
+                                 calSource=params['calibrationURL'], \
+                                 imSource=params['imagingURL'], \
                                  dataPath=dataPath, \
                                  outFile='shell.log.txt', \
                                  skipDownload=self.jobs[dataSet]['skipDownload'])
                 self.jobs[dataSet]['benchmarks'].append(b)
 
                 b.createDirTree()
-                #b[i].removePreviousRun()
 
                 if not self.jobs[dataSet]['skipDownload']:
                     b.downloadData()
