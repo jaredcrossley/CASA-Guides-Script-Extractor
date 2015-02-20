@@ -144,7 +144,7 @@ function AntennaeBand7_34 ()
     dataPath='/lustre/naasc/SV/AntennaeBand7/Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz'
 }
 
-# Benchmark test parameters for IRA 16293 Band 9; casa 4.3
+# Benchmark test parameters for IRAS 16293 Band 9; casa 4.3
 function IRASBand9_43 ()
 {
     calibrationURL='http://casaguides.nrao.edu/index.php?title=IRAS16293_Band9_-_Calibration_for_CASA_4.3'
@@ -153,7 +153,7 @@ function IRASBand9_43 ()
     dataPath='/lustre/naasc/SV/IRAS16293Band9/IRAS16293_Band9_UnCalibratedMS.tgz'
 }
 
-# Benchmark test parameters for IRA 16293 Band 9; casa 4.2
+# Benchmark test parameters for IRAS 16293 Band 9; casa 4.2
 function IRASBand9_42 ()
 {
     calibrationURL='http://casaguides.nrao.edu/index.php?title=IRAS16293_Band9_-_Calibration_for_CASA_4.2'
