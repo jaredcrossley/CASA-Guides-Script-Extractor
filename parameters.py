@@ -2,9 +2,25 @@
 #   Some variable names have a meaningles "x" prepended since variable names
 #   can't start with numbers.
 
-##2012.1.00912.S##
+##2012.1.00912##
 #THIS DATA IS NOT ON THE SCIENCE PORTAL
+#CASA 4.3
+x2012_1_00912_S_43 = {'calibrationURL': \
+                          '/lustre/naasc/nbrunett/benchmark/' + \
+                          '2012.1.00912.S/430/' + \
+                          '2012.1.00912.S_calibration4.3.py', \
+                      'imagingURL': \
+                          '/lustre/naasc/nbrunett/benchmark/' + \
+                          '2012.1.00912.S/422/' + \
+                          '2012.1.00912.S_imaging4.3.py', \
+                      'dataURL': \
+                          None, \
+                      'dataPath': \
+                          '/lustre/naasc/nbrunett/benchmark/2012.1.00912.S/' + \
+                          '912_reduction.tgz'}
+
 #CASA 4.2
+#THIS DATA IS NOT ON THE SCIENCE PORTAL
 x2012_1_00912_S_42 = {'calibrationURL': \
                           '/lustre/naasc/nbrunett/benchmark/' + \
                           '2012.1.00912.S/422/' + \
@@ -37,6 +53,21 @@ x2011_0_00099_S_40 = {'calibrationURL': \
 ##=============================================================================##
 
 ##NGC3256 Band 3
+#CASA 4.3
+NGC3256Band3_43 = {'calibrationURL': \
+                       'http://casaguides.nrao.edu/index.php?title=' + \
+                       'NGC3256_Band3_Calibration_for_CASA_4.3', \
+                   'imagingURL': \
+                       'http://casaguides.nrao.edu/index.php?title=' + \
+                       'NGC3256_Band3_Imaging_for_CASA_4.3', \
+                   'dataURL': \
+                       'https://almascience.nrao.edu/almadata/sciver/' + \
+                       'NGC3256/' + \
+                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
+                   'dataPath': \
+                       '/lustre/naasc/SV/NGC3256/' + \
+                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'}
+
 #CASA 4.2
 NGC3256Band3_42 = {'calibrationURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
@@ -52,7 +83,7 @@ NGC3256Band3_42 = {'calibrationURL': \
                        '/lustre/naasc/SV/NGC3256/' + \
                        'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'}
 
-##NGC3256 Band 3; CASA 4.1##
+#CASA 4.1
 NGC3256Band3_41 = {'calibrationURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
                        'NGC3256_Band3_Calibration_for_CASA_4.1', \
@@ -67,7 +98,7 @@ NGC3256Band3_41 = {'calibrationURL': \
                        '/lustre/naasc/SV/NGC3256/' + \
                        'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'}
 
-##NGC3256 Band 3; CASA 4.0##
+#CASA 4.0
 NGC3256Band3_40 = {'calibrationURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
                        'NGC3256_Band3_Calibration_for_CASA_4.0', \
@@ -82,7 +113,7 @@ NGC3256Band3_40 = {'calibrationURL': \
                        '/lustre/naasc/SV/NGC3256/' + \
                        'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'}
 
-##NGC3256 Band 3; CASA 3.4##
+#CASA 3.4
 NGC3256Band3_34 = {'calibrationURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
                        'NGC3256_Band3_Calibration_for_CASA_3.4', \
@@ -99,6 +130,20 @@ NGC3256Band3_34 = {'calibrationURL': \
 ##=============================================================================##
 
 ##TWHydra Band 7##
+#CASA 4.3
+TWHydraBand7_43 = {'calibrationURL': \
+                       'http://casaguides.nrao.edu/index.php?title=' + \
+                       'TWHydraBand7_Calibration_4.3', \
+                   'imagingURL': \
+                       'http://casaguides.nrao.edu/index.php?title=' + \
+                       'TWHydraBand7_Imaging_4.3', \
+                   'dataURL': \
+                       'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
+                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
+                   'dataPath': \
+                       '/lustre/naasc/SV/TWHya/' + \
+                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'}
+
 #CASA 4.2
 TWHydraBand7_42 = {'calibrationURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
@@ -157,9 +202,23 @@ TWHydraBand7_34 = {'calibrationURL': \
 ##=============================================================================##
 
 ##Antennae Band 7##
+AntennaeBand7_43 = {'calibrationURL': \
+                        'http://casaguides.nrao.edu/index.php?title=' + \
+                        'AntennaeBand7_Calibration_4.3', \
+                    'imagingURL': \
+                        'http://casaguides.nrao.edu/index.php?title=' + \
+                        'AntennaeBand7_Imaging_4.3', \
+                    'dataURL': \
+                        'https://almascience.nrao.edu/almadata/sciver/' + \
+                        'AntennaeBand7/' + \
+                      'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
+                    'dataPath': \
+                        '/lustre/naasc/SV/AntennaeBand7/' + \
+                        'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz'}
+
 #CASA 4.2
 AntennaeBand7_42 = {'calibrationURL': \
-                       'http://casaguides.nrao.edu/index.php?title=' + \
+                        'http://casaguides.nrao.edu/index.php?title=' + \
                         'AntennaeBand7_Calibration_4.2' , \
                     'imagingURL': \
                         'http://casaguides.nrao.edu/index.php?title=' + \
@@ -174,7 +233,7 @@ AntennaeBand7_42 = {'calibrationURL': \
 
 #CASA 4.1
 AntennaeBand7_41 = {'calibrationURL': \
-                       'http://casaguides.nrao.edu/index.php?title=' + \
+                        'http://casaguides.nrao.edu/index.php?title=' + \
                         'AntennaeBand7_Calibration_4.1' , \
                     'imagingURL': \
                         'http://casaguides.nrao.edu/index.php?title=' + \
@@ -219,6 +278,20 @@ AntennaeBand7_34 = {'calibrationURL': \
 ##=============================================================================##
 
 ##IRAS 16293 Band 9##
+#CASA 4.3
+IRASBand9_43 = {'calibrationURL': \
+                    'http://casaguides.nrao.edu/index.php?title=' + \
+                    'IRAS16293_Band9_-_Calibration_for_CASA_4.3', \
+                'imagingURL': \
+                    'http://casaguides.nrao.edu/index.php?title=' + \
+                    'IRAS16293_Band9_-_Imaging_for_CASA_4.3', \
+                'dataURL': \
+                    'http://fatman.cv.nrao.edu/almadata/sciver/IRAS16293B9/' + \
+                    'IRAS16293_Band9_UnCalibratedMS.tgz', \
+                'dataPath': \
+                    '/lustre/naasc/SV/IRAS16293Band9/' + \
+                    'IRAS16293_Band9_UnCalibratedMS.tgz'}
+
 #CASA 4.2
 IRASBand9_42 = {'calibrationURL': \
                     'http://casaguides.nrao.edu/index.php?title=' + \
@@ -255,8 +328,8 @@ x2011_0_00367_S_33 = {'calibrationURL': \
                           '/export/lustre/jcrossle/benchmark/scripts/' + \
                           '2011.0.00367.S_sb_calibration.py', \
                       'imagingURL': \
-                         '/export/lustre/jcrossle/benchmark/scripts/' + \
-                         '2011.0.00367.S_calibration_image.py', \
+                          '/export/lustre/jcrossle/benchmark/scripts/' + \
+                          '2011.0.00367.S_calibration_image.py', \
                       'dataURL': \
                           None, \
                       'dataPath': \
