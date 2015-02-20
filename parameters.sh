@@ -9,6 +9,15 @@ function 2011_0_00099_S ()
     dataPath='/lustre/naasc/jcrossle/benchmark/data/2011.0.00099.S/2011.0.00099.S.tgz'
 }
 
+# Benchmark test parameters for NGC3256 Band 3; casa 4.3
+function NGC3256Band3_43 ()
+{
+    calibrationURL='http://casaguides.nrao.edu/index.php?title=NGC3256_Band3_Calibration_for_CASA_4.3'
+    imagingURL='http://casaguides.nrao.edu/index.php?title=NGC3256_Band3_Imaging_for_CASA_4.3'
+dataURL='https://almascience.nrao.edu/almadata/sciver/NGC3256/NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'
+    dataPath='/lustre/naasc/SV/NGC3256/NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'
+}
+
 # Benchmark test parameters for NGC3256 Band 3; casa 4.2
 function NGC3256Band3_42 ()
 {
@@ -43,6 +52,15 @@ function NGC3256Band3_34 ()
     imagingURL='http://casaguides.nrao.edu/index.php?title=NGC3256_Band3_Imaging_for_CASA_3.4'
     dataURL='https://almascience.nrao.edu/almadata/sciver/NGC3256/NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'
     dataPath='/lustre/naasc/SV/NGC3256/NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'
+}
+
+# Benchmark test parameters for TWHydra Band 7; casa 4.3
+function TWHydraBand7_43 ()
+{
+    calibrationURL='http://casaguides.nrao.edu/index.php?title=TWHydraBand7_Calibration_4.3'
+    imagingURL='http://casaguides.nrao.edu/index.php?title=TWHydraBand7_Imaging_4.3'
+    dataURL='https://almascience.nrao.edu/almadata/sciver/TWHya/TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'
+    dataPath='/lustre/naasc/SV/TWHya/TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'
 }
 
 # Benchmark test parameters for TWHydra Band 7; casa 4.2
@@ -81,6 +99,15 @@ function TWHydraBand7_34 ()
     dataPath='/lustre/naasc/SV/TWHya/TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'
 }
 
+# Benchmark test parameters for Antennae Band 7; casa 4.3
+function AntennaeBand7_43 ()
+{
+    calibrationURL='http://casaguides.nrao.edu/index.php?title=AntennaeBand7_Calibration_4.3'
+    imagingURL='http://casaguides.nrao.edu/index.php?title=AntennaeBand7_Imaging_4.3'
+    dataURL='https://almascience.nrao.edu/almadata/sciver/AntennaeBand7/Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz'
+    dataPath='/lustre/naasc/SV/AntennaeBand7/Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz'
+}
+
 # Benchmark test parameters for Antennae Band 7; casa 4.2
 function AntennaeBand7_42 ()
 {
@@ -115,6 +142,15 @@ function AntennaeBand7_34 ()
     imagingURL='http://casaguides.nrao.edu/index.php?title=AntennaeBand7_Imaging_3.4'
     dataURL='https://almascience.nrao.edu/almadata/sciver/AntennaeBand7/Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz'
     dataPath='/lustre/naasc/SV/AntennaeBand7/Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz'
+}
+
+# Benchmark test parameters for IRA 16293 Band 9; casa 4.3
+function IRASBand9_43 ()
+{
+    calibrationURL='http://casaguides.nrao.edu/index.php?title=IRAS16293_Band9_-_Calibration_for_CASA_4.3'
+    imagingURL='http://casaguides.nrao.edu/index.php?title=IRAS16293_Band9_-_Imaging_for_CASA_4.3'
+    dataURL='http://fatman.cv.nrao.edu/almadata/sciver/IRAS16293B9/IRAS16293_Band9_UnCalibratedMS.tgz'
+    dataPath='/lustre/naasc/SV/IRAS16293Band9/IRAS16293_Band9_UnCalibratedMS.tgz'
 }
 
 # Benchmark test parameters for IRA 16293 Band 9; casa 4.2
@@ -163,5 +199,3 @@ function SgrABand6 ()
     dataURL='https://almascience.nrao.edu/almadata/sciver/SgrABand6/SgrA_Band6_UnCalibratedMSAndTablesForReduction.tgz'
     dataPath='/export/lustre/jcrossle/benchmark/data/SgrA_Band6_UnCalibratedMSAndTablesForReduction.tgz'
 }
-
-
