@@ -11,7 +11,7 @@ x2012_1_00912_S_43 = {'calibrationURL': \
                           '2012.1.00912.S_calibration4.3.py', \
                       'imagingURL': \
                           '/lustre/naasc/nbrunett/benchmark/' + \
-                          '2012.1.00912.S/422/' + \
+                          '2012.1.00912.S/430/' + \
                           '2012.1.00912.S_imaging4.3.py', \
                       'dataURL': \
                           None, \
