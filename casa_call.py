@@ -56,7 +56,7 @@ def summarize_bench(in_file=None,out_file=None):
     """
     if in_file == None:
         return
-    task, tag, delta, start, stop = readcol(in_file,twod=False)
+    task, tag, delta, start, stop = readcol(in_file,twod=False,verbose=False)
 
     dummy = os.popen("date")
     date_stamp = dummy.readlines()
