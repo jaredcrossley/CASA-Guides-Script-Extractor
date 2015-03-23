@@ -496,10 +496,12 @@ class benchmark:
         #set the output to the extraction log
         print fullFuncName + ':', 'Extracting CASA Guide.\n' + ' '*indent + \
               'Logging to ' + self.extractLog
-        stdOut = sys.stdout
-        stdErr = sys.stderr
-        sys.stdout = open(self.extractLog, 'a')
-        sys.stderr = sys.stdout
+        outFDsave = os.dup(1)
+        errFDsave = os.dup(2)
+        extractLogF = open(self.extractLog, 'a')
+        extractLogFD = extractLogF.fileno()
+        os.dup2(extractLogFD, 1)
+        os.dup2(extractLogFD, 2)
 
         #write listTasksOut if this is first extraction
         if os.stat(self.extractLog).st_size == 0:
@@ -518,10 +520,11 @@ class benchmark:
         print '\n'
 
         #change logs back and go back to wherever we were before
-        stdOut, sys.stdout = sys.stdout, stdOut
-        stdOut.close()
-        stdErr, sys.stderr = sys.stderr, stdErr
-        stdErr.close()
+        os.dup2(outFDsave, 1)
+        os.close(outFDsave)
+        os.dup2(errFDsave, 2)
+        os.close(errFDsave)
+        extractLogF.close()
         os.chdir(oldPWD)
 
         #report failure if extraction didn't work
@@ -618,10 +621,12 @@ class benchmark:
         #setup logging
         print fullFuncName + ':', 'Beginning benchmark test of ' + \
               script + '.\n' + ' '*indent + 'Logging to ' + scriptLog + '.'
-        stdOut = sys.stdout
-        stdErr = sys.stderr
-        sys.stdout = open(scriptLog, 'a')
-        sys.stderr = sys.stdout
+        outFDsave = os.dup(1)
+        errFDsave = os.dup(2)
+        scriptLogF = open(scriptLog, 'a')
+        scriptLogFD = scriptLogF.fileno()
+        os.dup2(scriptLogFD, 1)
+        os.dup2(scriptLogFD, 2)
         print 'CASA Version ' + CASAglobals['casadef'].casa_version + ' (r' + \
               CASAglobals['casadef'].subversion_revision + ')\n  Compiled ' + \
               'on: ' + CASAglobals['casadef'].build_time + '\n\n'
@@ -631,10 +636,12 @@ class benchmark:
         execfile(script, CASAglobals)
 
         #put logs back
-        closeFile = sys.stdout
-        sys.stdout = stdOut
+        os.dup2(outFDsave, 1)
+        os.close(outFDsave)
+        os.dup2(errFDsave, 2)
+        os.close(errFDsave)
+        scriptLogF.close()
         CASAglobals['casalog'].setlogfile(origLog)
-        closeFile.close()
         print fullFuncName + ':', 'Finished test of ' + script
 
         #remove anything the script added
