@@ -12,10 +12,6 @@ import extractCASAscript
 
 #-all methods should probably return something
 #-figure out Python's version of private and public
-#-investigate this message: "WARNING: reading as string array because float array
-# failed"
-#  -I see it from both calibration and imaging scripts for every test I run in
-#   the .py.log files
 #-need to change class docstring to standard Python style so information isn't
 # redundant but I also still have a record of all the included attributes and
 # methods
@@ -37,6 +33,11 @@ class benchmark:
         Absolute path to directory where benchmarking directory structure will
         be created, all data will be stored and processing will be done.
 
+    execStep : str
+        String specifying what will be executed in this benchmarking run:
+        calibration, imaging or both. Must be "cal", "im" or "both". Defaults to
+        "both".
+
     calSource : str
         URL to CASA guide calibration webpage or path to Python script to
         extract the calibration commands from.
@@ -45,8 +46,13 @@ class benchmark:
         URL to CASA guide imaging webpage or path to Python script to extract
         the imaging commands from.
 
-    dataPath : str
-        URL or absolute path to raw CASA guide data and calibration tables.
+    uncalDataPath : str
+        URL or absolute path to uncalibrated raw CASA guide data and
+        calibration tables.
+
+    calDataPath : str
+        URL or absolute path to calibrated raw CASA guide data and
+        calibration tables.
 
     outFile : str
         Log file for operations done outside of other wrapper modules such as
@@ -64,6 +70,10 @@ class benchmark:
         Absolute path to directory where benchmarking directory structure will
         be created, all data will be stored and processing will be done.
 
+    execStep : str
+        String specifying what will be executed in this benchmarking run:
+        calibration, imaging or both. Must be "cal", "im" or "both".
+
     calSource : str
         URL to CASA guide calibration webpage or path to Python script to
         extract the calibration commands from.
@@ -72,8 +82,13 @@ class benchmark:
         URL to CASA guide imaging webpage or path to Python script to extract
         the imaging commands from.
 
-    dataPath : str
-        URL or absolute path to raw CASA guide data and calibration tables.
+    uncalDataPath : str
+        URL or absolute path to uncalibrated raw CASA guide data and
+        calibration tables.
+
+    calDataPath : str
+        URL or absolute path to calibrated raw CASA guide data and
+        calibration tables.
 
     outFile : str
         Log file for operations done outside of other wrapper modules such as
@@ -82,8 +97,13 @@ class benchmark:
     skipDownload : bool
         Switch to skip downloading the raw data from the web.
 
-    localTar : str
-        Absolute path to raw data .tgz file associated with CASA guide.
+    uncalLocalTar : str
+        Absolute path to uncalibrated raw data .tgz file associated with CASA
+        guide.
+
+    calLocalTar : str
+        Absolute path to calibrated raw data .tgz file associated with CASA
+        guide.
 
     extractLog : str
         Absolute path to CASA guide script extractor output.
@@ -164,14 +184,14 @@ class benchmark:
         script extraction is done. While the output should always be a couple of
         empty sets, it would be useful information if they are ever not empty.
     """
-    def __init__(self, scriptDir='', workDir='./', calSource='', \
-                 imSource='', dataPath='', outFile='', \
-                 skipDownload=False):
+    def __init__(self, scriptDir='', workDir='./', execStep='both', \
+                 calSource='', imSource='', uncalDataPath='', calDataPath='', \
+                 outFile='', skipDownload=False):
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
         indent = len(fullFuncName) + 2
 
-        #default to an error unless __init__ at least finishes
+        #default to an error unless at least __init__ finishes
         self.status = 'failure'
 
         #add script directory to Python path if need be
@@ -193,34 +213,89 @@ class benchmark:
         self.workDir = workDir
 
         #check other necessary parameters were specified
-        if calSource == '' and imSource == '':
-            raise ValueError('URL to calibration and/or imaging CASA guides ' + \
-                             'must be given.')
-        self.calSource = calSource
-        self.imSource = imSource
-        if dataPath == '':
-            raise ValueError('A URL or path must be given pointing to the ' + \
-                             'raw data.')
-        self.dataPath = dataPath
+        if execStep != 'cal' and execStep != 'im' and execStep != 'both':
+            raise ValueError('execStep must be set to "cal", "im" or "both".')
+        self.execStep = execStep
+        if self.execStep == 'cal':
+            if calSource == '':
+                raise ValueError('URL to calibration CASA guide must be given.')
+            if uncalDataPath == '':
+                raise ValueError('A URL or path must be given pointing to ' + \
+                                 'the uncalibrated raw data.')
+        if self.execStep == 'im':
+            if imSource == '':
+                raise ValueError('URL to imaging CASA guide must be given.')
+            if calDataPath == '':
+                raise ValueError('A URL or path must be given pointing to ' + \
+                                 'the calibrated raw data.')
+        if self.execStep == 'both':
+            if calSource == '' or imSource == '':
+                raise ValueError('URLs to calibration and imaging CASA ' + \
+                                 'guides must be given.')
+            if uncalDataPath == '':
+                raise ValueError('A URL or path must be given pointing to ' + \
+                                 'the uncalibrated raw data.')
         if outFile == '':
             raise ValueError('A file must be specified for the output ' + \
                              'of the script.')
 
-        #check that the tarball does exist if not downloading it
+        #other class variable initialization
+        if self.execStep == 'cal':
+            self.calSource = calSource
+            self.imSource = ''
+            self.uncalDataPath = uncalDataPath
+            self.calDataPath = ''
+        if self.execStep == 'im':
+            self.calSource = ''
+            self.imSource = imSource
+            self.uncalDataPath = ''
+            self.calDataPath = calDataPath
+        if self.execStep == 'both':
+            self.calSource = calSource
+            self.imSource = imSource
+            self.uncalDataPath = uncalDataPath
+            self.calDataPath = ''
         self.skipDownload = skipDownload
-        if self.skipDownload == True:
-            if not os.path.isfile(self.dataPath):
-                raise ValueError('Cannot find local tarball for extraction ' + \
-                                 'at ' + self.dataPath + '. ' + \
-                                 'Download may be required.')
+
+        #check tarball exists if skipping download
+        if self.skipDownload:
+            if self.execStep == 'cal':
+                if not os.path.isfile(self.uncalDataPath):
+                    raise ValueError('Cannot find uncalibrated local ' + \
+                                     'tarball for extraction. Download may ' + \
+                                     'be required.')
+                self.uncalLocalTar = self.uncalDataPath
+                self.calLocalTar = ''
+            if self.execStep == 'im':
+                if not os.path.isfile(self.calDataPath):
+                    raise ValueError('Cannot find calibrated local tarball ' + \
+                                     'for extraction. Download may be required.')
+                self.uncalLocalTar = ''
+                self.calLocalTar = self.calDataPath
+            if self.execStep == 'both':
+                if not os.path.isfile(self.uncalDataPath):
+                    raise ValueError('Cannot find uncalibrated local ' + \
+                                     'tarball for extraction. Download may ' + \
+                                     'be required.')
+                self.uncalLocalTar = self.uncalDataPath
+                self.calLocalTar = ''
             print fullFuncName + ':', 'Data available by filesystem.'
-            self.localTar = self.dataPath
-        #check dataPath is a URL if we will be downloading data instead
+        #check data paths are URLs if downloading data instead
         else:
-            self.localTar = ''
-            if self.dataPath[0:4] != 'http':
-                raise ValueError("'" + self.dataPath + "' is not a valid " + \
-                                 'URL for downloading the data.')
+            self.uncalLocalTar = ''
+            self.calLocalTar = ''
+            if self.execStep == 'cal':
+                if self.uncalDataPath[0:4] != 'http':
+                    raise ValueError("'" + self.uncalDataPath + "' is not a " + \
+                                     'valid URL for downloading the data.')
+            if self.execStep == 'im':
+                if self.calDataPath[0:4] != 'http':
+                    raise ValueError("'" + self.calDataPath + "' is not a " + \
+                                     'valid URL for downloading the data.')
+            if self.execStep == 'both':
+                if self.uncalDataPath[0:4] != 'http':
+                    raise ValueError("'" + self.uncalDataPath + "' is not a " + \
+                                     'valid URL for downloading the data.')
 
         #initialize the current benchmark instance directories and files
         self.currentWorkDir = self.workDir + \
@@ -308,9 +383,10 @@ class benchmark:
         Notes
         -----
         This downloads the raw data .tgz file associated with the CASA guide
-        from the web (dataPath) into currentTarDir using wget. Here os.system
-        is used to execute wget so it is not perfectly platform independent
-        but should be fine across Linux and Mac. The wget options used are:
+        from the web (uncalDataPath or calDataPath) into currentTarDir using
+        wget. Here os.system is used to execute wget so it is not perfectly
+        platform independent but should be fine across Linux and Mac. The wget
+        options used are:
         
           wget -q --no-check-certificate --directory-prefix=currentTarDir
         """
@@ -318,8 +394,22 @@ class benchmark:
         fullFuncName = __name__ + '::downloadData'
         indent = len(fullFuncName) + 2
 
+        #check that we should be downloading
+        if self.skipDownload:
+            raise ValueError('skipDownload is set to True so this benchmark ' + \
+                             'cannot download the data. Create a new ' + \
+                             'instance with skipDownload=False if you wish ' + \
+                             'to download the data.')
+
+        #build wget command
+        if self.execStep == 'cal':
+            dataPath = self.uncalDataPath
+        if self.execStep == 'im':
+            dataPath = self.calDataPath
+        if self.execStep == 'both':
+            dataPath = self.uncalDataPath
         command = 'wget -q --no-check-certificate --directory-prefix=' + \
-                  self.currentTarDir + ' ' + self.dataPath
+                  self.currentTarDir + ' ' + dataPath
 
         #wget the data
         print fullFuncName + ':', 'Acquiring data by HTTP.\n' + ' '*indent + \
@@ -334,7 +424,17 @@ class benchmark:
         procT = round(time.clock() - procT, 2)
         outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
         self.writeToOutFile(outString)
-        self.localTar = self.currentTarDir+ self.dataPath.split('/')[-1]
+
+        #set local tarball paths
+        if self.execStep == 'cal':
+            self.uncalLocalTar = self.currentTarDir + dataPath.split('/')[-1]
+            self.calLocalTar = ''
+        if self.execStep == 'im':
+            self.uncalLocalTar = ''
+            self.calLocalTar = self.currentTarDir + dataPath.split('/')[-1]
+        if self.execStep == 'both':
+            self.uncalLocalTar = self.currentTarDir + dataPath.split('/')[-1]
+            self.calLocalTar = ''
 
 
     def extractData(self):
@@ -346,15 +446,23 @@ class benchmark:
 
         Notes
         -----
-        This unpacks the raw data .tgz file in localTar and times the process.
-        It uses the tarfile module so it should be as platform independent as
-        that module is. The unpacked directory goes into currentWorkDir.
+        This unpacks the raw data .tgz file in uncalLocalTar or calLocalTar and
+        times the process. It uses the tarfile module so it should be as
+        platform independent as that module is. The unpacked directory goes into
+        currentWorkDir.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::extractData'
         indent = len(fullFuncName) + 2
 
-        command = "tar = tarfile.open('" + self.localTar + \
+        #build extraction commands
+        if self.execStep == 'cal':
+            localTar = self.uncalLocalTar
+        if self.execStep == 'im':
+            localTar = self.calLocalTar
+        if self.execStep == 'both':
+            localTar = self.uncalLocalTar
+        command = "tar = tarfile.open('" + localTar + \
                   "')\ntar.extractall(path='" + self.currentWorkDir + \
                   "')\ntar.close()"
 
@@ -366,7 +474,7 @@ class benchmark:
         outString += 'Timing command:\n' + command + '\n'
         procT = time.clock()
         wallT = time.time()
-        tar = tarfile.open(self.localTar)
+        tar = tarfile.open(localTar)
         tar.extractall(path=self.currentWorkDir)
         tar.close()
         wallT = round(time.time() - wallT, 2)
@@ -374,7 +482,7 @@ class benchmark:
         outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
         self.writeToOutFile(outString)
         self.currentRedDir = self.currentWorkDir + \
-                             os.path.basename(self.localTar)[:-4] + '/'
+                             os.path.basename(localTar)[:-4] + '/'
 
 
     def makeExtractOpts(self):
@@ -453,15 +561,9 @@ class benchmark:
                     return False
 
 
-    def doScriptExtraction(self, stage):
-        """ Runs the script extractor for the calibration or imaging script and
-        arranges all of the associated details.
-
-        Parameters
-        ----------
-        stage : str
-           Specifies which script to extract, calibration or imaging. Can be
-           either "cal" or "im" and will raise a ValueError otherwise.
+    def doScriptExtraction(self):
+        """ Runs the script extractor for the calibration and/or imaging script
+        and arranges all of the associated details.
 
         Returns
         -------
@@ -471,23 +573,12 @@ class benchmark:
         -----
         This ensures the extraction output is logged, runs the script extraction
         and fills out all of the associated attributes. Scripts are made from
-        calSource or imSource and are put into currentRedDir. If this is the
-        first script extraction, then it will also write listTasksOut to
-        extractLog.
+        calSource and/or imSource and are put into currentRedDir. This will also
+        write listTasksOut to extractLog.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::doScriptExtraction'
         indent = len(fullFuncName) + 2
-
-        #check input
-        if stage != 'cal' and stage != 'im':
-            raise ValueError('stage must be either "cal" or "im".')
-        if stage == 'cal' and self.calSource == '':
-            raise ValueError('stage is set to "cal" but no calSource ' + \
-                             'is specified.')
-        if stage =='im' and self.imSource =='':
-            raise ValueError('stage is set to "im" but no imSource is ' + \
-                             'specified.')
 
         #remember where we were and change to reduction directory
         oldPWD = os.getcwd()
@@ -503,18 +594,17 @@ class benchmark:
         os.dup2(extractLogFD, 1)
         os.dup2(extractLogFD, 2)
 
-        #write listTasksOut if this is first extraction
-        if os.stat(self.extractLog).st_size == 0:
-            print self.listTasksOut
-            print
+        print self.listTasksOut
+        print '\n'
 
-        #set local variables based on stage
-        if stage == 'cal':
-            scriptURL = self.calSource
-        else:
-            scriptURL = self.imSource
-
-        result = self.runextractCASAscript(scriptURL)
+        if self.execStep == 'cal':
+            result = self.runextractCASAscript(self.calSource)
+        if self.execStep == 'im':
+            result = self.runextractCASAscript(self.imSource)
+        if self.execStep == 'both':
+            result = self.runextractCASAscript(self.calSource)
+            if result:
+                result = self.runextractCASAscript(self.imSource)
         print '\n'
         print '='*80
         print '\n'
@@ -532,24 +622,61 @@ class benchmark:
             self.status = 'failure'
             return
 
-        #grab the new script name
+        #grab script name(s)
+        first = True
         f = open(self.extractLog, 'r')
-        for line in reversed(f.readlines()):
+        for line in f.readlines():
             if 'New file' in line:
-                scriptName = line.split(' ')[2]
-                break
+                if self.execStep == 'cal':
+                    calScriptName = line.split(' ')[2]
+                    imScriptName = ''
+                    break
+                if self.execStep == 'im':
+                    calScriptName = ''
+                    imScriptName = line.split(' ')[2]
+                    break
+                if self.execStep == 'both':
+                    if first:
+                        calScriptName = line.split(' ')[2]
+                        first = False
+                    else:
+                        imScriptName = line.split(' ')[2]
+                        break
         f.close()
 
         #store file names in the object
-        if stage == 'cal':
-            self.calScript = self.currentRedDir + scriptName
+        if self.execStep == 'cal':
+            self.calScript = self.currentRedDir + calScriptName
             self.calScriptExpect = self.calScript + '.expected'
             self.calScriptLog = self.calScript + '.log'
             self.calBenchOutFile = self.calScript[:-3] + '.benchmark.txt'
             self.calBenchSumm = self.calBenchOutFile + '.summary'
             shutil.copy(self.calScriptExpect, self.currentLogDir)
-        else:
-            self.imageScript = self.currentRedDir + scriptName
+            self.imageScript = ''
+            self.imageScriptExpect = ''
+            self.imageScriptLog = ''
+            self.imageBenchOutFile = ''
+            self.imageBenchSumm = ''
+        if self.execStep == 'im':
+            self.calScript = ''
+            self.calScriptExpect = ''
+            self.calScriptLog = ''
+            self.calBenchOutFile = ''
+            self.calBenchSumm = ''
+            self.imageScript = self.currentRedDir + imScriptName
+            self.imageScriptExpect = self.imageScript + '.expected'
+            self.imageScriptLog = self.imageScript + '.log'
+            self.imageBenchOutFile = self.imageScript[:-3] + '.benchmark.txt'
+            self.imageBenchSumm = self.imageBenchOutFile + '.summary'
+            shutil.copy(self.imageScriptExpect, self.currentLogDir)
+        if self.execStep == 'both':
+            self.calScript = self.currentRedDir + calScriptName
+            self.calScriptExpect = self.calScript + '.expected'
+            self.calScriptLog = self.calScript + '.log'
+            self.calBenchOutFile = self.calScript[:-3] + '.benchmark.txt'
+            self.calBenchSumm = self.calBenchOutFile + '.summary'
+            shutil.copy(self.calScriptExpect, self.currentLogDir)
+            self.imageScript = self.currentRedDir + imScriptName
             self.imageScriptExpect = self.imageScript + '.expected'
             self.imageScriptLog = self.imageScript + '.log'
             self.imageBenchOutFile = self.imageScript[:-3] + '.benchmark.txt'
@@ -557,15 +684,11 @@ class benchmark:
             shutil.copy(self.imageScriptExpect, self.currentLogDir)
 
 
-    def runGuideScript(self, stage, CASAglobals):
-        """ Executes the calibration or imaging CASA guide script.
+    def runGuideScripts(self, CASAglobals):
+        """ Executes the calibration and/or imaging CASA guide script.
 
         Parameters
         ----------
-        stage : str
-           Specifies which script to run, calibration or imaging. Can be either
-           "cal" or "im" and will raise a ValueError otherwise.
-
         CASAglobals : dict
            Dictionary returned by Python globals() function within the CASA
            namespace (environment). Simply pass the return value of the globals()
@@ -577,27 +700,23 @@ class benchmark:
 
         Notes
         -----
-        This runs either the calScript or imageScript file with execfile, passing
-        in all of the CASA global definitions, depending on the setting of stage.
-        It directs standard out and standard error to calScriptLog or
-        imageScriptLog during execution. These are run inside currentRedDir.
-        Lastly, it copies the calScriptLog, calBenchOutFile and calBenchSumm
-        files or imageScriptLog, imageBenchOutFile and imageBenchSumm files to
-        currentLogDir and (sans script logs) to allLogDir.
+        This runs the calScript and/or imageScript file with execfile, passing
+        in all of the CASA global definitions, depending on the setting of
+        benchmark.execStep. It directs standard out and standard error to
+        calScriptLog or imageScriptLog during execution. These are run inside
+        currentRedDir. Lastly, it copies the calScriptLog, calBenchOutFile and
+        calBenchSumm files and/or imageScriptLog, imageBenchOutFile and
+        imageBenchSumm files to currentLogDir and (sans script logs) to
+        allLogDir.
         """
         #for telling where printed messages originate from
-        fullFuncName = __name__ + '::runGuideScript'
+        fullFuncName = __name__ + '::runGuideScripts'
         indent = len(fullFuncName) + 2
 
         #check input
-        if stage != 'cal' and stage != 'im':
-            raise ValueError('stage must be either "cal" or "im".')
-        if stage == 'cal' and self.calSource == '':
-            raise ValueError('stage is set to "cal" but no calSource ' + \
-                             'is specified.')
-        if stage =='im' and self.imSource =='':
-            raise ValueError('stage is set to "im" but no imSource is ' + \
-                             'specified.')
+        if type(CASAglobals) != dict:
+            raise TypeError('CASAglobals must be dictionary returned by ' + \
+                            'globals built-in function.')
 
         #remember where we were and change to reduction directory
         oldPWD = os.getcwd()
@@ -606,59 +725,68 @@ class benchmark:
         #remember what is in the CASA global namespace
         preKeys = CASAglobals.keys()
 
-        #set local variables based on stage
-        if stage == 'cal':
-            script = self.calScript
-            scriptLog = self.calScriptLog
-            benchOutFile = self.calBenchOutFile
-            benchSumm = self.calBenchSumm
-        else:
-            script = self.imageScript
-            scriptLog = self.imageScriptLog
-            benchOutFile = self.imageBenchOutFile
-            benchSumm = self.imageBenchSumm
+        #set local variables based on execStep
+        if self.execStep == 'cal':
+            scripts = [self.calScript]
+            scriptLogs = [self.calScriptLog]
+            benchOutFiles = [self.calBenchOutFile]
+            benchSumms = [self.calBenchSumm]
+        if self.execStep == 'im':
+            scripts = [self.imageScript]
+            scriptLogs = [self.imageScriptLog]
+            benchOutFiles = [self.imageBenchOutFile]
+            benchSumms = [self.imageBenchSumm]
+        if self.execStep == 'both':
+            scripts = [self.calScript, self.imageScript]
+            scriptLogs = [self.calScriptLog, self.imageScriptLog]
+            benchOutFiles = [self.calBenchOutFile, self.imageBenchOutFile]
+            benchSumms = [self.calBenchSumm, self.imageBenchSumm]
 
-        #setup logging
-        print fullFuncName + ':', 'Beginning benchmark test of ' + \
-              script + '.\n' + ' '*indent + 'Logging to ' + scriptLog + '.'
-        outFDsave = os.dup(1)
-        errFDsave = os.dup(2)
-        scriptLogF = open(scriptLog, 'a')
-        scriptLogFD = scriptLogF.fileno()
-        os.dup2(scriptLogFD, 1)
-        os.dup2(scriptLogFD, 2)
-        print 'CASA Version ' + CASAglobals['casadef'].casa_version + ' (r' + \
-              CASAglobals['casadef'].subversion_revision + ')\n  Compiled ' + \
-              'on: ' + CASAglobals['casadef'].build_time + '\n\n'
-        origLog = CASAglobals['casalog'].logfile()
-        CASAglobals['casalog'].setlogfile(scriptLog)
+        for i in range(len(scripts)):
+            #setup logging
+            print fullFuncName + ':', 'Beginning benchmark test of ' + \
+                  scripts[i] + '.\n' + ' '*indent + 'Logging to ' + \
+                  scriptLogs[i] + '.'
+            outFDsave = os.dup(1)
+            errFDsave = os.dup(2)
+            scriptLogF = open(scriptLogs[i], 'a')
+            scriptLogFD = scriptLogF.fileno()
+            os.dup2(scriptLogFD, 1)
+            os.dup2(scriptLogFD, 2)
+            print 'CASA Version ' + CASAglobals['casadef'].casa_version + \
+                  ' (r' + CASAglobals['casadef'].subversion_revision + \
+                  ')\n  Compiled on: ' + CASAglobals['casadef'].build_time + \
+                  '\n\n'
+            origLog = CASAglobals['casalog'].logfile()
+            CASAglobals['casalog'].setlogfile(scriptLogs[i])
 
-        execfile(script, CASAglobals)
+            execfile(scripts[i], CASAglobals)
 
-        #put logs back
-        os.dup2(outFDsave, 1)
-        os.close(outFDsave)
-        os.dup2(errFDsave, 2)
-        os.close(errFDsave)
-        scriptLogF.close()
-        CASAglobals['casalog'].setlogfile(origLog)
-        print fullFuncName + ':', 'Finished test of ' + script
+            #put logs back
+            os.dup2(outFDsave, 1)
+            os.close(outFDsave)
+            os.dup2(errFDsave, 2)
+            os.close(errFDsave)
+            scriptLogF.close()
+            CASAglobals['casalog'].setlogfile(origLog)
+            print fullFuncName + ':', 'Finished test of ' + scripts[i]
 
-        #remove anything the script added
-        for key in CASAglobals.keys():
-            if key not in preKeys:
-                CASAglobals.pop(key, None)
+            #remove anything the script added
+            for key in CASAglobals.keys():
+                if key not in preKeys:
+                    CASAglobals.pop(key, None)
 
-        #copy logs to current log directory
-        shutil.copy(scriptLog, self.currentLogDir)
-        shutil.copy(benchOutFile, self.currentLogDir)
-        shutil.copy(benchSumm, self.currentLogDir)
+            #copy logs to current log directory
+            shutil.copy(scriptLogs[i], self.currentLogDir)
+            shutil.copy(benchOutFiles[i], self.currentLogDir)
+            shutil.copy(benchSumms[i], self.currentLogDir)
 
-        #copy pertinent logs to all_logs directory
-        prefix = self.allLogDir + os.path.basename(self.currentWorkDir[:-1]) + \
-                 '__'
-        shutil.copy(benchOutFile, prefix + os.path.basename(benchOutFile))
-        shutil.copy(benchSumm, prefix + os.path.basename(benchSumm))
+            #copy pertinent logs to all_logs directory
+            prefix = self.allLogDir + \
+                     os.path.basename(self.currentWorkDir[:-1]) + '__'
+            shutil.copy(benchOutFiles[i], prefix + \
+                        os.path.basename(benchOutFiles[i]))
+            shutil.copy(benchSumms[i], prefix + os.path.basename(benchSumms[i]))
 
         #change directory back to wherever we started from
         os.chdir(oldPWD)
@@ -697,8 +825,8 @@ class benchmark:
         Parameters
         ----------
         prevBmark : benchmark object
-           Source object for copying scripts etc. from. Wisest choice would be
-           one that already finshed and was successful.
+           Source object for copying scripts etcetera from. Wisest choice would
+           be one that already finshed and was successful.
 
         Returns
         -------
@@ -718,38 +846,86 @@ class benchmark:
         fullFuncName = __name__ + '::useOtherBmarkScripts'
         indent = len(fullFuncName) + 2
 
+        #check prevBmark ran same step as current
+        if self.execStep != prevBmark.execStep:
+            raise ValueError('Previous benchmark instance is not setup for ' + \
+                             'the same execStep as the current benchmark ' + \
+                             'instance.')
+
         #copy the files to current directory tree
-        shutil.copy(prevBmark.calScript, self.currentRedDir)
-        shutil.copy(prevBmark.imageScript, self.currentRedDir)
-        shutil.copy(prevBmark.calScriptExpect, self.currentRedDir)
-        shutil.copy(prevBmark.calScriptExpect, self.currentLogDir)
-        shutil.copy(prevBmark.imageScriptExpect, self.currentRedDir)
-        shutil.copy(prevBmark.imageScriptExpect, self.currentLogDir)
         shutil.copy(prevBmark.extractLog, self.currentLogDir)
+        if prevBmark.execStep == 'cal':
+            shutil.copy(prevBmark.calScript, self.currentRedDir)
+            shutil.copy(prevBmark.calScriptExpect, self.currentRedDir)
+            shutil.copy(prevBmark.calScriptExpect, self.currentLogDir)
+        if prevBmark.execStep == 'im':
+            shutil.copy(prevBmark.imageScript, self.currentRedDir)
+            shutil.copy(prevBmark.imageScriptExpect, self.currentRedDir)
+            shutil.copy(prevBmark.imageScriptExpect, self.currentLogDir)
+        if prevBmark.execStep == 'both':
+            shutil.copy(prevBmark.calScript, self.currentRedDir)
+            shutil.copy(prevBmark.imageScript, self.currentRedDir)
+            shutil.copy(prevBmark.calScriptExpect, self.currentRedDir)
+            shutil.copy(prevBmark.calScriptExpect, self.currentLogDir)
+            shutil.copy(prevBmark.imageScriptExpect, self.currentRedDir)
+            shutil.copy(prevBmark.imageScriptExpect, self.currentLogDir)
 
         #setup current script associated attributes
         self.extractLog = self.currentLogDir + \
                           os.path.basename(prevBmark.extractLog)
-        self.calScript = self.currentRedDir + \
-                         os.path.basename(prevBmark.calScript)
-        self.calScriptLog = self.currentRedDir + \
-                            os.path.basename(prevBmark.calScriptLog)
-        self.imageScript = self.currentRedDir + \
-                           os.path.basename(prevBmark.imageScript)
-        self.imageScriptLog = self.currentRedDir + \
-                              os.path.basename(prevBmark.imageScriptLog)
-        self.calScriptExpect = self.currentRedDir + \
-                               os.path.basename(prevBmark.calScriptExpect)
-        self.imageScriptExpect = self.currentRedDir + \
-                                os.path.basename(prevBmark.imageScriptExpect)
-        self.calBenchOutFile = self.currentRedDir + \
-                               os.path.basename(prevBmark.calBenchOutFile)
-        self.calBenchSumm = self.currentRedDir + \
-                            os.path.basename(prevBmark.calBenchSumm)
-        self.imageBenchOutFile = self.currentRedDir + \
-                                 os.path.basename(prevBmark.imageBenchOutFile)
-        self.imageBenchSumm = self.currentRedDir + \
-                              os.path.basename(prevBmark.imageBenchSumm)
+        if prevBmark.execStep == 'cal':
+            self.calScript = self.currentRedDir + \
+                             os.path.basename(prevBmark.calScript)
+            self.calScriptLog = self.currentRedDir + \
+                                os.path.basename(prevBmark.calScriptLog)
+            self.imageScript = ''
+            self.imageScriptLog = ''
+            self.calScriptExpect = self.currentRedDir + \
+                                   os.path.basename(prevBmark.calScriptExpect)
+            self.imageScriptExpect = ''
+            self.calBenchOutFile = self.currentRedDir + \
+                                   os.path.basename(prevBmark.calBenchOutFile)
+            self.calBenchSumm = self.currentRedDir + \
+                                os.path.basename(prevBmark.calBenchSumm)
+            self.imageBenchOutFile = ''
+            self.imageBenchSumm = ''
+        if prevBmark.execStep == 'im':
+            self.calScript = ''
+            self.calScriptLog = ''
+            self.imageScript = self.currentRedDir + \
+                               os.path.basename(prevBmark.imageScript)
+            self.imageScriptLog = self.currentRedDir + \
+                                  os.path.basename(prevBmark.imageScriptLog)
+            self.calScriptExpect = ''
+            self.imageScriptExpect = self.currentRedDir + \
+                                    os.path.basename(prevBmark.imageScriptExpect)
+            self.calBenchOutFile = ''
+            self.calBenchSumm = ''
+            self.imageBenchOutFile = self.currentRedDir + \
+                                    os.path.basename(prevBmark.imageBenchOutFile)
+            self.imageBenchSumm = self.currentRedDir + \
+                                  os.path.basename(prevBmark.imageBenchSumm)
+        if prevBmark.execStep == 'both':
+            self.calScript = self.currentRedDir + \
+                             os.path.basename(prevBmark.calScript)
+            self.calScriptLog = self.currentRedDir + \
+                                os.path.basename(prevBmark.calScriptLog)
+            self.imageScript = self.currentRedDir + \
+                               os.path.basename(prevBmark.imageScript)
+            self.imageScriptLog = self.currentRedDir + \
+                                  os.path.basename(prevBmark.imageScriptLog)
+            self.calScriptExpect = self.currentRedDir + \
+                                   os.path.basename(prevBmark.calScriptExpect)
+            self.imageScriptExpect = self.currentRedDir + \
+                                    os.path.basename(prevBmark.imageScriptExpect)
+            self.calBenchOutFile = self.currentRedDir + \
+                                   os.path.basename(prevBmark.calBenchOutFile)
+            self.calBenchSumm = self.currentRedDir + \
+                                os.path.basename(prevBmark.calBenchSumm)
+            self.imageBenchOutFile = self.currentRedDir + \
+                                    os.path.basename(prevBmark.imageBenchOutFile)
+            self.imageBenchSumm = self.currentRedDir + \
+                                  os.path.basename(prevBmark.imageBenchSumm)
 
 
     def emptyCurrentRedDir(self):
@@ -780,8 +956,13 @@ class benchmark:
         #move scripts to save them
         oldPWD = os.getcwd()
         os.chdir(self.currentRedDir)
-        shutil.move(self.calScript, '..')
-        shutil.move(self.imageScript, '..')
+        if self.execStep == 'cal':
+            shutil.move(self.calScript, '..')
+        if self.execStep == 'im':
+            shutil.move(self.imageScript, '..')
+        if self.execStep == 'both':
+            shutil.move(self.calScript, '..')
+            shutil.move(self.imageScript, '..')
 
         #empty out the current reduction directory
         os.chdir(self.currentLogDir)
@@ -790,24 +971,56 @@ class benchmark:
 
         #move scripts back
         os.chdir(self.currentRedDir)
-        shutil.move('../' + os.path.basename(self.calScript), '.')
-        shutil.move('../' + os.path.basename(self.imageScript), '.')
+        if self.execStep == 'cal':
+            shutil.move('../' + os.path.basename(self.calScript), '.')
+        if self.execStep == 'im':
+            shutil.move('../' + os.path.basename(self.imageScript), '.')
+        if self.execStep == 'both':
+            shutil.move('../' + os.path.basename(self.calScript), '.')
+            shutil.move('../' + os.path.basename(self.imageScript), '.')
         os.chdir(oldPWD)
 
         #change path attributes based on emptying directory
-        self.calScriptLog = self.currentLogDir + \
-                            os.path.basename(self.calScriptLog)
-        self.imageScriptLog = self.currentLogDir + \
-                              os.path.basename(self.imageScriptLog)
-        self.calScriptExpect = self.currentLogDir + \
-                               os.path.basename(self.calScriptExpect)
-        self.imageScriptExpect = self.currentLogDir + \
-                                 os.path.basename(self.imageScriptExpect)
-        self.calBenchOutFile = self.currentLogDir + \
-                               os.path.basename(self.calBenchOutFile)
-        self.calBenchSumm = self.currentLogDir + \
-                            os.path.basename(self.calBenchSumm)
-        self.imageBenchOutFile = self.currentLogDir + \
-                                 os.path.basename(self.imageBenchOutFile)
-        self.imageBenchSumm = self.currentLogDir + \
-                              os.path.basename(self.imageBenchSumm)
+        if self.execStep == 'cal':
+            self.calScriptLog = self.currentLogDir + \
+                                os.path.basename(self.calScriptLog)
+            self.imageScriptLog = ''
+            self.calScriptExpect = self.currentLogDir + \
+                                   os.path.basename(self.calScriptExpect)
+            self.imageScriptExpect = ''
+            self.calBenchOutFile = self.currentLogDir + \
+                                   os.path.basename(self.calBenchOutFile)
+            self.calBenchSumm = self.currentLogDir + \
+                                os.path.basename(self.calBenchSumm)
+            self.imageBenchOutFile = ''
+            self.imageBenchSumm = ''
+        if self.execStep == 'im':
+            self.calScriptLog = ''
+            self.imageScriptLog = self.currentLogDir + \
+                                  os.path.basename(self.imageScriptLog)
+            self.calScriptExpect = ''
+            self.imageScriptExpect = self.currentLogDir + \
+                                     os.path.basename(self.imageScriptExpect)
+            self.calBenchOutFile = ''
+            self.calBenchSumm = ''
+            self.imageBenchOutFile = self.currentLogDir + \
+                                     os.path.basename(self.imageBenchOutFile)
+            self.imageBenchSumm = self.currentLogDir + \
+                                  os.path.basename(self.imageBenchSumm)
+        if self.execStep == 'both':
+            self.calScriptLog = self.currentLogDir + \
+                                os.path.basename(self.calScriptLog)
+            self.imageScriptLog = self.currentLogDir + \
+                                  os.path.basename(self.imageScriptLog)
+            self.calScriptExpect = self.currentLogDir + \
+                                   os.path.basename(self.calScriptExpect)
+            self.imageScriptExpect = self.currentLogDir + \
+                                     os.path.basename(self.imageScriptExpect)
+            self.calBenchOutFile = self.currentLogDir + \
+                                   os.path.basename(self.calBenchOutFile)
+            self.calBenchSumm = self.currentLogDir + \
+                                os.path.basename(self.calBenchSumm)
+            self.imageBenchOutFile = self.currentLogDir + \
+                                     os.path.basename(self.imageBenchOutFile)
+            self.imageBenchSumm = self.currentLogDir + \
+                                  os.path.basename(self.imageBenchSumm)
