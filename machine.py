@@ -18,9 +18,6 @@ import parameters
 #-need to include check for trying to use dataURL when it is set to None in the
 # parameters dictionary
 #-need to check that running version of CASA matches the data set name given
-#-need to decide where scriptDir really needs to be, i found upon testing
-# machine that things aren't actually setup to be running from a directory that
-# isn't the actual scriptDir itself (d'oh)
 #-need to make real decision on what outFile should be in runBenchmarks
 #-could shorten up lines that use the jobs dict by defining variables local to
 # the particular method for the parts needed e.g. look under runBenchmarks in
@@ -100,6 +97,11 @@ class machine:
         parameters.py variable. These are matched to the data set in the same
         position in the dataSets list.
 
+    steps : list
+        List of strings specifying which stage (calibration, imaging or both)
+        each set of iterations should run. Accepted values are 'cal', 'im' or
+        'both'.
+
     workDir : str
         Absolute path to directory where all benchmarking will run. A separate
         directory for each data set will be created here and each benchmark
@@ -121,8 +123,9 @@ class machine:
 
     jobs: dict
         Container for each benchmark instance to be run on this machine along
-        with information on whether to download the raw data and number of
-        benchmarking iterations desired.
+        with information on whether to download the raw data, the number of
+        benchmarking iterations desired and which step(s) (cal, im or both) to
+        run.
 
     workDir : str
         Absolute path to directory where all benchmarking will run. A separate
@@ -150,7 +153,8 @@ class machine:
         Revision number for currently running CASA.
     """
     def __init__(self, CASAglobals=None, scriptDir='', dataSets=list(), \
-                 nIters=list(), skipDownloads=list(), workDir='./'):
+                 nIters=list(), skipDownloads=list(), steps=list(), \
+                 workDir='./'):
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
         indent = len(fullFuncName) + 2
@@ -178,23 +182,32 @@ class machine:
                 raise ValueError("Data set name '" + dataSet + \
                                  "' not recognized.")
         self.dataSets = dataSets
+        if len(steps) == 0:
+            steps = ['both']*len(self.dataSets)
         self.jobs = dict()
         for dataSet in self.dataSets:
             self.jobs[dataSet] = dict()
             self.jobs[dataSet]['benchmarks'] = list()
-        if len(nIters) != len(dataSets):
+        if len(nIters) != len(self.dataSets):
             raise ValueError('nIters integer list must be of same length ' + \
                              'as dataSets list.')
-        if len(skipDownloads) != len(dataSets):
+        if len(skipDownloads) != len(self.dataSets):
             raise ValueError('skipDownloads boolean list must be of same ' + \
                              'length as dataSets list.')
+        if len(steps) != len(self.dataSets):
+            raise ValueError('steps string list must be of same length as ' + \
+                             'dataSets list.')
         for i,dataSet in enumerate(self.dataSets):
             if type(nIters[i]) != int:
                 raise TypeError('nIters must be a list of all integers.')
             if type(skipDownloads[i]) != bool:
-                raise ValueError('skipDownloads must be a list of all booleans.')
+                raise TypeError('skipDownloads must be a list of all booleans.')
+            if steps[i] != 'cal' and steps[i] != 'im' and steps[i] != 'both':
+                raise ValueError('Elements in steps must be either "cal", ' + \
+                                 '"im" or "both".')
             self.jobs[dataSet]['nIters'] = nIters[i]
             self.jobs[dataSet]['skipDownload'] = skipDownloads[i]
+            self.jobs[dataSet]['step'] = steps[i]
 
         #initialize the working directory
         if not os.path.isdir(workDir):
@@ -241,7 +254,7 @@ class machine:
         runGuideScript and removeCurrentRedDir (optional). It makes the data set
         directories if they are not already present. It also tries to only do
         the data extraction once:
-          -does the extration on the first iteration
+          -does the extraction on the first iteration
           -if the previous benchmark was successful the next iteration runs
            useOtherBmarkScripts on the previous benchmark instance
           -if the previous failed then it does the extraction on the next like
@@ -261,17 +274,21 @@ class machine:
 
             #determine source of raw data
             if self.jobs[dataSet]['skipDownload']:
-                dataPath = params['dataPath']
+                uncalDataPath = params['uncalDataPath']
+                calDataPath = params['calDataPath']
             else:
-                dataPath = params['dataURL']
+                uncalDataPath = params['uncalDataURL']
+                calDataPath = params['calDataURL']
 
             #actually run the benchmarks
             for i in range(self.jobs[dataSet]['nIters']):
                 b = benchmark.benchmark(scriptDir=self.scriptDir, \
                                  workDir=dataSetDir, \
+                                 execStep=self.jobs[dataSet]['step'], \
                                  calSource=params['calibrationURL'], \
                                  imSource=params['imagingURL'], \
-                                 dataPath=dataPath, \
+                                 uncalDataPath=uncalDataPath, \
+                                 calDataPath=calDataPath, \
                                  outFile='shell.log.txt', \
                                  skipDownload=self.jobs[dataSet]['skipDownload'])
                 self.jobs[dataSet]['benchmarks'].append(b)
@@ -280,21 +297,17 @@ class machine:
 
                 if not self.jobs[dataSet]['skipDownload']:
                     b.downloadData()
-
                 b.extractData()
 
                 #try to only extract scripts once
-                if i == 0:
-                    b.doScriptExtraction(stage='cal')
-                    b.doScriptExtraction(stage='im')
-                elif self.jobs[dataSet]['benchmarks'][i-1].status == 'normal':
+                if self.jobs[dataSet]['benchmarks'][i-1].status == 'normal' and \
+                   i != 0:
                     b.useOtherBmarkScripts(self.jobs[dataSet]['benchmarks'][i-1])
                 else:
-                    b.doScriptExtraction(stage='cal')
-                    b.doScriptExtraction(stage='im')
+                    b.doScriptExtraction()
                 if b.status == 'failure': continue
 
-                b.runGuideScript(stage='cal', CASAglobals=self.CASAglobals)
-                b.runGuideScript(stage='im', CASAglobals=self.CASAglobals)
+                b.runGuideScripts(CASAglobals=self.CASAglobals)
+
                 if cleanUp:
                     b.emptyCurrentRedDir()
