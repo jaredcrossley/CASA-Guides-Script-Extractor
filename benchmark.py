@@ -54,10 +54,6 @@ class benchmark:
         URL or absolute path to calibrated raw CASA guide data and
         calibration tables.
 
-    outFile : str
-        Log file for operations done outside of other wrapper modules such as
-        acquiring and extracting the raw data.
-
     skipDownload : bool
         Switch to skip downloading the raw data from the web. False means
         download the data from the URL provided in parameters.py variable.
@@ -89,10 +85,6 @@ class benchmark:
     calDataPath : str
         URL or absolute path to calibrated raw CASA guide data and
         calibration tables.
-
-    outFile : str
-        Log file for operations done outside of other wrapper modules such as
-        acquiring and extracting the raw data.
 
     skipDownload : bool
         Switch to skip downloading the raw data from the web.
@@ -186,7 +178,7 @@ class benchmark:
     """
     def __init__(self, scriptDir='', workDir='./', execStep='both', \
                  calSource='', imSource='', uncalDataPath='', calDataPath='', \
-                 outFile='', skipDownload=False):
+                 skipDownload=False):
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
         indent = len(fullFuncName) + 2
@@ -235,9 +227,6 @@ class benchmark:
             if uncalDataPath == '':
                 raise ValueError('A URL or path must be given pointing to ' + \
                                  'the uncalibrated raw data.')
-        if outFile == '':
-            raise ValueError('A file must be specified for the output ' + \
-                             'of the script.')
 
         #other class variable initialization
         if self.execStep == 'cal':
@@ -302,7 +291,7 @@ class benchmark:
                               time.strftime('%Y_%m_%dT%H_%M_%S') + \
                               '-benchmark/'
         self.currentLogDir = self.currentWorkDir + 'log_files/'
-        self.outFile = self.currentLogDir + outFile
+        self.daeLog = self.currentLogDir + 'download_and_extract.log'
         self.currentTarDir = self.currentWorkDir + 'tarballs/'
         self.currentRedDir = ''
         self.allLogDir = self.workDir + 'all_logs/'
@@ -413,7 +402,7 @@ class benchmark:
 
         #wget the data
         print fullFuncName + ':', 'Acquiring data by HTTP.\n' + ' '*indent + \
-              'Logging to', self.outFile + '.'
+              'Logging to', self.daeLog + '.'
         outString = ''
         outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
         outString += 'Timing command:\n' + command + '\n'
@@ -423,7 +412,7 @@ class benchmark:
         wallT = round(time.time() - wallT, 2)
         procT = round(time.clock() - procT, 2)
         outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
-        self.writeToOutFile(outString)
+        self.writeToDaELog(outString)
 
         #set local tarball paths
         if self.execStep == 'cal':
@@ -468,7 +457,7 @@ class benchmark:
 
         #untar the raw data
         print fullFuncName + ':', 'Extracting data.\n' + ' '*indent + \
-              'Logging to', self.outFile + '.'
+              'Logging to', self.daeLog + '.'
         outString = ''
         outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
         outString += 'Timing command:\n' + command + '\n'
@@ -480,7 +469,7 @@ class benchmark:
         wallT = round(time.time() - wallT, 2)
         procT = round(time.clock() - procT, 2)
         outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
-        self.writeToOutFile(outString)
+        self.writeToDaELog(outString)
         self.currentRedDir = self.currentWorkDir + \
                              os.path.basename(localTar)[:-4] + '/'
 
@@ -792,13 +781,14 @@ class benchmark:
         os.chdir(oldPWD)
 
 
-    def writeToOutFile(self, outString):
+    def writeToDaELog(self, outString):
         """ Writes outString to a text file.
 
         Parameters
         ----------
         outString : str
-           String containing characters to be written to outFile.
+           String containing characters to be written to
+           download_and_extract.log.
 
         Returns
         -------
@@ -806,15 +796,15 @@ class benchmark:
 
         Notes
         -----
-        This writes messages stored in outString to a text file with name from
-        outFile. These messages are the output from timing the raw data download
-        and unpacking.
+        This writes messages stored in outString to a text file named
+        download_and_extract.log in the logDir. These messages are the output
+        from timing the raw data download and unpacking.
         """
         #for telling where printed messages originate from
-        fullFuncName = __name__ + '::writeToOutFile'
+        fullFuncName = __name__ + '::writeToDaELog'
         indent = len(fullFuncName) + 2
         
-        f = open(self.outFile, 'a')
+        f = open(self.daeLog, 'a')
         f.write(outString)
         f.close()
 
