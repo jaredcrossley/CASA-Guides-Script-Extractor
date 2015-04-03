@@ -18,11 +18,9 @@ import parameters
 #-need to include check for trying to use dataURL when it is set to None in the
 # parameters dictionary
 #-need to check that running version of CASA matches the data set name given
-#-need to make real decision on what outFile should be in runBenchmarks
 #-could shorten up lines that use the jobs dict by defining variables local to
 # the particular method for the parts needed e.g. look under runBenchmarks in
 # the for loop that actually runs the benchmarks
-#-need condition for only extracting and running calibration or imaging
 #-need to change class docstring to standard Python style so information isn't
 # redundant but I also still have a record of all the included attributes and
 # methods
@@ -289,7 +287,6 @@ class machine:
                                  imSource=params['imagingURL'], \
                                  uncalDataPath=uncalDataPath, \
                                  calDataPath=calDataPath, \
-                                 outFile='shell.log.txt', \
                                  skipDownload=self.jobs[dataSet]['skipDownload'])
                 self.jobs[dataSet]['benchmarks'].append(b)
 
