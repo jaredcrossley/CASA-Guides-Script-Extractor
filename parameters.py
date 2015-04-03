@@ -13,11 +13,15 @@ x2012_1_00912_S_43 = {'calibrationURL': \
                           '/lustre/naasc/nbrunett/benchmark/' + \
                           '2012.1.00912.S/430/' + \
                           '2012.1.00912.S_imaging4.3.py', \
-                      'dataURL': \
+                      'uncalDataURL': \
                           None, \
-                      'dataPath': \
+                      'calDataURL': \
+                          None, \
+                      'uncalDataPath': \
                           '/lustre/naasc/nbrunett/benchmark/2012.1.00912.S/' + \
-                          '912_reduction.tgz'}
+                          '912_reduction.tgz', \
+                      'calDataPath' : \
+                          None}
 
 #CASA 4.2
 #THIS DATA IS NOT ON THE SCIENCE PORTAL
@@ -29,11 +33,15 @@ x2012_1_00912_S_42 = {'calibrationURL': \
                           '/lustre/naasc/nbrunett/benchmark/' + \
                           '2012.1.00912.S/422/' + \
                           '2012.1.00912.S_imaging4.2.py', \
-                      'dataURL': \
+                      'uncalDataURL': \
                           None, \
-                      'dataPath': \
+                      'calDataURL': \
+                          None, \
+                      'uncalDataPath': \
                           '/lustre/naasc/nbrunett/benchmark/2012.1.00912.S/' + \
-                          '912_reduction.tgz'}
+                          '912_reduction.tgz', \
+                      'calDataPath' : \
+                          None}
 ##=============================================================================##
 
 ##2011.0.00099.S##
@@ -45,11 +53,15 @@ x2011_0_00099_S_40 = {'calibrationURL': \
                       'imagingURL': \
                           '/lustre/naasc/jcrossle/benchmark/scripts/' + \
                           '2011.0.00099.S_imaging_casa4p0.py', \
-                      'dataURL': \
+                      'uncalDataURL': \
                           None, \
-                      'dataPath': \
+                      'calDataURL': \
+                          None, \
+                      'uncalDataPath': \
                           '/lustre/naasc/jcrossle/benchmark/data/' + \
-                          '2011.0.00099.S/2011.0.00099.S.tgz'}
+                          '2011.0.00099.S/2011.0.00099.S.tgz', \
+                      'calDataPath': \
+                          None}
 ##=============================================================================##
 
 ##NGC3256 Band 3
@@ -60,13 +72,20 @@ NGC3256Band3_43 = {'calibrationURL': \
                    'imagingURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
                        'NGC3256_Band3_Imaging_for_CASA_4.3', \
-                   'dataURL': \
+                   'uncalDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/' + \
                        'NGC3256/' + \
                        'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
-                   'dataPath': \
+                   'calDataURL': \
+                       'https://almascience.nrao.edu/almadata/sciver/' + \
+                       'NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz', \
+                   'uncalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
-                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'}
+                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
+                   'calDataPath': \
+                       '/lustre/naasc/SV/NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz'}
 
 #CASA 4.2
 NGC3256Band3_42 = {'calibrationURL': \
@@ -75,13 +94,20 @@ NGC3256Band3_42 = {'calibrationURL': \
                    'imagingURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
                        'NGC3256_Band3_Imaging_for_CASA_4.2', \
-                   'dataURL': \
+                   'uncalDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/' + \
                        'NGC3256/' + \
                        'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
-                   'dataPath': \
+                   'calDataURL': \
+                       'https://almascience.nrao.edu/almadata/sciver/' + \
+                       'NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz', \
+                   'uncalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
-                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'}
+                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
+                   'calDataPath': \
+                       '/lustre/naasc/SV/NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz'}
 
 #CASA 4.1
 NGC3256Band3_41 = {'calibrationURL': \
@@ -90,13 +116,20 @@ NGC3256Band3_41 = {'calibrationURL': \
                    'imagingURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
                        'NGC3256_Band3_Imaging_for_CASA_4.1', \
-                   'dataURL': \
+                   'uncalDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/' + \
                        'NGC3256/' + \
                        'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
-                   'dataPath': \
+                   'calDataURL': \
+                       'https://almascience.nrao.edu/almadata/sciver/' + \
+                       'NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz', \
+                   'uncalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
-                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'}
+                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
+                   'calDataPath': \
+                       '/lustre/naasc/SV/NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz'}
 
 #CASA 4.0
 NGC3256Band3_40 = {'calibrationURL': \
@@ -105,13 +138,20 @@ NGC3256Band3_40 = {'calibrationURL': \
                    'imagingURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
                        'NGC3256_Band3_Imaging_for_CASA_4.0', \
-                   'dataURL': \
+                   'uncalDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/' + \
                        'NGC3256/' + \
                        'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
-                   'dataPath': \
+                   'calDataURL': \
+                       'https://almascience.nrao.edu/almadata/sciver/' + \
+                       'NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz', \
+                   'uncalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
-                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'}
+                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
+                   'calDataPath': \
+                       '/lustre/naasc/SV/NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz'}
 
 #CASA 3.4
 NGC3256Band3_34 = {'calibrationURL': \
@@ -120,13 +160,20 @@ NGC3256Band3_34 = {'calibrationURL': \
                    'imagingURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
                        'NGC3256_Band3_Imaging_for_CASA_3.4', \
-                   'dataURL': \
+                   'uncalDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/' + \
                        'NGC3256/' + \
                        'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
-                   'dataPath': \
+                   'calDataURL': \
+                       'https://almascience.nrao.edu/almadata/sciver/' + \
+                       'NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz', \
+                   'uncalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
-                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'}
+                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
+                   'calDataPath': \
+                       '/lustre/naasc/SV/NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz'}
 ##=============================================================================##
 
 ##TWHydra Band 7##
@@ -137,12 +184,18 @@ TWHydraBand7_43 = {'calibrationURL': \
                    'imagingURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
                        'TWHydraBand7_Imaging_4.3', \
-                   'dataURL': \
+                   'uncalDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
                        'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
-                   'dataPath': \
+                   'calDataURL': \
+                       'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz', \
+                   'uncalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
-                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'}
+                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
+                   'calDataPath': \
+                       '/lustre/naasc/SV/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz'}
 
 #CASA 4.2
 TWHydraBand7_42 = {'calibrationURL': \
@@ -151,12 +204,18 @@ TWHydraBand7_42 = {'calibrationURL': \
                    'imagingURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
                        'TWHydraBand7_Imaging_4.2', \
-                   'dataURL': \
+                   'uncalDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
                        'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
-                   'dataPath': \
+                   'calDataURL': \
+                       'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz', \
+                   'uncalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
-                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'}
+                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
+                   'calDataPath': \
+                       '/lustre/naasc/SV/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz'}
 
 #CASA 4.1
 TWHydraBand7_41 = {'calibrationURL': \
@@ -165,12 +224,18 @@ TWHydraBand7_41 = {'calibrationURL': \
                    'imagingURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
                        'TWHydraBand7_Imaging_4.1', \
-                   'dataURL': \
+                   'uncalDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
                        'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
-                   'dataPath': \
+                   'calDataURL': \
+                       'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz', \
+                   'uncalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
-                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'}
+                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
+                   'calDataPath': \
+                       '/lustre/naasc/SV/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz'}
 
 #CASA 4.0
 TWHydraBand7_40 = {'calibrationURL': \
@@ -179,12 +244,18 @@ TWHydraBand7_40 = {'calibrationURL': \
                    'imagingURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
                        'TWHydraBand7_Imaging_4.0', \
-                   'dataURL': \
+                   'uncalDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
                        'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
-                   'dataPath': \
+                   'calDataURL': \
+                       'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz', \
+                   'uncalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
-                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'}
+                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
+                   'calDataPath': \
+                       '/lustre/naasc/SV/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz'}
 
 #CASA 3.4
 TWHydraBand7_34 = {'calibrationURL': \
@@ -193,12 +264,18 @@ TWHydraBand7_34 = {'calibrationURL': \
                    'imagingURL': \
                        'http://casaguides.nrao.edu/index.php?title=' + \
                        'TWHydraBand7_Imaging_3.4', \
-                   'dataURL': \
+                   'uncalDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
                        'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
-                   'dataPath': \
+                   'calDataURL': \
+                       'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz', \
+                   'uncalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
-                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz'}
+                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
+                   'calDataPath': \
+                       '/lustre/naasc/SV/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz'}
 ##=============================================================================##
 
 ##Antennae Band 7##
@@ -208,13 +285,20 @@ AntennaeBand7_43 = {'calibrationURL': \
                     'imagingURL': \
                         'http://casaguides.nrao.edu/index.php?title=' + \
                         'AntennaeBand7_Imaging_4.3', \
-                    'dataURL': \
+                    'uncalDataURL': \
                         'https://almascience.nrao.edu/almadata/sciver/' + \
                         'AntennaeBand7/' + \
                       'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
-                    'dataPath': \
+                    'calDataURL': \
+                        'https://almascience.nrao.edu/almadata/sciver/' + \
+                        'AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz', \
+                    'uncalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
-                        'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz'}
+                      'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
+                    'calDataPath': \
+                        '/lustre/naasc/SV/AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz'}
 
 #CASA 4.2
 AntennaeBand7_42 = {'calibrationURL': \
@@ -223,13 +307,20 @@ AntennaeBand7_42 = {'calibrationURL': \
                     'imagingURL': \
                         'http://casaguides.nrao.edu/index.php?title=' + \
                         'AntennaeBand7_Imaging_4.2', \
-                    'dataURL': \
+                    'uncalDataURL': \
                         'https://almascience.nrao.edu/almadata/sciver/' + \
                         'AntennaeBand7/' + \
                       'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
-                    'dataPath': \
+                    'calDataURL': \
+                        'https://almascience.nrao.edu/almadata/sciver/' + \
+                        'AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz', \
+                    'uncalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
-                        'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz'}
+                      'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
+                    'calDataPath': \
+                        '/lustre/naasc/SV/AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz'}
 
 #CASA 4.1
 AntennaeBand7_41 = {'calibrationURL': \
@@ -238,13 +329,20 @@ AntennaeBand7_41 = {'calibrationURL': \
                     'imagingURL': \
                         'http://casaguides.nrao.edu/index.php?title=' + \
                         'AntennaeBand7_Imaging_4.1', \
-                    'dataURL': \
+                    'uncalDataURL': \
                         'https://almascience.nrao.edu/almadata/sciver/' + \
                         'AntennaeBand7/' + \
                       'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
-                    'dataPath': \
+                    'calDataURL': \
+                        'https://almascience.nrao.edu/almadata/sciver/' + \
+                        'AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz', \
+                    'uncalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
-                        'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz'}
+                      'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
+                    'calDataPath': \
+                        '/lustre/naasc/SV/AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz'}
 
 #CASA 4.0
 AntennaeBand7_40 = {'calibrationURL': \
@@ -253,13 +351,20 @@ AntennaeBand7_40 = {'calibrationURL': \
                     'imagingURL': \
                         'http://casaguides.nrao.edu/index.php?title=' + \
                         'AntennaeBand7_Imaging_4.0', \
-                    'dataURL': \
+                    'uncalDataURL': \
                         'https://almascience.nrao.edu/almadata/sciver/' + \
                         'AntennaeBand7/' + \
                       'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
-                    'dataPath': \
+                    'calDataURL': \
+                        'https://almascience.nrao.edu/almadata/sciver/' + \
+                        'AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz', \
+                    'uncalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
-                        'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz'}
+                      'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
+                    'calDataPath': \
+                        '/lustre/naasc/SV/AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz'}
 
 #CASA 3.4
 AntennaeBand7_34 = {'calibrationURL': \
@@ -268,13 +373,20 @@ AntennaeBand7_34 = {'calibrationURL': \
                     'imagingURL': \
                         'http://casaguides.nrao.edu/index.php?title=' + \
                         'AntennaeBand7_Imaging_3.4', \
-                    'dataURL': \
+                    'uncalDataURL': \
                         'https://almascience.nrao.edu/almadata/sciver/' + \
                         'AntennaeBand7/' + \
                       'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
-                    'dataPath': \
+                    'calDataURL': \
+                        'https://almascience.nrao.edu/almadata/sciver/' + \
+                        'AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz', \
+                    'uncalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
-                        'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz'}
+                      'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
+                    'calDataPath': \
+                        '/lustre/naasc/SV/AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz'}
 ##=============================================================================##
 
 ##IRAS 16293 Band 9##
@@ -285,12 +397,18 @@ IRASBand9_43 = {'calibrationURL': \
                 'imagingURL': \
                     'http://casaguides.nrao.edu/index.php?title=' + \
                     'IRAS16293_Band9_-_Imaging_for_CASA_4.3', \
-                'dataURL': \
-                    'http://fatman.cv.nrao.edu/almadata/sciver/IRAS16293B9/' + \
+                'uncalDataURL': \
+                    'https://almascience.nrao.edu/almadata/sciver/' + \
+                    'IRAS16293B9/IRAS16293_Band9_UnCalibratedMS.tgz', \
+                'calDataURL': \
+                    'https://almascience.nrao.edu/almadata/sciver/' + \
+                    'IRAS16293B9/IRAS16293_Band9_CalibratedMS_FIXED.tgz', \
+                'uncalDataPath': \
+                    '/lustre/naasc/SV/IRAS16293B9/' + \
                     'IRAS16293_Band9_UnCalibratedMS.tgz', \
-                'dataPath': \
-                    '/lustre/naasc/SV/IRAS16293Band9/' + \
-                    'IRAS16293_Band9_UnCalibratedMS.tgz'}
+                'calDataPath': \
+                    '/lustre/naasc/SV/IRAS16293B9/' + \
+                    'IRAS16293_Band9_CalibratedMS_FIXED.tgz'}
 
 #CASA 4.2
 IRASBand9_42 = {'calibrationURL': \
@@ -299,12 +417,18 @@ IRASBand9_42 = {'calibrationURL': \
                 'imagingURL': \
                     'http://casaguides.nrao.edu/index.php?title=' + \
                     'IRAS16293_Band9_-_Imaging_for_CASA_4.2', \
-                'dataURL': \
-                    'http://fatman.cv.nrao.edu/almadata/sciver/IRAS16293B9/' + \
+                'uncalDataURL': \
+                    'https://almascience.nrao.edu/almadata/sciver/' + \
+                    'IRAS16293B9/IRAS16293_Band9_UnCalibratedMS.tgz', \
+                'calDataURL': \
+                    'https://almascience.nrao.edu/almadata/sciver/' + \
+                    'IRAS16293B9/IRAS16293_Band9_CalibratedMS_FIXED.tgz', \
+                'uncalDataPath': \
+                    '/lustre/naasc/SV/IRAS16293B9/' + \
                     'IRAS16293_Band9_UnCalibratedMS.tgz', \
-                'dataPath': \
-                    '/lustre/naasc/SV/IRAS16293Band9/' + \
-                    'IRAS16293_Band9_UnCalibratedMS.tgz'}
+                'calDataPath': \
+                    '/lustre/naasc/SV/IRAS16293B9/' + \
+                    'IRAS16293_Band9_CalibratedMS_FIXED.tgz'}
 
 #CASA 4.0
 IRASBand9_40 = {'calibrationURL': \
@@ -313,12 +437,18 @@ IRASBand9_40 = {'calibrationURL': \
                 'imagingURL': \
                     'http://casaguides.nrao.edu/index.php?title=' + \
                     'IRAS16293_Band9_-_Imaging_for_CASA_4.0', \
-                'dataURL': \
-                    'http://fatman.cv.nrao.edu/almadata/sciver/IRAS16293B9/' + \
+                'uncalDataURL': \
+                    'https://almascience.nrao.edu/almadata/sciver/' + \
+                    'IRAS16293B9/IRAS16293_Band9_UnCalibratedMS.tgz', \
+                'calDataURL': \
+                    'https://almascience.nrao.edu/almadata/sciver/' + \
+                    'IRAS16293B9/IRAS16293_Band9_CalibratedMS_FIXED.tgz', \
+                'uncalDataPath': \
+                    '/lustre/naasc/SV/IRAS16293B9/' + \
                     'IRAS16293_Band9_UnCalibratedMS.tgz', \
-                'dataPath': \
-                    '/lustre/naasc/SV/IRAS16293Band9/' + \
-                    'IRAS16293_Band9_UnCalibratedMS.tgz'}
+                'calDataPath': \
+                    '/lustre/naasc/SV/IRAS16293B9/' + \
+                    'IRAS16293_Band9_CalibratedMS_FIXED.tgz'}
 ##=============================================================================##
 
 ##2011.0.00367.S##
@@ -330,11 +460,15 @@ x2011_0_00367_S_33 = {'calibrationURL': \
                       'imagingURL': \
                           '/export/lustre/jcrossle/benchmark/scripts/' + \
                           '2011.0.00367.S_calibration_image.py', \
-                      'dataURL': \
+                      'uncalDataURL': \
                           None, \
-                      'dataPath': \
+                      'calDataURL': \
+                          None, \
+                      'uncalDataPath': \
                           '/export/lustre/jcrossle/benchmark/data/' + \
-                          '2011.0.00367.S.tgz'}
+                          '2011.0.00367.S.tgz', \
+                      'calDatahPath': \
+                          None}
 ##=============================================================================##
 
 ##M100 Band 3##
@@ -345,12 +479,18 @@ M100Band3_33 = {'calibrationURL': \
                 'imagingURL': \
                     'https://almascience.nrao.edu/almadata/sciver/M100Band3/' + \
                     'M100_Band3_Imaging.py', \
-                'dataURL': \
+                'uncalDataURL': \
                     'https://almascience.nrao.edu/almadata/sciver/M100Band3/' + \
                     'M100_Band3_UnCalibratedMSAndTablesForReduction.tgz', \
-                'dataPath': \
-                    '/export/lustre/jcrossle/benchmark/data/' + \
-                    'M100_Band3_UnCalibratedMSAndTablesForReduction.tgz'}
+                'calDataURL': \
+                    'https://almascience.nrao.edu/almadata/sciver/M100Band3/' + \
+                    'M100_Band3_CalibratedData.tgz', \
+                'uncalDataPath': \
+                    '/lustre/naasc/SV/M100Band3' + \
+                    'M100_Band3_UnCalibratedMSAndTablesForReduction.tgz', \
+                'calDataPath': \
+                    '/lustre/naasc/SV/M100Band3' + \
+                    'M100_Band3_CalibratedData.tgz'}
 ##=============================================================================##
 
 ##SgrA Band 6##
@@ -361,10 +501,16 @@ SgrABand6_33 = {'calibrationURL': \
                 'imagingURL': \
                     'https://almascience.nrao.edu/almadata/sciver/SgrABand6/' + \
                     'SgrA_Band6_Imaging.py', \
-                'dataURL': \
+                'uncalDataURL': \
                     'https://almascience.nrao.edu/almadata/sciver/SgrABand6/' + \
                     'SgrA_Band6_UnCalibratedMSAndTablesForReduction.tgz', \
-                'dataPath': \
-                    '/export/lustre/jcrossle/benchmark/data/' + \
-                    'SgrA_Band6_UnCalibratedMSAndTablesForReduction.tgz'}
+                'calDataURL': \
+                    'https://almascience.nrao.edu/almadata/sciver/SgrABand6/' + \
+                    'SgrA_Band6_CalibratedData.tgz', \
+                'uncalDataPath': \
+                    '/lustre/naasc/SV/SgrABand6/' + \
+                    'SgrA_Band6_UnCalibratedMSAndTablesForReduction.tgz', \
+                'calDataPath': \
+                    '/lustre/naasc/SV/SgrABand6/' + \
+                    'SgrA_Band6_CalibratedData.tgz'}
 ##=============================================================================##
