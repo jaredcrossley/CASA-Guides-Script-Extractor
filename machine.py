@@ -15,12 +15,7 @@ import parameters
 #-need to decide where to save the machine information (e.g. txt file somewhere)
 #-the sharing and passing around of variables is really a mess between the
 # benchmark and machine classes right now
-#-need to include check for trying to use dataURL when it is set to None in the
-# parameters dictionary
 #-need to check that running version of CASA matches the data set name given
-#-could shorten up lines that use the jobs dict by defining variables local to
-# the particular method for the parts needed e.g. look under runBenchmarks in
-# the for loop that actually runs the benchmarks
 #-need to change class docstring to standard Python style so information isn't
 # redundant but I also still have a record of all the included attributes and
 # methods
@@ -157,6 +152,14 @@ class machine:
         fullFuncName = __name__ + '::__init__'
         indent = len(fullFuncName) + 2
 
+        #gather details of computer and installed packages
+        self.hostName = socket.gethostname()
+        self.os = platform.platform()
+        self.lustreAccess = os.path.isdir('/lustre/naasc/')
+        self.pythonVersion = platform.python_version()
+        self.casaVersion = self.CASAglobals['casadef'].casa_version
+        self.casaRevision = self.CASAglobals['casadef'].subversion_revision
+
         #check that we have CASA globals
         if not CASAglobals:
             raise ValueError('Value returned by globals() function in ' + \
@@ -177,8 +180,12 @@ class machine:
                              'benchmarking.')
         for dataSet in dataSets:
             if not hasattr(parameters, dataSet):
-                raise ValueError("Data set name '" + dataSet + \
-                                 "' not recognized.")
+                raise ValueError('Data set name "' + dataSet + \
+                                 '" not recognized.')
+            if dataSet[-2:] != self.casaVersion[0] + self.casaVersion[2]:
+                raise ValueError('Data set name "' + dataSet + \
+                                 '" does not match currently running ' + \
+                                 'CASA version "' + self.casaVersion + '".')
         self.dataSets = dataSets
         if len(steps) == 0:
             steps = ['both']*len(self.dataSets)
@@ -217,14 +224,6 @@ class machine:
             raise ValueError('Working directory must be specified as an ' + \
                              'absolute path.')
         self.workDir = workDir
-
-        #gather details of computer and installed packages
-        self.hostName = socket.gethostname()
-        self.os = platform.platform()
-        self.lustreAccess = os.path.isdir('/lustre/naasc/')
-        self.pythonVersion = platform.python_version()
-        self.casaVersion = self.CASAglobals['casadef'].casa_version
-        self.casaRevision = self.CASAglobals['casadef'].subversion_revision
 
 
     def runBenchmarks(self, cleanUp=False):
