@@ -608,6 +608,8 @@ class benchmark:
 
         #report failure if extraction didn't work
         if not result:
+            print fullFuncName + ':', 'Setting benchmark.status to ' + \
+                  '"failure" and returning.'
             self.status = 'failure'
             return
 
