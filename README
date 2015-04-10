@@ -173,10 +173,9 @@ list automatically on its own.
 
 Additional Notes
 ================
--It is possible to run the benchmark class on just a calibration or imaging
- CASA guide (or script). Just specify the stage parameter in
- benchmark.doScriptExtraction and benchmark.runGuideScript.
-
+-It is possible to run the benchmark and machine classes on just a calibration
+ or imgaging CASA guide (or script). Just specify the execStep parameter in
+ benchmark.benchmark or steps parameter in machine.machine.
 
 Files unique to translated architecture:
   -benchmark.py
