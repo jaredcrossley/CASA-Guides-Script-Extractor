@@ -4,6 +4,7 @@ import socket
 import platform
 import numpy as np #this is a big import for three functions... :(
 import copy
+import subprocess #another big import for a single function
 
 #import non-standard Python modules
 import benchmark
@@ -12,10 +13,8 @@ import parameters
 #-I need to figure out if the downloading and untarring is something that we want
 # to be timing. If not then I can make it so the loop only downloads (and
 # untars?) things once rather than for each benchmark.
-#-need to decide where to save the machine information (e.g. txt file somewhere)
 #-the sharing and passing around of variables is really a mess between the
 # benchmark and machine classes right now
-#-need to check that running version of CASA matches the data set name given
 #-need to change class docstring to standard Python style so information isn't
 # redundant but I also still have a record of all the included attributes and
 # methods
@@ -144,6 +143,19 @@ class machine:
 
     casaRevision : str
         Revision number for currently running CASA.
+
+    machineLogs : list
+        List of strings of absolute paths to text files containing machine
+        information.
+
+    totalMemBytes : float
+        Total number of physical bytes of memory (RAM) available on the machine.
+
+    nCores : int
+        Total number of physical cores available on the machine.
+
+    cpuFreqMHz : float
+        Processor frequency in MHz.
     """
     def __init__(self, CASAglobals=None, scriptDir='', dataSets=list(), \
                  nIters=list(), skipDownloads=list(), steps=list(), \
@@ -152,6 +164,12 @@ class machine:
         fullFuncName = __name__ + '::__init__'
         indent = len(fullFuncName) + 2
 
+        #check that we have CASA globals
+        if not CASAglobals:
+            raise ValueError('Value returned by globals() function in ' + \
+                             'CASA environment must be given.')
+        self.CASAglobals = CASAglobals
+
         #gather details of computer and installed packages
         self.hostName = socket.gethostname()
         self.os = platform.platform()
@@ -159,12 +177,56 @@ class machine:
         self.pythonVersion = platform.python_version()
         self.casaVersion = self.CASAglobals['casadef'].casa_version
         self.casaRevision = self.CASAglobals['casadef'].subversion_revision
+        self.machineLogs = list()
 
-        #check that we have CASA globals
-        if not CASAglobals:
-            raise ValueError('Value returned by globals() function in ' + \
-                             'CASA environment must be given.')
-        self.CASAglobals = CASAglobals
+        #gather total memory, ncores and CPU frequency
+        if 'Darwin' in self.os:
+            out = subprocess.check_output('hostinfo', shell=True)
+            out = out.split('\n')
+            memBytes = [s for s in out if 'Primary memory available:' in s]
+            memBytes = memBytes[0].split(':')
+            memBytes = memBytes[1].strip()
+            memBytes = memBytes.split(' ')
+            unit = memBytes[1]
+            if 'gigabytes' in unit:
+                self.totalMemBytes = float(memBytes[0])*1e9
+            elif 'megabytes' in unit:
+                self.memBtyes = float(memBytes[0])*1e6
+            else:
+                raise ValueError('Memory quanta not recognized from ' + \
+                                 'hostinfo output: \n"', out, '"')
+            nCores = [s for s in out if 'processors are physically available.' \
+                      in s]
+            nCores = nCores[0].split(' ')[0]
+            self.nCores = int(nCores)
+            out = subprocess.check_output('sysctl machdep.cpu.brand_string', \
+                                          shell=True)
+            cpuFreq = out.split('@')
+            cpuFreq = [s for s in cpuFreq if 'Hz' in s]
+            if 'GHz' in cpuFreq[0]:
+                cpuFreq = cpuFreq[0].split('GHz')
+                self.cpuFreqMHz = float(cpuFreq[0].strip())*1e3
+            elif 'MHz' in cpuFreq[0]:
+                cpuFreq = cpuFreq[0].split('MHz')
+                self.cpuFreqMHz = float(cpuFreq[0].strip())*1e3
+            else:
+                raise ValueError('CPU frequency quanta not recognized from ' + \
+                                 'sysctl output: "' + out + '"')
+        else:
+            self.totalMemBytes = \
+                os.sysconf('SC_PAGE_SIZE')*os.sysconf('SC_PHYS_PAGES')
+            out = subprocess.check_output('lscpu', shell=True)
+            out = out.split('\n')
+            coresPsocket = [s for s in out if 'Core(s) per socket:' in s]
+            coresPsocket = coresPsocket[0].split(':')
+            coresPsocket = int(coresPsocket[1].strip())
+            nSockets = [s for s in out if 'Socket(s):' in s]
+            nSockets = nSockets[0].split(':')
+            nSockets = int(nSockets[1].strip())
+            self.nCores = coresPsocket*nSockets
+            cpuFreq = [s for s in out if 'z:' in s]
+            cpuFreq = cpuFreq[0].split(':')
+            self.cpuFreqMHz = float(cpuFreq[1].strip())
 
         #add script directory to Python path if need be
         if scriptDir == '':
@@ -267,9 +329,25 @@ class machine:
             dataSetDir = self.workDir + dataSet + '-' + self.hostName + '/'
             if not os.path.isdir(dataSetDir):
                 os.mkdir(dataSetDir)
-            params = getattr(parameters, dataSet)
+
+            #fill out machine info log
+            self.machineLogs.append(dataSetDir + 'machine_info.log')
+            if not os.path.isfile(self.machineLogs[-1]):
+                f = open(self.machineLogs[-1], 'w')
+                f.write('==Machine and Software Details==\n')
+                f.write('Host name: ' + self.hostName + '\n')
+                f.write('Operating system: ' + self.os + '\n')
+                f.write('Total physical memory (bytes): ' + \
+                        str(self.totalMemBytes) + '\n')
+                f.write('Total physical cores: ' + str(self.nCores) + '\n')
+                f.write('CPU Frequency (MHz): ' + str(self.cpuFreqMHz) + '\n')
+                f.write('lustre access: ' + str(self.lustreAccess) + '\n')
+                f.write('CASA version: ' + self.casaVersion + ' (r' + \
+                        self.casaRevision + ')\n')
+                f.close()
 
             #determine source of raw data
+            params = getattr(parameters, dataSet)
             if self.jobs[dataSet]['skipDownload']:
                 uncalDataPath = params['uncalDataPath']
                 calDataPath = params['calDataPath']
