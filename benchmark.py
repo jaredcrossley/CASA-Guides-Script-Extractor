@@ -373,11 +373,11 @@ class benchmark:
         -----
         This downloads the raw data .tgz file associated with the CASA guide
         from the web (uncalDataPath or calDataPath) into currentTarDir using
-        wget. Here os.system is used to execute wget so it is not perfectly
-        platform independent but should be fine across Linux and Mac. The wget
+        curl. Here os.system is used to execute curl so it is not perfectly
+        platform independent but should be fine across Linux and Mac. The curl
         options used are:
         
-          wget -q --no-check-certificate --directory-prefix=currentTarDir
+          curl --silent --insecure --output currentTarDir/basename(dataPath)
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::downloadData'
@@ -390,17 +390,18 @@ class benchmark:
                              'instance with skipDownload=False if you wish ' + \
                              'to download the data.')
 
-        #build wget command
+        #build curl command
         if self.execStep == 'cal':
             dataPath = self.uncalDataPath
         if self.execStep == 'im':
             dataPath = self.calDataPath
         if self.execStep == 'both':
             dataPath = self.uncalDataPath
-        command = 'wget -q --no-check-certificate --directory-prefix=' + \
-                  self.currentTarDir + ' ' + dataPath
+        command = 'curl --silent --insecure --output ' + \
+                  self.currentTarDir + os.path.basename(dataPath) + \
+                  ' ' + dataPath
 
-        #wget the data
+        #curl the data
         print fullFuncName + ':', 'Acquiring data by HTTP.\n' + ' '*indent + \
               'Logging to', self.daeLog + '.'
         outString = ''
