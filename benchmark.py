@@ -1,14 +1,15 @@
+#standard library imports
+import cStringIO
+import optparse
 import os
-import sys
 import shutil
-import time
-from cStringIO import StringIO
-from optparse import OptionParser
-import tarfile
-from urllib2 import HTTPError
 import subprocess
+import sys
+import tarfile
+import time
+import urllib2
 
-#import non-standard Python modules
+#library specific imports
 import extractCASAscript
 
 #-all methods should probably return something
@@ -314,7 +315,7 @@ class benchmark:
         #fill out casa_tasks with current CASA task list
         stdOut = sys.stdout
         stdErr = sys.stderr
-        sys.stdout = StringIO()
+        sys.stdout = cStringIO.StringIO()
         sys.stderr = sys.stdout
         myStdOut = sys.stdout
         extractCASAscript.casa_tasks = extractCASAscript.listCASATasks()
@@ -479,18 +480,18 @@ class benchmark:
 
 
     def makeExtractOpts(self):
-        """ Returns OptionParser.parse_args options so extractCASAscript.main can
-        be called directly.
+        """ Returns optparse.OptionParser.parse_args options so
+        extractCASAscript.main can be called directly.
 
         Returns
         -------
-        options : Options object from OptionParser.parse_args
+        options : Options object from optparse.OptionParser.parse_args
 
         Notes
         -----
-        Returns an options object from OptionParser.parse_args to feed into
-        extractCASAscript.main since that script is originally intended to be
-        run from the command line.
+        Returns an options object from optparse.OptionParser.parse_args to feed
+        into extractCASAscript.main since that script is originally intended to
+        be run from the command line.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::makeExtractOpts'
@@ -500,7 +501,7 @@ class benchmark:
             ''' %prog [options] URL
                 *URL* should point to a CASA Guide webpage or to a Python
                 script. *URL* can also be a local file system path.'''
-        parser = OptionParser(usage=usage)
+        parser = optparse.OptionParser(usage=usage)
         parser.add_option('-b', '--benchmark', action="store_true", \
                           default=False)
         parser.add_option('-n', '--noninteractive', action="store_true", \
@@ -529,9 +530,9 @@ class benchmark:
         -----
         This runs extractCASAscript.main on the given url to make scripts from
         the associated CASA guide. Tries running the extraction 3 times, handling
-        HTTPError exceptions. If an attempt fails then it waits 30 seconds and
-        tries again. If it fails all 3 times then it gives up and returns False.
-        Otherwise it returns True.
+        urllib2.HTTPError exceptions. If an attempt fails then it waits 30
+        seconds and tries again. If it fails all 3 times then it gives up and
+        returns False. Otherwise it returns True.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::runextractCASAscript'
@@ -542,15 +543,16 @@ class benchmark:
             try:
                 extractCASAscript.main(url, self.makeExtractOpts())
                 return True
-            except HTTPError, e:
+            except urllib2.HTTPError, e:
                 if i != 2:
                     time.sleep(30)
                 else:
-                    print fullFuncName + ':', 'Ran into HTTPError 3 times.\n' + \
-                          ' '*indent + 'Giving up on extracting a script ' + \
-                          'from ' + url + '.'
-                    print fullFuncName + ':', 'Particular HTTPError info:\n' + \
-                          ' '*indent + 'Code ' + e.code + ': ' + e.reason
+                    print fullFuncName + ':', 'Ran into urllib2.HTTPError 3 ' + \
+                          'times.\n' + ' '*indent + 'Giving up on ' + \
+                          'extracting a script from ' + url + '.'
+                    print fullFuncName + ':', 'Particular urllib2.HTTPError ' + \
+                          'info:\n' + ' '*indent + 'Code ' + e.code + ': ' + \
+                          e.reason
                     return False
 
 

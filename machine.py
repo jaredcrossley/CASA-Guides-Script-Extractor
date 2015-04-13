@@ -1,18 +1,16 @@
-import os
-import sys
-import socket
-import platform
-import numpy as np #this is a big import for three functions... :(
+#standard library imports
 import copy
-import subprocess #another big import for a single function
+import numpy as np
+import os
+import platform
+import socket
+import subprocess
+import sys
 
-#import non-standard Python modules
+#library specific imports
 import benchmark
 import parameters
 
-#-I need to figure out if the downloading and untarring is something that we want
-# to be timing. If not then I can make it so the loop only downloads (and
-# untars?) things once rather than for each benchmark.
 #-the sharing and passing around of variables is really a mess between the
 # benchmark and machine classes right now
 #-need to change class docstring to standard Python style so information isn't
