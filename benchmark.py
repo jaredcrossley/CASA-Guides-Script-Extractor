@@ -6,6 +6,7 @@ from cStringIO import StringIO
 from optparse import OptionParser
 import tarfile
 from urllib2 import HTTPError
+import subprocess
 
 #import non-standard Python modules
 import extractCASAscript
@@ -373,7 +374,7 @@ class benchmark:
         -----
         This downloads the raw data .tgz file associated with the CASA guide
         from the web (uncalDataPath or calDataPath) into currentTarDir using
-        curl. Here os.system is used to execute curl so it is not perfectly
+        curl. Here subprocess.call is used to execute curl so it is not perfectly
         platform independent but should be fine across Linux and Mac. The curl
         options used are:
         
@@ -397,7 +398,9 @@ class benchmark:
             dataPath = self.calDataPath
         if self.execStep == 'both':
             dataPath = self.uncalDataPath
-        command = 'curl --silent --insecure --output ' + \
+        curlLoc = subprocess.check_output('which curl', shell=True)
+        curlLoc = curlLoc.strip('\n')
+        command = curlLoc + ' --silent --insecure --output ' + \
                   self.currentTarDir + os.path.basename(dataPath) + \
                   ' ' + dataPath
 
@@ -409,7 +412,7 @@ class benchmark:
         outString += 'Timing command:\n' + command + '\n'
         procT = time.clock()
         wallT = time.time()
-        os.system(command)
+        subprocess.call(command.split(' '), shell=False)
         wallT = round(time.time() - wallT, 2)
         procT = round(time.clock() - procT, 2)
         outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
