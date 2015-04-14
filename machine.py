@@ -21,7 +21,7 @@ import parameters
 # the pathname ...", instead write "Return the pathname..."
 
 def makeReport(files):
-    """ Gather total times and caluclate the mean and standard deviation from
+    """Gather total times and caluclate the mean and standard deviation from
     casa_call.summarize_bench output (.summary files).
 
     Parameters
@@ -57,50 +57,16 @@ def makeReport(files):
 
 
 class machine:
-    """ A class associated with a single computer and all of
-    the benchmarking done on it.
+    """A class associated with a single computer and all of the benchmarking
+    done on it.
 
-    Parameters
-    ----------
+    Methods
+    -------
+    __init__
+    runBenchmarks
 
-    CASAglobals : dict
-        Dictionary returned by Python globals() function within the CASA
-        namespace (environment). Simply pass the return value of the globals()
-        function from within CASA where this class should be instantiated
-        within.
-
-    scriptDir : str
-        Absolute path to directory containing the benchmarking module files.
-
-    dataSets : list
-        List of strings containing names of data sets to be benchmarked. Names
-        must match the dictionary variable names in parameters.py.
-
-    nIters : list
-        List of integers specifying how many times each data set should be run
-        through benchmarking. These are matched to the data set in the same
-        position in the dataSets list.
-
-    skipDownloads : list
-        List of booleans specifying if the raw data download step should be
-        skipped or not. False means download the data from the URL provided in
-        parameters.py variable. These are matched to the data set in the same
-        position in the dataSets list.
-
-    steps : list
-        List of strings specifying which stage (calibration, imaging or both)
-        each set of iterations should run. Accepted values are 'cal', 'im' or
-        'both'.
-
-    workDir : str
-        Absolute path to directory where all benchmarking will run. A separate
-        directory for each data set will be created here and each benchmark
-        iteration will be contained in a dedicated directory below that. Defaults
-        to current directory.
-
-    Attributes
-    ----------
-
+    Instance Variables
+    ------------------
     CASAglobals : dict
         Dictionary returned by Python globals() function within the CASA
         namespace (environment). Simply pass the return value of the globals()
@@ -155,9 +121,64 @@ class machine:
     cpuFreqMHz : float
         Processor frequency in MHz.
     """
+
     def __init__(self, CASAglobals=None, scriptDir='', dataSets=list(), \
                  nIters=list(), skipDownloads=list(), steps=list(), \
                  workDir='./'):
+        """Prepares all machine instance variables for all the other methods.
+
+        Returns
+        -------
+        None
+
+        Parameters
+        ----------
+        CASAglobals : dict
+           Dictionary returned by Python globals() function within the CASA
+           namespace (environment). Simply pass the return value of the globals()
+           function from within CASA where this class should be instantiated
+           within.
+
+        scriptDir : str
+           Absolute path to directory containing the benchmarking module files.
+
+        dataSets : list
+           List of strings containing names of data sets to be benchmarked. Names
+           must match the dictionary variable names in parameters.py.
+
+        nIters : list
+           List of integers specifying how many times each data set should be run
+           through benchmarking. These are matched to the data set in the same
+           position in the dataSets list.
+
+        skipDownloads : list
+           List of booleans specifying if the raw data download step should be
+           skipped or not. False means download the data from the URL provided in
+           parameters.py variable. These are matched to the data set in the same
+           position in the dataSets list.
+
+        steps : list
+           List of strings specifying which stage (calibration, imaging or both)
+           each set of iterations should run. Accepted values are 'cal', 'im' or
+           'both'.
+
+        workDir : str
+           Absolute path to directory where all benchmarking will run. A separate
+           directory for each data set will be created here and each benchmark
+           iteration will be contained in a dedicated directory below that.
+           Defaults to current directory.
+
+        Notes
+        -----
+        Initializes all of the machine instance variables so that all of the
+        other object methods will operate correctly. This does not mean all of
+        the other methods will be successful (since many of them need additional
+        information or other methods to be run first) but it means that each
+        method will not crash as a result of something not being defined. Checks
+        are run on all of the required inputs to make sure the object will be
+        well formed upon return. Also gathers machine specific information
+        (OS, CPU frequency, total physical memory, etc.)
+        """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
         indent = len(fullFuncName) + 2
@@ -287,7 +308,7 @@ class machine:
 
 
     def runBenchmarks(self, cleanUp=False):
-        """ Runs all necessary benchmark class methods for each data set the
+        """Runs all necessary benchmark class methods for each data set the
         specified number of iterations.
 
         Parameters

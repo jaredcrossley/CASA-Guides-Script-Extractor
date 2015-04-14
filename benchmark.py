@@ -22,165 +22,196 @@ import extractCASAscript
 # the pathname ...", instead write "Return the pathname..."
 
 class benchmark:
-    """A class for the execution of a single CASA guide
-    on a single machine for benchmark testing and timing.
+    """A class for the execution of a single CASA guide on a single machine for
+    benchmark testing and timing.
 
-    Parameters
-    ----------
+    Methods
+    -------
+    __init__
+    createDirTree
+    downloadData
+    extractData
+    makeExtractOpts
+    runextractCASAscript
+    doScriptExtraction
+    runGuideScripts
+    writeToDaELog
+    useOtherBmarkScripts
+    emptyCurrentRedDir
 
-    scriptDir : str
-        Absolute path to directory containing the benchmarking module files.
-
+    Instance Variables
+    ------------------
     workDir : str
-        Absolute path to directory where benchmarking directory structure will
-        be created, all data will be stored and processing will be done.
+       Absolute path to directory where benchmarking directory structure will
+       be created, all data will be stored and processing will be done.
 
     execStep : str
-        String specifying what will be executed in this benchmarking run:
-        calibration, imaging or both. Must be "cal", "im" or "both". Defaults to
-        "both".
+       String specifying what will be executed in this benchmarking run:
+       calibration, imaging or both. Must be "cal", "im" or "both".
 
     calSource : str
-        URL to CASA guide calibration webpage or path to Python script to
-        extract the calibration commands from.
+       URL to CASA guide calibration webpage or path to Python script to
+       extract the calibration commands from.
 
     imSource : str
-        URL to CASA guide imaging webpage or path to Python script to extract
-        the imaging commands from.
+       URL to CASA guide imaging webpage or path to Python script to extract
+       the imaging commands from.
 
     uncalDataPath : str
-        URL or absolute path to uncalibrated raw CASA guide data and
-        calibration tables.
+       URL or absolute path to uncalibrated raw CASA guide data and
+       calibration tables.
 
     calDataPath : str
-        URL or absolute path to calibrated raw CASA guide data and
-        calibration tables.
+       URL or absolute path to calibrated raw CASA guide data and
+       calibration tables.
 
     skipDownload : bool
-        Switch to skip downloading the raw data from the web. False means
-        download the data from the URL provided in parameters.py variable.
-        Defaults to False.
-
-    Attributes
-    ----------
-
-    workDir : str
-        Absolute path to directory where benchmarking directory structure will
-        be created, all data will be stored and processing will be done.
-
-    execStep : str
-        String specifying what will be executed in this benchmarking run:
-        calibration, imaging or both. Must be "cal", "im" or "both".
-
-    calSource : str
-        URL to CASA guide calibration webpage or path to Python script to
-        extract the calibration commands from.
-
-    imSource : str
-        URL to CASA guide imaging webpage or path to Python script to extract
-        the imaging commands from.
-
-    uncalDataPath : str
-        URL or absolute path to uncalibrated raw CASA guide data and
-        calibration tables.
-
-    calDataPath : str
-        URL or absolute path to calibrated raw CASA guide data and
-        calibration tables.
-
-    skipDownload : bool
-        Switch to skip downloading the raw data from the web.
+       Switch to skip downloading the raw data from the web.
 
     uncalLocalTar : str
-        Absolute path to uncalibrated raw data .tgz file associated with CASA
-        guide.
+       Absolute path to uncalibrated raw data .tgz file associated with CASA
+       guide.
 
     calLocalTar : str
-        Absolute path to calibrated raw data .tgz file associated with CASA
-        guide.
+       Absolute path to calibrated raw data .tgz file associated with CASA
+       guide.
 
     extractLog : str
-        Absolute path to CASA guide script extractor output.
+       Absolute path to CASA guide script extractor output.
 
     calScript : str
-        Absolute path to Python file containing the calibration portion of the
-        CASA guide being run through the benchmark.
+       Absolute path to Python file containing the calibration portion of the
+       CASA guide being run through the benchmark.
 
     calScriptLog : str
-        Absolute path to calibration script output.
+       Absolute path to calibration script output.
 
     imageScript : str
-        Absolute path to Python file containing the imaging portion of the CASA
-        guide being run through the benchmark.
+       Absolute path to Python file containing the imaging portion of the CASA
+       guide being run through the benchmark.
 
     imageScriptLog : str
-        Absolute path to imaging script output.
+       Absolute path to imaging script output.
 
     calScriptExpect : str
-        Absolute path to CASA guide script extractor output of expected
-        calibraton task calls.
+       Absolute path to CASA guide script extractor output of expected
+       calibraton task calls.
 
     imageScriptExpect : str
-        Absolute path to CASA guide script extractor output of expected
-        imaging task calls.
+       Absolute path to CASA guide script extractor output of expected
+       imaging task calls.
 
     calBenchOutFile : str
-        Absolute path to the log file containing the complete record of
-        benchmarking output associated with running the calibration script.
+       Absolute path to the log file containing the complete record of
+       benchmarking output associated with running the calibration script.
 
     calBenchSumm : str
-        Absolute path to the log file containing a summary of the calibration
-        benchmark timing. Includes the total benchmark runtime, total task
-        runtimes broken down by task and average task runtimes.
+       Absolute path to the log file containing a summary of the calibration
+       benchmark timing. Includes the total benchmark runtime, total task
+       runtimes broken down by task and average task runtimes.
 
     imageBenchOutFile : str
-        Absolute path to the log file containing the complete record of
-        benchmarking output associated with running the imaging script.
+       Absolute path to the log file containing the complete record of
+       benchmarking output associated with running the imaging script.
 
     imageBenchSumm : str
-        Absolute path to the log file containing a summary of the imaging
-        benchmark timing. Includes the total benchmark runtime, total task
-        runtimes broken down by task and average task runtimes.
+       Absolute path to the log file containing a summary of the imaging
+       benchmark timing. Includes the total benchmark runtime, total task
+       runtimes broken down by task and average task runtimes.
 
     currentWorkDir : str
-        Absolute path to the directory associated with the current benchmark
-        instance. This includes the actual reduction, log file and raw data
-        tar file directories. It is made inside workDir and named as
-        YYYY_MMM_DDTHH_MM_SS-benchmark.
+       Absolute path to the directory associated with the current benchmark
+       instance. This includes the actual reduction, log file and raw data
+       tar file directories. It is made inside workDir and named as
+       YYYY_MMM_DDTHH_MM_SS-benchmark.
 
     currentLogDir : str
-        Absolute path to the directory containing the log files associated with
-        the current benchmark instance.
+       Absolute path to the directory containing the log files associated with
+       the current benchmark instance.
 
     currentTarDir : str
-        Absolute path to the directory containing the raw data .tgz files
-        associated with the current benchmark instance.
+       Absolute path to the directory containing the raw data .tgz files
+       associated with the current benchmark instance.
 
     currentRedDir : str
-        Absolute path to the directory where the calibration and/or imaging
-        scripts are actually executed.
+       Absolute path to the directory where the calibration and/or imaging
+       scripts are actually executed.
 
     allLogDir : str
-        Absolute path to the directory where the most pertinent log files
-        associated with each individual benchmark instance run within workDir
-        are stored.
+       Absolute path to the directory where the most pertinent log files
+       associated with each individual benchmark instance run within workDir
+       are stored.
 
     status : str
-        Code for the current benchmark instance determining what state the
-        object is in. The primary use is to record if a handled error occurred
-        that renders the benchmark useless. When the object is first
-        instantiated this will be initialed to "normal" and will only be
-        changed (to "failure") if a handled error is encountered.
+       Code for the current benchmark instance determining what state the
+       object is in. The primary use is to record if a handled error occurred
+       that renders the benchmark useless. When the object is first
+       instantiated this will be initialed to "normal" and will only be
+       changed (to "failure") if a handled error is encountered.
 
     listTasksOut : str
-        Holds the couple lines of output from the extractCASAscript.listCASAtasks
-        call in __init__. It is written to extractLog just before the first
-        script extraction is done. While the output should always be a couple of
-        empty sets, it would be useful information if they are ever not empty.
+       Holds the couple lines of output from the extractCASAscript.listCASAtasks
+       call in __init__. It is written to extractLog just before the first
+       script extraction is done. While the output should always be a couple of
+       empty sets, it would be useful information if they are ever not empty.
     """
+
     def __init__(self, scriptDir='', workDir='./', execStep='both', \
                  calSource='', imSource='', uncalDataPath='', calDataPath='', \
                  skipDownload=False):
+        """Prepares all benchmark instance variables for the other methods.
+
+        Returns
+        -------
+        None
+
+        Parameters
+        ----------
+        scriptDir : str
+           Absolute path to directory containing the benchmarking module files.
+
+        workDir : str
+           Absolute path to directory where benchmarking directory structure will
+           be created, all data will be stored and processing will be done.
+
+        execStep : str
+           String specifying what will be executed in this benchmarking run:
+           calibration, imaging or both. Must be "cal", "im" or "both". Defaults
+           to "both".
+
+        calSource : str
+           URL to CASA guide calibration webpage or path to Python script to
+           extract the calibration commands from.
+
+        imSource : str
+           URL to CASA guide imaging webpage or path to Python script to extract
+           the imaging commands from.
+
+        uncalDataPath : str
+           URL or absolute path to uncalibrated raw CASA guide data and
+           calibration tables.
+
+        calDataPath : str
+           URL or absolute path to calibrated raw CASA guide data and
+           calibration tables.
+
+        skipDownload : bool
+           Switch to skip downloading the raw data from the web. False means
+           download the data from the URL provided in parameters.py variable.
+           Defaults to False.
+
+        Notes
+        -----
+        Initializes all of the benchmark instance variables so that all of the
+        other object methods will operate correctly. This does not mean all of
+        the other methods will be successful (since many of them need additional
+        information or other methods to be run first) but it means that each
+        method will not crash as a result of something not being defined. Checks
+        are run on all of the required inputs to make sure the object will be
+        well formed upon return. If an instance variable is not formally defined
+        yet, it is set to an empty string. If this finishes successfully then the
+        status instance variable is set to 'normal'.
+        """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
         indent = len(fullFuncName) + 2
@@ -325,7 +356,7 @@ class benchmark:
 
 
     def createDirTree(self):
-        """ Creates the directory structure associated with this benchmark.
+        """Creates the directory structure associated with this benchmark.
 
         Returns
         -------
@@ -365,7 +396,7 @@ class benchmark:
 
 
     def downloadData(self):
-        """ Downloads raw data .tgz file from the web.
+        """Downloads raw data .tgz file from the web.
 
         Returns
         -------
@@ -432,7 +463,7 @@ class benchmark:
 
 
     def extractData(self):
-        """ Unpacks the raw data .tgz file into the current benchmark directory.
+        """Unpacks the raw data .tgz file into the current benchmark directory.
 
         Returns
         -------
@@ -480,7 +511,7 @@ class benchmark:
 
 
     def makeExtractOpts(self):
-        """ Returns optparse.OptionParser.parse_args options so
+        """Returns optparse.OptionParser.parse_args options so
         extractCASAscript.main can be called directly.
 
         Returns
@@ -514,7 +545,7 @@ class benchmark:
 
 
     def runextractCASAscript(self, url):
-        """ Calls extractCASAscript.main on given url to make CASA script.
+        """Calls extractCASAscript.main on given url to make CASA script.
         (should probably be private)
 
         Parameters
@@ -557,7 +588,7 @@ class benchmark:
 
 
     def doScriptExtraction(self):
-        """ Runs the script extractor for the calibration and/or imaging script
+        """Runs the script extractor for the calibration and/or imaging script
         and arranges all of the associated details.
 
         Returns
@@ -682,7 +713,7 @@ class benchmark:
 
 
     def runGuideScripts(self, CASAglobals):
-        """ Executes the calibration and/or imaging CASA guide script.
+        """Executes the calibration and/or imaging CASA guide script.
 
         Parameters
         ----------
@@ -790,7 +821,7 @@ class benchmark:
 
 
     def writeToDaELog(self, outString):
-        """ Writes outString to a text file.
+        """Writes outString to a text file.
 
         Parameters
         ----------
@@ -817,7 +848,7 @@ class benchmark:
         f.close()
 
     def useOtherBmarkScripts(self, prevBmark):
-        """ Sets this benchmark instance up to use extracted scripts from
+        """Sets this benchmark instance up to use extracted scripts from
         another benchmark object.
 
         Parameters
@@ -927,7 +958,7 @@ class benchmark:
 
 
     def emptyCurrentRedDir(self):
-        """ Empties out the current reduction directory (except for the
+        """Empties out the current reduction directory (except for the
         calibration and imaging scripts) and reassigns affected attributes.
 
         Returns
