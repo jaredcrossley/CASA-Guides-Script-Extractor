@@ -1,7 +1,22 @@
-#CASA benchmarking parameters
-#   Some variable names have a meaningles "x" prepended since variable names
-#   can't start with numbers.
+""" Storage module for CASA benchmarking parameters.
 
+This module is solely for storing information related to benchmarking the
+typical group of data sets. The machine module depends on this module for finding
+sources of scripts, raw data etc. but this module can be used in other contexts
+too. It contains dictionaries for each data set which store information on:
+
+  -calibration URLs
+  -imaging URLs
+  -uncalibrated data URLs
+  -calibrated data URLs
+  -uncalibrated data paths on lustre
+  -calibrated data paths on lustre
+  -uncalibrated data paths on the Mac RAID array (elric)
+  -calibrated data paths on the Mac RAID array (elric)
+
+Some data set variable names start with a meaningless "x" since variable names
+can not start with numbers.
+"""
 ##2012.1.00912##
 #THIS DATA IS NOT ON THE SCIENCE PORTAL
 #CASA 4.3
