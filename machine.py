@@ -368,8 +368,12 @@ class machine:
             #determine source of raw data
             params = getattr(parameters, dataSet)
             if self.jobs[dataSet]['skipDownload']:
-                uncalDataPath = params['uncalDataPath']
-                calDataPath = params['calDataPath']
+                if not self.lustreAccess and 'Darwin' in self.os:
+                    uncalDataPath = params['macUncalDataPath']
+                    calDataPath = params['macCalDataPath']
+                else:
+                    uncalDataPath = params['lustreUncalDataPath']
+                    calDataPath = params['lustreCalDataPath']
             else:
                 uncalDataPath = params['uncalDataURL']
                 calDataPath = params['calDataURL']
