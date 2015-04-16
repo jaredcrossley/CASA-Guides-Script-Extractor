@@ -17,10 +17,15 @@ x2012_1_00912_S_43 = {'calibrationURL': \
                           None, \
                       'calDataURL': \
                           None, \
-                      'uncalDataPath': \
+                      'lustreUncalDataPath': \
                           '/lustre/naasc/nbrunett/benchmark/2012.1.00912.S/' + \
                           '912_reduction.tgz', \
-                      'calDataPath' : \
+                      'lustreCalDataPath' : \
+                          None, \
+                      'macUncalDataPath': \
+                          '/Volumes/elric/benchmark_raw_data/2012.1.00912.S/' + \
+                          '912_reduction.tgz', \
+                      'macCalDataPath': \
                           None}
 
 #CASA 4.2
@@ -37,10 +42,15 @@ x2012_1_00912_S_42 = {'calibrationURL': \
                           None, \
                       'calDataURL': \
                           None, \
-                      'uncalDataPath': \
+                      'lustreUncalDataPath': \
                           '/lustre/naasc/nbrunett/benchmark/2012.1.00912.S/' + \
                           '912_reduction.tgz', \
-                      'calDataPath' : \
+                      'lustreCalDataPath' : \
+                          None, \
+                      'macUncalDataPath': \
+                          '/Volumes/elric/benchmark_raw_data/2012.1.00912.S/' + \
+                          '912_reduction.tgz', \
+                      'macCalDataPath': \
                           None}
 ##=============================================================================##
 
@@ -57,10 +67,14 @@ x2011_0_00099_S_40 = {'calibrationURL': \
                           None, \
                       'calDataURL': \
                           None, \
-                      'uncalDataPath': \
+                      'lustreUncalDataPath': \
                           '/lustre/naasc/jcrossle/benchmark/data/' + \
                           '2011.0.00099.S/2011.0.00099.S.tgz', \
-                      'calDataPath': \
+                      'lustreCalDataPath': \
+                          None, \
+                      'macUncalDataPath': \
+                          None, \
+                      'macCalDataPath': \
                           None}
 ##=============================================================================##
 
@@ -80,11 +94,17 @@ NGC3256Band3_43 = {'calibrationURL': \
                        'https://almascience.nrao.edu/almadata/sciver/' + \
                        'NGC3256/' + \
                        'NGC3256_Band3_CalibratedData_CASA4.tgz', \
-                   'uncalDataPath': \
+                   'lustreUncalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
                        'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
-                   'calDataPath': \
+                   'lustreCalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz', \
+                   'macUncalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/NGC3256/' + \
+                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
+                   'macCalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/NGC3256/' + \
                        'NGC3256_Band3_CalibratedData_CASA4.tgz'}
 
 #CASA 4.2
@@ -102,10 +122,10 @@ NGC3256Band3_42 = {'calibrationURL': \
                        'https://almascience.nrao.edu/almadata/sciver/' + \
                        'NGC3256/' + \
                        'NGC3256_Band3_CalibratedData_CASA4.tgz', \
-                   'uncalDataPath': \
+                   'lustreUncalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
                        'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
-                   'calDataPath': \
+                   'lustreCalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
                        'NGC3256_Band3_CalibratedData_CASA4.tgz'}
 
@@ -124,11 +144,17 @@ NGC3256Band3_41 = {'calibrationURL': \
                        'https://almascience.nrao.edu/almadata/sciver/' + \
                        'NGC3256/' + \
                        'NGC3256_Band3_CalibratedData_CASA4.tgz', \
-                   'uncalDataPath': \
+                   'lustreUncalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
                        'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
-                   'calDataPath': \
+                   'lustreCalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz', \
+                   'macUncalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/NGC3256/' + \
+                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
+                   'macCalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/NGC3256/' + \
                        'NGC3256_Band3_CalibratedData_CASA4.tgz'}
 
 #CASA 4.0
@@ -146,11 +172,17 @@ NGC3256Band3_40 = {'calibrationURL': \
                        'https://almascience.nrao.edu/almadata/sciver/' + \
                        'NGC3256/' + \
                        'NGC3256_Band3_CalibratedData_CASA4.tgz', \
-                   'uncalDataPath': \
+                   'lustreUncalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
                        'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
-                   'calDataPath': \
+                   'lustreCalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz', \
+                   'macUncalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/NGC3256/' + \
+                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
+                   'macCalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/NGC3256/' + \
                        'NGC3256_Band3_CalibratedData_CASA4.tgz'}
 
 #CASA 3.4
@@ -168,11 +200,17 @@ NGC3256Band3_34 = {'calibrationURL': \
                        'https://almascience.nrao.edu/almadata/sciver/' + \
                        'NGC3256/' + \
                        'NGC3256_Band3_CalibratedData_CASA4.tgz', \
-                   'uncalDataPath': \
+                   'lustreUncalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
                        'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
-                   'calDataPath': \
+                   'lustreCalDataPath': \
                        '/lustre/naasc/SV/NGC3256/' + \
+                       'NGC3256_Band3_CalibratedData_CASA4.tgz', \
+                   'macUncalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/NGC3256/' + \
+                       'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz', \
+                   'macCalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/NGC3256/' + \
                        'NGC3256_Band3_CalibratedData_CASA4.tgz'}
 ##=============================================================================##
 
@@ -190,11 +228,17 @@ TWHydraBand7_43 = {'calibrationURL': \
                    'calDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
                        'TWHYA_BAND7_CalibratedData.tgz', \
-                   'uncalDataPath': \
+                   'lustreUncalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
                        'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
-                   'calDataPath': \
+                   'lustreCalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz', \
+                   'macUncalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/TWHya/' + \
+                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
+                   'macCalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/TWHya/' + \
                        'TWHYA_BAND7_CalibratedData.tgz'}
 
 #CASA 4.2
@@ -210,11 +254,17 @@ TWHydraBand7_42 = {'calibrationURL': \
                    'calDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
                        'TWHYA_BAND7_CalibratedData.tgz', \
-                   'uncalDataPath': \
+                   'lustreUncalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
                        'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
-                   'calDataPath': \
+                   'lustreCalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz', \
+                   'macUncalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/TWHya/' + \
+                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
+                   'macCalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/TWHya/' + \
                        'TWHYA_BAND7_CalibratedData.tgz'}
 
 #CASA 4.1
@@ -230,11 +280,17 @@ TWHydraBand7_41 = {'calibrationURL': \
                    'calDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
                        'TWHYA_BAND7_CalibratedData.tgz', \
-                   'uncalDataPath': \
+                   'lustreUncalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
                        'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
-                   'calDataPath': \
+                   'lustreCalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz', \
+                   'macUncalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/TWHya/' + \
+                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
+                   'macCalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/TWHya/' + \
                        'TWHYA_BAND7_CalibratedData.tgz'}
 
 #CASA 4.0
@@ -250,11 +306,17 @@ TWHydraBand7_40 = {'calibrationURL': \
                    'calDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
                        'TWHYA_BAND7_CalibratedData.tgz', \
-                   'uncalDataPath': \
+                   'lustreUncalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
                        'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
-                   'calDataPath': \
+                   'lustreCalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz', \
+                   'macUncalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/TWHya/' + \
+                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
+                   'macCalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/TWHya/' + \
                        'TWHYA_BAND7_CalibratedData.tgz'}
 
 #CASA 3.4
@@ -270,11 +332,17 @@ TWHydraBand7_34 = {'calibrationURL': \
                    'calDataURL': \
                        'https://almascience.nrao.edu/almadata/sciver/TWHya/' + \
                        'TWHYA_BAND7_CalibratedData.tgz', \
-                   'uncalDataPath': \
+                   'lustreUncalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
                        'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
-                   'calDataPath': \
+                   'lustreCalDataPath': \
                        '/lustre/naasc/SV/TWHya/' + \
+                       'TWHYA_BAND7_CalibratedData.tgz', \
+                   'macUncalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/TWHya/' + \
+                       'TWHYA_BAND7_UnCalibratedMSAndTablesForReduction.tgz', \
+                   'macCalDataPath': \
+                       '/Volumes/elric/benchmark_raw_data/TWHya/' + \
                        'TWHYA_BAND7_CalibratedData.tgz'}
 ##=============================================================================##
 
@@ -293,11 +361,17 @@ AntennaeBand7_43 = {'calibrationURL': \
                         'https://almascience.nrao.edu/almadata/sciver/' + \
                         'AntennaeBand7/' + \
                         'Antennae_Band7_CalibratedData.tgz', \
-                    'uncalDataPath': \
+                    'lustreUncalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
                       'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
-                    'calDataPath': \
+                    'lustreCalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz', \
+                    'macUncalDataPath': \
+                        '/Volumes/elric/benchmark_raw_data/AntennaeBand7/' + \
+                      'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
+                    'macCalDataPath': \
+                        '/Volumes/elric/benchmark_raw_data/AntennaeBand7/' + \
                         'Antennae_Band7_CalibratedData.tgz'}
 
 #CASA 4.2
@@ -315,11 +389,17 @@ AntennaeBand7_42 = {'calibrationURL': \
                         'https://almascience.nrao.edu/almadata/sciver/' + \
                         'AntennaeBand7/' + \
                         'Antennae_Band7_CalibratedData.tgz', \
-                    'uncalDataPath': \
+                    'lustreUncalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
                       'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
-                    'calDataPath': \
+                    'lustreCalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz', \
+                    'macUncalDataPath': \
+                        '/Volumes/elric/benchmark_raw_data/AntennaeBand7/' + \
+                      'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
+                    'macCalDataPath': \
+                        '/Volumes/elric/benchmark_raw_data/AntennaeBand7/' + \
                         'Antennae_Band7_CalibratedData.tgz'}
 
 #CASA 4.1
@@ -337,11 +417,17 @@ AntennaeBand7_41 = {'calibrationURL': \
                         'https://almascience.nrao.edu/almadata/sciver/' + \
                         'AntennaeBand7/' + \
                         'Antennae_Band7_CalibratedData.tgz', \
-                    'uncalDataPath': \
+                    'lustreUncalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
                       'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
-                    'calDataPath': \
+                    'lustreCalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz', \
+                    'macUncalDataPath': \
+                        '/Volumes/elric/benchmark_raw_data/AntennaeBand7/' + \
+                      'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
+                    'macCalDataPath': \
+                        '/Volumes/elric/benchmark_raw_data/AntennaeBand7/' + \
                         'Antennae_Band7_CalibratedData.tgz'}
 
 #CASA 4.0
@@ -359,11 +445,17 @@ AntennaeBand7_40 = {'calibrationURL': \
                         'https://almascience.nrao.edu/almadata/sciver/' + \
                         'AntennaeBand7/' + \
                         'Antennae_Band7_CalibratedData.tgz', \
-                    'uncalDataPath': \
+                    'lustreUncalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
                       'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
-                    'calDataPath': \
+                    'lustreCalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz', \
+                    'macUncalDataPath': \
+                        '/Volumes/elric/benchmark_raw_data/AntennaeBand7/' + \
+                      'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
+                    'macCalDataPath': \
+                        '/Volumes/elric/benchmark_raw_data/AntennaeBand7/' + \
                         'Antennae_Band7_CalibratedData.tgz'}
 
 #CASA 3.4
@@ -381,11 +473,17 @@ AntennaeBand7_34 = {'calibrationURL': \
                         'https://almascience.nrao.edu/almadata/sciver/' + \
                         'AntennaeBand7/' + \
                         'Antennae_Band7_CalibratedData.tgz', \
-                    'uncalDataPath': \
+                    'lustreUncalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
                       'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
-                    'calDataPath': \
+                    'lustreCalDataPath': \
                         '/lustre/naasc/SV/AntennaeBand7/' + \
+                        'Antennae_Band7_CalibratedData.tgz', \
+                    'macUncalDataPath': \
+                        '/Volumes/elric/benchmark_raw_data/AntennaeBand7/' + \
+                      'Antennae_Band7_UnCalibratedMSandTablesForReduction.tgz', \
+                    'macCalDataPath': \
+                        '/Volumes/elric/benchmark_raw_data/AntennaeBand7/' + \
                         'Antennae_Band7_CalibratedData.tgz'}
 ##=============================================================================##
 
@@ -403,11 +501,17 @@ IRASBand9_43 = {'calibrationURL': \
                 'calDataURL': \
                     'https://almascience.nrao.edu/almadata/sciver/' + \
                     'IRAS16293B9/IRAS16293_Band9_CalibratedMS_FIXED.tgz', \
-                'uncalDataPath': \
+                'lustreUncalDataPath': \
                     '/lustre/naasc/SV/IRAS16293B9/' + \
                     'IRAS16293_Band9_UnCalibratedMS.tgz', \
-                'calDataPath': \
+                'lustreCalDataPath': \
                     '/lustre/naasc/SV/IRAS16293B9/' + \
+                    'IRAS16293_Band9_CalibratedMS_FIXED.tgz', \
+                'macUncalDataPath': \
+                    '/Volumes/elric/benchmark_raw_data/IRAS16293Band9/' + \
+                    'IRAS16293_Band9_UnCalibratedMS.tgz', \
+                'macCalDataPath': \
+                    '/Volumes/elric/benchmark_raw_data/IRAS16293Band9/' + \
                     'IRAS16293_Band9_CalibratedMS_FIXED.tgz'}
 
 #CASA 4.2
@@ -423,11 +527,17 @@ IRASBand9_42 = {'calibrationURL': \
                 'calDataURL': \
                     'https://almascience.nrao.edu/almadata/sciver/' + \
                     'IRAS16293B9/IRAS16293_Band9_CalibratedMS_FIXED.tgz', \
-                'uncalDataPath': \
+                'lustreUncalDataPath': \
                     '/lustre/naasc/SV/IRAS16293B9/' + \
                     'IRAS16293_Band9_UnCalibratedMS.tgz', \
-                'calDataPath': \
+                'lustreCalDataPath': \
                     '/lustre/naasc/SV/IRAS16293B9/' + \
+                    'IRAS16293_Band9_CalibratedMS_FIXED.tgz', \
+                'macUncalDataPath': \
+                    '/Volumes/elric/benchmark_raw_data/IRAS16293Band9/' + \
+                    'IRAS16293_Band9_UnCalibratedMS.tgz', \
+                'macCalDataPath': \
+                    '/Volumes/elric/benchmark_raw_data/IRAS16293Band9/' + \
                     'IRAS16293_Band9_CalibratedMS_FIXED.tgz'}
 
 #CASA 4.0
@@ -443,11 +553,17 @@ IRASBand9_40 = {'calibrationURL': \
                 'calDataURL': \
                     'https://almascience.nrao.edu/almadata/sciver/' + \
                     'IRAS16293B9/IRAS16293_Band9_CalibratedMS_FIXED.tgz', \
-                'uncalDataPath': \
+                'lustreUncalDataPath': \
                     '/lustre/naasc/SV/IRAS16293B9/' + \
                     'IRAS16293_Band9_UnCalibratedMS.tgz', \
-                'calDataPath': \
+                'lustreCalDataPath': \
                     '/lustre/naasc/SV/IRAS16293B9/' + \
+                    'IRAS16293_Band9_CalibratedMS_FIXED.tgz', \
+                'macUncalDataPath': \
+                    '/Volumes/elric/benchmark_raw_data/IRAS16293Band9/' + \
+                    'IRAS16293_Band9_UnCalibratedMS.tgz', \
+                'macCalDataPath': \
+                    '/Volumes/elric/benchmark_raw_data/IRAS16293Band9/' + \
                     'IRAS16293_Band9_CalibratedMS_FIXED.tgz'}
 ##=============================================================================##
 
@@ -464,10 +580,14 @@ x2011_0_00367_S_33 = {'calibrationURL': \
                           None, \
                       'calDataURL': \
                           None, \
-                      'uncalDataPath': \
+                      'lustreUncalDataPath': \
                           '/export/lustre/jcrossle/benchmark/data/' + \
                           '2011.0.00367.S.tgz', \
-                      'calDatahPath': \
+                      'lustreCalDataPath': \
+                          None, \
+                      'macUncalDataPath': \
+                          None, \
+                      'macCalDataPath': \
                           None}
 ##=============================================================================##
 
@@ -485,12 +605,16 @@ M100Band3_33 = {'calibrationURL': \
                 'calDataURL': \
                     'https://almascience.nrao.edu/almadata/sciver/M100Band3/' + \
                     'M100_Band3_CalibratedData.tgz', \
-                'uncalDataPath': \
+                'lustreUncalDataPath': \
                     '/lustre/naasc/SV/M100Band3' + \
                     'M100_Band3_UnCalibratedMSAndTablesForReduction.tgz', \
-                'calDataPath': \
+                'lustreCalDataPath': \
                     '/lustre/naasc/SV/M100Band3' + \
-                    'M100_Band3_CalibratedData.tgz'}
+                    'M100_Band3_CalibratedData.tgz', \
+                'macUncalDataPath': \
+                    None, \
+                'macCalDataPath': \
+                    None}
 ##=============================================================================##
 
 ##SgrA Band 6##
@@ -507,10 +631,14 @@ SgrABand6_33 = {'calibrationURL': \
                 'calDataURL': \
                     'https://almascience.nrao.edu/almadata/sciver/SgrABand6/' + \
                     'SgrA_Band6_CalibratedData.tgz', \
-                'uncalDataPath': \
+                'lustreUncalDataPath': \
                     '/lustre/naasc/SV/SgrABand6/' + \
                     'SgrA_Band6_UnCalibratedMSAndTablesForReduction.tgz', \
-                'calDataPath': \
+                'lustreCalDataPath': \
                     '/lustre/naasc/SV/SgrABand6/' + \
-                    'SgrA_Band6_CalibratedData.tgz'}
+                    'SgrA_Band6_CalibratedData.tgz', \
+                'macUncalDataPath': \
+                    None, \
+                'macCalDataPath': \
+                    None}
 ##=============================================================================##
