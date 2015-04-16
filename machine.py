@@ -408,3 +408,4 @@ class machine:
 
                 if cleanUp:
                     b.emptyCurrentRedDir()
+                    b.removeTarDir()

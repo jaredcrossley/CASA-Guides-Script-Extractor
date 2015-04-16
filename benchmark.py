@@ -38,6 +38,7 @@ class benchmark:
     writeToDaELog
     useOtherBmarkScripts
     emptyCurrentRedDir
+    removeTarDir
 
     Instance Variables
     ------------------
@@ -1053,3 +1054,41 @@ class benchmark:
                                      os.path.basename(self.imageBenchOutFile)
             self.imageBenchSumm = self.currentLogDir + \
                                   os.path.basename(self.imageBenchSumm)
+
+    def removeTarDir(self):
+        """Removes the current tar file directory.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        The intention is to use this once a benchmark execution is complete so
+        that disk space can be conserved, but this can technically be run
+        anytime after the downloadData method is run. This uses shutil.rmtree so
+        it should be as platform-independent as that module. The entire
+        "tarballs" directory is removed and associated attributes are changed
+        to empty strings. Those attributes are uncalLocalTar, calLocalTar and
+        currentTarDir.
+        """
+        #for telling where printed messages originate from
+        fullFuncName = __name__ + '::removeTarDir'
+        indent = len(fullFuncName) + 2
+
+        #check tar directory exists
+        if self.currentTarDir == '':
+            raise ValueError('Path to current tar directory is an empty ' + \
+                             'string, removeTarDir might have already ' + \
+                             'been executed.')
+        if not os.path.isdir(self.currentTarDir):
+            raise ValueError('Current tar directory does not exist, ' + \
+                             'something might have gone wrong or ' + \
+                             'createDirTree was not executed.')
+
+        #remove directory and reset attributes as necessary
+        shutil.rmtree(self.currentTarDir)
+        self.currentTarDir = ''
+        if not self.skipDownload:
+            self.uncalLocalTar = ''
+            self.calLocalTar = ''
