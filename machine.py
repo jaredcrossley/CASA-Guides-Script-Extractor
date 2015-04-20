@@ -124,7 +124,7 @@ class machine:
 
     def __init__(self, CASAglobals=None, scriptDir='', dataSets=list(), \
                  nIters=list(), skipDownloads=list(), steps=list(), \
-                 workDir='./'):
+                 scriptsSources=list(), workDir='./'):
         """Prepares all machine instance variables for all the other methods.
 
         Returns
@@ -161,6 +161,12 @@ class machine:
            List of strings specifying which stage (calibration, imaging or both)
            each set of iterations should run. Accepted values are 'cal', 'im' or
            'both'.
+
+        scriptsSources : list
+           List of strings specifying where to extract calibration and/or imaging
+           script(s) from. Accepted values are 'web' or 'disk' for extracting the
+           CASA commands from a web-source or from a file saved on disk,
+           respectively.
 
         workDir : str
            Absolute path to directory where all benchmarking will run. A separate
@@ -283,6 +289,9 @@ class machine:
         if len(steps) != len(self.dataSets):
             raise ValueError('steps string list must be of same length as ' + \
                              'dataSets list.')
+        if len(scriptsSources) != len(self.dataSets):
+            raise ValueError('scriptsSources string list must be of same ' + \
+                             'length as dataSets list.')
         for i,dataSet in enumerate(self.dataSets):
             if type(nIters[i]) != int:
                 raise TypeError('nIters must be a list of all integers.')
@@ -291,9 +300,13 @@ class machine:
             if steps[i] != 'cal' and steps[i] != 'im' and steps[i] != 'both':
                 raise ValueError('Elements in steps must be either "cal", ' + \
                                  '"im" or "both".')
+            if scriptsSources[i] != 'web' and scriptsSources[i] != 'disk':
+                raise ValueError('Elements in scriptsSources must be either ' + \
+                                 '"web" or "disk".')
             self.jobs[dataSet]['nIters'] = nIters[i]
             self.jobs[dataSet]['skipDownload'] = skipDownloads[i]
             self.jobs[dataSet]['step'] = steps[i]
+            self.jobs[dataSet]['scriptsSource'] = scriptsSources[i]
 
         #initialize the working directory
         if not os.path.isdir(workDir):
@@ -370,33 +383,45 @@ class machine:
             if self.jobs[dataSet]['skipDownload']:
                 if not self.lustreAccess and 'Darwin' in self.os:
                     if self.jobs[dataSet]['step'] == 'cal':
-                        dataPath = params['macUncalDataPath']
+                        dataPath = params['elric']['uncalData']
                     if self.jobs[dataSet]['step'] == 'im':
-                        dataPath = params['macCalDataPath']
+                        dataPath = params['elric']['calData']
                     if self.jobs[dataSet]['step'] == 'both':
-                        dataPath = params['macUncalDataPath']
+                        dataPath = params['elric']['uncalData']
                 else:
                     if self.jobs[dataSet]['step'] == 'cal':
-                        dataPath = params['lustreUncalDataPath']
+                        dataPath = params['lustre']['uncalData']
                     if self.jobs[dataSet]['step'] == 'im':
-                        dataPath = params['lustreCalDataPath']
+                        dataPath = params['lustre']['calData']
                     if self.jobs[dataSet]['step'] == 'both':
-                        dataPath = params['lustreUncalDataPath']
+                        dataPath = params['lustre']['uncalData']
             else:
                 if self.jobs[dataSet]['step'] == 'cal':
-                    dataPath = params['uncalDataURL']
+                    dataPath = params['online']['uncalData']
                 if self.jobs[dataSet]['step'] == 'im':
-                    dataPath = params['calDataURL']
+                    dataPath = params['online']['calData']
                 if self.jobs[dataSet]['step'] == 'both':
-                    dataPath = params['uncalDataURL']
+                    dataPath = params['online']['uncalData']
+
+            #determine source of scripts
+            if self.jobs[dataSet]['scriptsSource'] == 'web':
+                if not self.lustreAccess and 'Darwin' in self.os:
+                    calSource = params['elric']['calScript']
+                    imSource = params['elric']['imScript']
+                else:
+                    calSource = params['lustre']['calScript']
+                    imSource = params['lustre']['imScript']
+            else:
+                calSource = params['online']['calScript']
+                imSource = params['online']['imScript']
 
             #actually run the benchmarks
             for i in range(self.jobs[dataSet]['nIters']):
                 b = benchmark.benchmark(scriptDir=self.scriptDir, \
                                  workDir=dataSetDir, \
                                  execStep=self.jobs[dataSet]['step'], \
-                                 calSource=params['calibrationURL'], \
-                                 imSource=params['imagingURL'], \
+                                 calSource=calSource, \
+                                 imSource=imSource, \
                                  dataPath=dataPath, \
                                  skipDownload=self.jobs[dataSet]['skipDownload'])
                 self.jobs[dataSet]['benchmarks'].append(b)

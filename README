@@ -76,6 +76,7 @@ dataSets = ['AntennaeBand7_43', 'x2012_1_00912_S_43', 'NGC3256Band3_43']
 nIters = [2, 2, 2]
 skipDownloads = [False, True, False]
 steps = ['cal', 'both', 'im']
+scriptsSources = ['web', 'disk', 'web']
 
 #run benchmarking
 #workDir defaults to current directory here
@@ -84,7 +85,8 @@ multivac = machine.machine(CASAglobals=CASAglobals,
                            dataSets=dataSets,
                            nIters=nIters,
                            skipDownloads=skipDownloads,
-			   steps=steps)
+			   steps=steps,
+			   scriptsSources=scriptsSources)
 multivac.runBenchmarks(cleanUp=True)
 
 #print results to terminal
