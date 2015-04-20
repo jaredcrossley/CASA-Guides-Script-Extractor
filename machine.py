@@ -369,14 +369,26 @@ class machine:
             params = getattr(parameters, dataSet)
             if self.jobs[dataSet]['skipDownload']:
                 if not self.lustreAccess and 'Darwin' in self.os:
-                    uncalDataPath = params['macUncalDataPath']
-                    calDataPath = params['macCalDataPath']
+                    if self.jobs[dataSet]['step'] == 'cal':
+                        dataPath = params['macUncalDataPath']
+                    if self.jobs[dataSet]['step'] == 'im':
+                        dataPath = params['macCalDataPath']
+                    if self.jobs[dataSet]['step'] == 'both':
+                        dataPath = params['macUncalDataPath']
                 else:
-                    uncalDataPath = params['lustreUncalDataPath']
-                    calDataPath = params['lustreCalDataPath']
+                    if self.jobs[dataSet]['step'] == 'cal':
+                        dataPath = params['lustreUncalDataPath']
+                    if self.jobs[dataSet]['step'] == 'im':
+                        dataPath = params['lustreCalDataPath']
+                    if self.jobs[dataSet]['step'] == 'both':
+                        dataPath = params['lustreUncalDataPath']
             else:
-                uncalDataPath = params['uncalDataURL']
-                calDataPath = params['calDataURL']
+                if self.jobs[dataSet]['step'] == 'cal':
+                    dataPath = params['uncalDataURL']
+                if self.jobs[dataSet]['step'] == 'im':
+                    dataPath = params['calDataURL']
+                if self.jobs[dataSet]['step'] == 'both':
+                    dataPath = params['uncalDataURL']
 
             #actually run the benchmarks
             for i in range(self.jobs[dataSet]['nIters']):
@@ -385,8 +397,7 @@ class machine:
                                  execStep=self.jobs[dataSet]['step'], \
                                  calSource=params['calibrationURL'], \
                                  imSource=params['imagingURL'], \
-                                 uncalDataPath=uncalDataPath, \
-                                 calDataPath=calDataPath, \
+                                 dataPath=dataPath, \
                                  skipDownload=self.jobs[dataSet]['skipDownload'])
                 self.jobs[dataSet]['benchmarks'].append(b)
 
@@ -408,4 +419,5 @@ class machine:
 
                 if cleanUp:
                     b.emptyCurrentRedDir()
-                    b.removeTarDir()
+                    if not self.jobs[dataSet]['skipDownload']:
+                        b.removeTarDir()

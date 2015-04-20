@@ -58,20 +58,16 @@ class benchmark:
        URL to CASA guide imaging webpage or path to Python script to extract
        the imaging commands from.
 
-    uncalDataPath : str
-       URL or absolute path to uncalibrated raw CASA guide data and
-       calibration tables.
-
-    calDataPath : str
-       URL or absolute path to calibrated raw CASA guide data and
+    dataPath : str
+       URL or absolute path to uncalibrated or calibrated raw CASA guide data and
        calibration tables.
 
     skipDownload : bool
        Switch to skip downloading the raw data from the web.
 
-    uncalLocalTar : str
-       Absolute path to uncalibrated raw data .tgz file associated with CASA
-       guide.
+    localTar : str
+       Absolute path to uncalibrated or calibrated raw data .tgz file associated
+       with CASA guide.
 
     calLocalTar : str
        Absolute path to calibrated raw data .tgz file associated with CASA
@@ -158,8 +154,7 @@ class benchmark:
     """
 
     def __init__(self, scriptDir='', workDir='./', execStep='both', \
-                 calSource='', imSource='', uncalDataPath='', calDataPath='', \
-                 skipDownload=False):
+                 calSource='', imSource='', dataPath='', skipDownload=False):
         """Prepares all benchmark instance variables for the other methods.
 
         Returns
@@ -188,13 +183,9 @@ class benchmark:
            URL to CASA guide imaging webpage or path to Python script to extract
            the imaging commands from.
 
-        uncalDataPath : str
-           URL or absolute path to uncalibrated raw CASA guide data and
-           calibration tables.
-
-        calDataPath : str
-           URL or absolute path to calibrated raw CASA guide data and
-           calibration tables.
+        dataPath : str
+           URL or absolute path to uncalibrated or calibrated raw CASA guide
+           data and calibration tables.
 
         skipDownload : bool
            Switch to skip downloading the raw data from the web. False means
@@ -242,83 +233,44 @@ class benchmark:
         if execStep != 'cal' and execStep != 'im' and execStep != 'both':
             raise ValueError('execStep must be set to "cal", "im" or "both".')
         self.execStep = execStep
-        if self.execStep == 'cal':
-            if calSource == '':
-                raise ValueError('URL to calibration CASA guide must be given.')
-            if uncalDataPath == '':
-                raise ValueError('A URL or path must be given pointing to ' + \
-                                 'the uncalibrated raw data.')
-        if self.execStep == 'im':
-            if imSource == '':
-                raise ValueError('URL to imaging CASA guide must be given.')
-            if calDataPath == '':
-                raise ValueError('A URL or path must be given pointing to ' + \
-                                 'the calibrated raw data.')
+        if dataPath == '':
+            raise ValueError('A URL or path must be given pointing to the ' + \
+                             'raw data.')
+        if self.execStep == 'cal' and calSource == '':
+            raise ValueError('URL to calibration CASA guide must be given.')
+        if self.execStep == 'im' and imSource == '':
+            raise ValueError('URL to imaging CASA guide must be given.')
         if self.execStep == 'both':
             if calSource == '' or imSource == '':
                 raise ValueError('URLs to calibration and imaging CASA ' + \
                                  'guides must be given.')
-            if uncalDataPath == '':
-                raise ValueError('A URL or path must be given pointing to ' + \
-                                 'the uncalibrated raw data.')
 
         #other class variable initialization
+        self.dataPath = dataPath
         if self.execStep == 'cal':
             self.calSource = calSource
             self.imSource = ''
-            self.uncalDataPath = uncalDataPath
-            self.calDataPath = ''
         if self.execStep == 'im':
             self.calSource = ''
             self.imSource = imSource
-            self.uncalDataPath = ''
-            self.calDataPath = calDataPath
         if self.execStep == 'both':
             self.calSource = calSource
             self.imSource = imSource
-            self.uncalDataPath = uncalDataPath
-            self.calDataPath = ''
         self.skipDownload = skipDownload
 
         #check tarball exists if skipping download
         if self.skipDownload:
-            if self.execStep == 'cal':
-                if not os.path.isfile(self.uncalDataPath):
-                    raise ValueError('Cannot find uncalibrated local ' + \
-                                     'tarball for extraction. Download may ' + \
-                                     'be required.')
-                self.uncalLocalTar = self.uncalDataPath
-                self.calLocalTar = ''
-            if self.execStep == 'im':
-                if not os.path.isfile(self.calDataPath):
-                    raise ValueError('Cannot find calibrated local tarball ' + \
-                                     'for extraction. Download may be required.')
-                self.uncalLocalTar = ''
-                self.calLocalTar = self.calDataPath
-            if self.execStep == 'both':
-                if not os.path.isfile(self.uncalDataPath):
-                    raise ValueError('Cannot find uncalibrated local ' + \
-                                     'tarball for extraction. Download may ' + \
-                                     'be required.')
-                self.uncalLocalTar = self.uncalDataPath
-                self.calLocalTar = ''
+            if not os.path.isfile(self.dataPath):
+                raise ValueError('Cannot find local tarball for extraction. ' + \
+                                 'Download may be required.')
+            self.localTar = self.dataPath
             print fullFuncName + ':', 'Data available by filesystem.'
-        #check data paths are URLs if downloading data instead
+        #check data path is URL if downloading data instead
         else:
-            self.uncalLocalTar = ''
-            self.calLocalTar = ''
-            if self.execStep == 'cal':
-                if self.uncalDataPath[0:4] != 'http':
-                    raise ValueError("'" + self.uncalDataPath + "' is not a " + \
-                                     'valid URL for downloading the data.')
-            if self.execStep == 'im':
-                if self.calDataPath[0:4] != 'http':
-                    raise ValueError("'" + self.calDataPath + "' is not a " + \
-                                     'valid URL for downloading the data.')
-            if self.execStep == 'both':
-                if self.uncalDataPath[0:4] != 'http':
-                    raise ValueError("'" + self.uncalDataPath + "' is not a " + \
-                                     'valid URL for downloading the data.')
+            self.localTar = ''
+            if self.dataPath[0:4] != 'http':
+                raise ValueError("'" + self.dataPath + "' is not a valid" + \
+                                 "URL for downloading the data.")
 
         #initialize the current benchmark instance directories and files
         self.currentWorkDir = self.workDir + \
@@ -406,10 +358,10 @@ class benchmark:
         Notes
         -----
         This downloads the raw data .tgz file associated with the CASA guide
-        from the web (uncalDataPath or calDataPath) into currentTarDir using
-        curl. Here subprocess.call is used to execute curl so it is not perfectly
-        platform independent but should be fine across Linux and Mac. The curl
-        options used are:
+        from the web (dataPath) into currentTarDir using curl. Here
+        subprocess.call is used to execute curl so it is not perfectly platform
+        independent but should be fine across Linux and Mac. The curl options
+        used are:
         
           curl --silent --insecure --output currentTarDir/basename(dataPath)
         """
@@ -425,17 +377,11 @@ class benchmark:
                              'to download the data.')
 
         #build curl command
-        if self.execStep == 'cal':
-            dataPath = self.uncalDataPath
-        if self.execStep == 'im':
-            dataPath = self.calDataPath
-        if self.execStep == 'both':
-            dataPath = self.uncalDataPath
         curlLoc = subprocess.check_output('which curl', shell=True)
         curlLoc = curlLoc.strip('\n')
         command = curlLoc + ' --silent --insecure --output ' + \
-                  self.currentTarDir + os.path.basename(dataPath) + \
-                  ' ' + dataPath
+                  self.currentTarDir + os.path.basename(self.dataPath) + \
+                  ' ' + self.dataPath
 
         #curl the data
         print fullFuncName + ':', 'Acquiring data by HTTP.\n' + ' '*indent + \
@@ -450,17 +396,7 @@ class benchmark:
         procT = round(time.clock() - procT, 2)
         outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
         self.writeToDaELog(outString)
-
-        #set local tarball paths
-        if self.execStep == 'cal':
-            self.uncalLocalTar = self.currentTarDir + dataPath.split('/')[-1]
-            self.calLocalTar = ''
-        if self.execStep == 'im':
-            self.uncalLocalTar = ''
-            self.calLocalTar = self.currentTarDir + dataPath.split('/')[-1]
-        if self.execStep == 'both':
-            self.uncalLocalTar = self.currentTarDir + dataPath.split('/')[-1]
-            self.calLocalTar = ''
+        self.localTar = self.currentTarDir + os.path.basename(self.dataPath)
 
 
     def extractData(self):
@@ -472,25 +408,18 @@ class benchmark:
 
         Notes
         -----
-        This unpacks the raw data .tgz file in uncalLocalTar or calLocalTar and
-        times the process. It uses the tarfile module so it should be as
-        platform independent as that module is. The unpacked directory goes into
-        currentWorkDir.
+        This unpacks the raw data .tgz file in localTar and times the process.
+        It uses the tarfile module so it should be as platform independent as
+        that module is. The unpacked directory goes into currentWorkDir.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::extractData'
         indent = len(fullFuncName) + 2
 
         #build extraction commands
-        if self.execStep == 'cal':
-            localTar = self.uncalLocalTar
-        if self.execStep == 'im':
-            localTar = self.calLocalTar
-        if self.execStep == 'both':
-            localTar = self.uncalLocalTar
-        command = "tar = tarfile.open('" + localTar + \
-                  "')\ntar.extractall(path='" + self.currentWorkDir + \
-                  "')\ntar.close()"
+        command = "tar = tarfile.open('" + self.localTar + "')\n" + \
+                  "tar.extractall(path='" + self.currentWorkDir + "')\n" + \
+                  "tar.close()"
 
         #untar the raw data
         print fullFuncName + ':', 'Extracting data.\n' + ' '*indent + \
@@ -500,7 +429,7 @@ class benchmark:
         outString += 'Timing command:\n' + command + '\n'
         procT = time.clock()
         wallT = time.time()
-        tar = tarfile.open(localTar)
+        tar = tarfile.open(self.localTar)
         tar.extractall(path=self.currentWorkDir)
         tar.close()
         wallT = round(time.time() - wallT, 2)
@@ -508,7 +437,7 @@ class benchmark:
         outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
         self.writeToDaELog(outString)
         self.currentRedDir = self.currentWorkDir + \
-                             os.path.basename(localTar)[:-4] + '/'
+                             os.path.basename(self.localTar)[:-4] + '/'
 
 
     def makeExtractOpts(self):
@@ -1069,8 +998,7 @@ class benchmark:
         anytime after the downloadData method is run. This uses shutil.rmtree so
         it should be as platform-independent as that module. The entire
         "tarballs" directory is removed and associated attributes are changed
-        to empty strings. Those attributes are uncalLocalTar, calLocalTar and
-        currentTarDir.
+        to empty strings. Those attributes are localTar and currentTarDir.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::removeTarDir'
@@ -1090,5 +1018,4 @@ class benchmark:
         shutil.rmtree(self.currentTarDir)
         self.currentTarDir = ''
         if not self.skipDownload:
-            self.uncalLocalTar = ''
-            self.calLocalTar = ''
+            self.localTar = ''
