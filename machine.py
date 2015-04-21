@@ -404,7 +404,7 @@ class machine:
                     dataPath = params['online']['uncalData']
 
             #determine source of scripts
-            if self.jobs[dataSet]['scriptsSource'] == 'web':
+            if self.jobs[dataSet]['scriptsSource'] == 'disk':
                 if not self.lustreAccess and 'Darwin' in self.os:
                     calSource = params['elric']['calScript']
                     imSource = params['elric']['imScript']
