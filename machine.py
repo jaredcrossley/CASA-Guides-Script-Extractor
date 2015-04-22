@@ -16,13 +16,9 @@ import parameters
 #-need to change class docstring to standard Python style so information isn't
 # redundant but I also still have a record of all the included attributes and
 # methods
-#-change docstrings to prescribe the function or method's effect as a command
-# ("Do this", "Return that"), not as a description; e.g. don't write "Returns
-# the pathname ...", instead write "Return the pathname..."
 
 def makeReport(files):
-    """Gather total times and caluclate the mean and standard deviation from
-    casa_call.summarize_bench output (.summary files).
+    """Caluclate the mean and standard deviation of times from .summary files.
 
     Parameters
     ----------
@@ -36,9 +32,9 @@ def makeReport(files):
 
     Notes
     -----
-    This simply loops over the list in files, searches each for a line starting
-    with 'Total time: ' and grabs the total time from that line. From those times
-    the average and standard deviation are computed.
+    Loop over the list in files, search each for a line starting with
+    'Total time: ' and grab the total time from that line. From those times
+    compute the average and standard deviation.
     """
     times = np.empty(len(files))
     for i,f in enumerate(files):
@@ -57,8 +53,7 @@ def makeReport(files):
 
 
 class machine:
-    """A class associated with a single computer and all of the benchmarking
-    done on it.
+    """A class associated with all benchmarking done on a single computer.
 
     Methods
     -------
@@ -124,7 +119,7 @@ class machine:
     def __init__(self, CASAglobals=None, scriptDir='', dataSets=list(), \
                  nIters=list(), skipDownloads=list(), steps=list(), \
                  scriptsSources=list(), workDir='./'):
-        """Prepares all machine instance variables for all the other methods.
+        """Prepare all machine instance variables for all the other methods.
 
         Returns
         -------
@@ -175,14 +170,14 @@ class machine:
 
         Notes
         -----
-        Initializes all of the machine instance variables so that all of the
+        Initialize all of the machine instance variables so that all of the
         other object methods will operate correctly. This does not mean all of
         the other methods will be successful (since many of them need additional
         information or other methods to be run first) but it means that each
         method will not crash as a result of something not being defined. Checks
         are run on all of the required inputs to make sure the object will be
-        well formed upon return. Also gathers machine specific information
-        (OS, CPU frequency, total physical memory, etc.)
+        well formed upon return. Also, gather machine specific information
+        (OS, CPU frequency, total physical memory, etc.).
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
@@ -320,8 +315,7 @@ class machine:
 
 
     def runBenchmarks(self, cleanUp=False):
-        """Runs all necessary benchmark class methods for each data set the
-        specified number of iterations.
+        """Run all data sets the specified number of iterations with benchmark.
 
         Parameters
         ----------
@@ -336,19 +330,18 @@ class machine:
 
         Notes
         -----
-        This iterates over each data set setup for benchmarking for the
-        associated number of iterations. For each iteration it instantiaes a
-        dedicated benchmark object and stores it in the jobs attribute. benchmark
+        Iterate over each data set setup for benchmarking for the associated
+        number of iterations. For each iteration, instantiate a dedicated
+        benchmark object and store it in the jobs attribute. benchmark
         class methods run are benchmark, createDirTree, downloadData (optional),
         extractData, doScriptExtraction, useOtherBmarkScripts (optional),
-        runGuideScript and removeCurrentRedDir (optional). It makes the data set
-        directories if they are not already present. It also tries to only do
-        the data extraction once:
-          -does the extraction on the first iteration
-          -if the previous benchmark was successful the next iteration runs
-           useOtherBmarkScripts on the previous benchmark instance
-          -if the previous failed then it does the extraction on the next like
-           normal
+        runGuideScript, removeCurrentRedDir (optional) and removeTarDir
+        (optional). Make the data set directories if they are not already
+        present. Also try to only do the data extraction once:
+          -do the extraction on the first iteration
+          -if the previous benchmark was successful, run useOtherBmarkScripts on
+           the previous benchmark instance for the next iteration
+          -if the previous failed then do the extraction for the next like normal
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::runBenchmarks'

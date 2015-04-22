@@ -12,17 +12,12 @@ import urllib2
 #library specific imports
 import extractCASAscript
 
-#-all methods should probably return something
 #-need to change class docstring to standard Python style so information isn't
 # redundant but I also still have a record of all the included attributes and
 # methods
-#-change docstrings to prescribe the function or method's effect as a command
-# ("Do this", "Return that"), not as a description; e.g. don't write "Returns
-# the pathname ...", instead write "Return the pathname..."
 
 class benchmark:
-    """A class for the execution of a single CASA guide on a single machine for
-    benchmark testing and timing.
+    """A class for running a single CASA guide for benchmark testing and timing.
 
     Methods
     -------
@@ -150,7 +145,7 @@ class benchmark:
 
     def __init__(self, scriptDir='', workDir='./', execStep='both', \
                  calSource='', imSource='', dataPath='', skipDownload=False):
-        """Prepares all benchmark instance variables for the other methods.
+        """Prepare all benchmark instance variables for the other methods.
 
         Returns
         -------
@@ -189,7 +184,7 @@ class benchmark:
 
         Notes
         -----
-        Initializes all of the benchmark instance variables so that all of the
+        Initialize all of the benchmark instance variables so that all of the
         other object methods will operate correctly. This does not mean all of
         the other methods will be successful (since many of them need additional
         information or other methods to be run first) but it means that each
@@ -304,7 +299,7 @@ class benchmark:
 
 
     def createDirTree(self):
-        """Creates the directory structure associated with this benchmark.
+        """Create the directory structure associated with this benchmark.
 
         Returns
         -------
@@ -312,9 +307,9 @@ class benchmark:
 
         Notes
         -----
-        This creates currentWorkDir, currentLogDir, currentTarDir if the raw
-        data will be downloaded and allLogDir for workDir if it has not been
-        created already. Those directories are structured as:
+        Create currentWorkDir, currentLogDir, currentTarDir if the raw data will
+        be downloaded and allLogDir for workDir if it has not been created
+        already. Those directories are structured as:
             |-- currentWorkDir/
             |   |-- currentTarDir/
             |   |-- currentLogDir/
@@ -344,7 +339,7 @@ class benchmark:
 
 
     def downloadData(self):
-        """Downloads raw data .tgz file from the web.
+        """Download raw data .tgz file from the web.
 
         Returns
         -------
@@ -352,11 +347,10 @@ class benchmark:
 
         Notes
         -----
-        This downloads the raw data .tgz file associated with the CASA guide
-        from the web (dataPath) into currentTarDir using curl. Here
-        subprocess.call is used to execute curl so it is not perfectly platform
-        independent but should be fine across Linux and Mac. The curl options
-        used are:
+        Download the raw data .tgz file associated with the CASA guide from the
+        web (dataPath) into currentTarDir using curl. subprocess.call is used to
+        execute curl so it is not perfectly platform independent but should be
+        fine across Linux and Mac. curl options used are:
         
           curl --silent --insecure --output currentTarDir/basename(dataPath)
         """
@@ -395,7 +389,7 @@ class benchmark:
 
 
     def extractData(self):
-        """Unpacks the raw data .tgz file into the current benchmark directory.
+        """Unpack the raw data .tgz file into the current benchmark directory.
 
         Returns
         -------
@@ -403,9 +397,9 @@ class benchmark:
 
         Notes
         -----
-        This unpacks the raw data .tgz file in localTar and times the process.
-        It uses the tarfile module so it should be as platform independent as
-        that module is. The unpacked directory goes into currentWorkDir.
+        Unpack the raw data .tgz file in localTar and time the process. Uses the
+        tarfile module so it should be as platform independent as that module is.
+        The unpacked directory goes into currentWorkDir.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::extractData'
@@ -436,7 +430,7 @@ class benchmark:
 
 
     def _makeExtractOpts(self):
-        """Allows calling extractCASAscript.main directly.
+        """Return options object for calling extractCASAscript.main directly.
 
         Returns
         -------
@@ -444,7 +438,7 @@ class benchmark:
 
         Notes
         -----
-        Returns an options object from optparse.OptionParser.parse_args to feed
+        Return an options object from optparse.OptionParser.parse_args to feed
         into extractCASAscript.main since that script is originally intended to
         be run from the command line. Only really intended for giving access to
         extractCASAscript so it should almost be treated as a private method
@@ -471,7 +465,7 @@ class benchmark:
 
 
     def runextractCASAscript(self, url):
-        """Calls extractCASAscript.main on given url to make CASA script.
+        """Call extractCASAscript.main on given url to make CASA script.
 
         Parameters
         ----------
@@ -484,11 +478,11 @@ class benchmark:
 
         Notes
         -----
-        This runs extractCASAscript.main on the given url to make scripts from
-        the associated CASA guide. Tries running the extraction 3 times, handling
-        urllib2.HTTPError exceptions. If an attempt fails then it waits 30
-        seconds and tries again. If it fails all 3 times then it gives up and
-        returns False. Otherwise it returns True.
+        Run extractCASAscript.main on the given url to make scripts from the
+        associated CASA guide. Try running the extraction 3 times, handling
+        urllib2.HTTPError exceptions. If an attempt fails then wait 30 seconds
+        and try again. If it fails all 3 times then give up and return False.
+        Otherwise return True.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::runextractCASAscript'
@@ -513,8 +507,7 @@ class benchmark:
 
 
     def doScriptExtraction(self):
-        """Runs the script extractor for the calibration and/or imaging script
-        and arranges all of the associated details.
+        """Run the script extractor and arrange all of the associated details.
 
         Returns
         -------
@@ -522,10 +515,10 @@ class benchmark:
 
         Notes
         -----
-        This ensures the extraction output is logged, runs the script extraction
-        and fills out all of the associated attributes. Scripts are made from
-        calSource and/or imSource and are put into currentRedDir. This will also
-        write listTasksOut to extractLog.
+        Ensure the extraction output is logged, run the script extraction and
+        fill out all of the associated attributes. Scripts are made from
+        calSource and/or imSource and are put into currentRedDir. Also write
+        listTasksOut to extractLog.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::doScriptExtraction'
@@ -638,7 +631,7 @@ class benchmark:
 
 
     def runGuideScripts(self, CASAglobals):
-        """Executes the calibration and/or imaging CASA guide script.
+        """Execute the calibration and/or imaging CASA guide script.
 
         Parameters
         ----------
@@ -653,11 +646,11 @@ class benchmark:
 
         Notes
         -----
-        This runs the calScript and/or imageScript file with execfile, passing
-        in all of the CASA global definitions, depending on the setting of
-        benchmark.execStep. It directs standard out and standard error to
+        Run the calScript and/or imageScript file with execfile, passing in all
+        of the CASA global definitions, depending on the setting of
+        benchmark.execStep. Direct standard out and standard error to
         calScriptLog or imageScriptLog during execution. These are run inside
-        currentRedDir. Lastly, it copies the calScriptLog, calBenchOutFile and
+        currentRedDir. Lastly, cpoy the calScriptLog, calBenchOutFile and
         calBenchSumm files and/or imageScriptLog, imageBenchOutFile and
         imageBenchSumm files to currentLogDir and (sans script logs) to
         allLogDir.
@@ -746,7 +739,7 @@ class benchmark:
 
 
     def writeToDaELog(self, outString):
-        """Writes outString to a text file.
+        """Write outString to a text file.
 
         Parameters
         ----------
@@ -760,7 +753,7 @@ class benchmark:
 
         Notes
         -----
-        This writes messages stored in outString to a text file named
+        Write messages stored in outString to a text file named
         download_and_extract.log in the logDir. These messages are the output
         from timing the raw data download and unpacking.
         """
@@ -773,8 +766,7 @@ class benchmark:
         f.close()
 
     def useOtherBmarkScripts(self, prevBmark):
-        """Sets this benchmark instance up to use extracted scripts from
-        another benchmark object.
+        """Set this benchmark instance to use scripts from another benchmark.
 
         Parameters
         ----------
@@ -788,9 +780,9 @@ class benchmark:
 
         Notes
         -----
-        Copies the extracted scripts, .expected files and extraction log
+        Copy the extracted scripts, .expected files and extraction log
         from another benchmark object to the directory tree associated with
-        this benchmark instance. Also fills out the script related attributes
+        this benchmark instance. Also, fill out the script related attributes
         for this instance. These attributes are: extractLog, calScript,
         calScriptLog, imageScript, imageScriptLog, calScriptExpect,
         imageScriptExpect, calBenchOutFile, calBenchSumm, imageBenchOutFile and
@@ -883,8 +875,7 @@ class benchmark:
 
 
     def emptyCurrentRedDir(self):
-        """Empties out the current reduction directory (except for the
-        calibration and imaging scripts) and reassigns affected attributes.
+        """Empty reduction directory except for scripts.
 
         Returns
         -------
@@ -892,16 +883,16 @@ class benchmark:
 
         Notes
         -----
-        The intention is to use this once a benchmark execution is complete so
-        that disk space can be conserved, but this can technically be run
-        anytime after the extractData method is run. This uses shutil.rmtree so
-        it should be as platform-independent as that module. Everything in the
-        current reduction directory is removed except for the calibration and
-        imaging scripts. After directory is emptied, all attributes associated
-        with removed files are changed to references to the log_files/ directory.
-        Affected attributes are calScriptLog, imageScriptLog, calScriptExpect,
-        imageScriptExpect, calBenchOutFile, calBenchSumm, imageBenchOutFile and
-        imageBenchSumm.
+        Empty everything from the current reduction directory, except for the
+        calibration and/or imaging scripts. After directory is empty, change
+        attributes associated with removed files to references to the log_files/
+        directory. Affected attributes are calScriptLog, imageScriptLog,
+        calScriptExpect, imageScriptExpect, calBenchOutFile, calBenchSumm,
+        imageBenchOutFile and imageBenchSumm. shutil.rmtree is used so it should
+        be as platform-independent as that module. The intention is to use this
+        once a benchmark execution is complete so that disk space can be
+        conserved, but this can technically be run anytime after the extractData
+        method is run.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::emptyCurrentRedDir'
@@ -980,7 +971,7 @@ class benchmark:
                                   os.path.basename(self.imageBenchSumm)
 
     def removeTarDir(self):
-        """Removes the current tar file directory.
+        """Remove the current tar file directory.
 
         Returns
         -------
@@ -988,12 +979,12 @@ class benchmark:
 
         Notes
         -----
-        The intention is to use this once a benchmark execution is complete so
-        that disk space can be conserved, but this can technically be run
-        anytime after the downloadData method is run. This uses shutil.rmtree so
-        it should be as platform-independent as that module. The entire
-        "tarballs" directory is removed and associated attributes are changed
-        to empty strings. Those attributes are localTar and currentTarDir.
+        Remove the entire "tarballs" directory and set associated attributes to
+        empty strings. Those attributes are localTar and currentTarDir.
+        shutil.rmtree is used so it should be as platform-independent as that
+        module. The intention is to use this once a benchmark execution is
+        complete so that disk space can be conserved, but this can technically
+        be run anytime after the downloadData method is run.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::removeTarDir'
