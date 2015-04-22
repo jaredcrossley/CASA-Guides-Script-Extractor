@@ -67,11 +67,10 @@ class machine:
 
     Instance Variables
     ------------------
-    CASAglobals : dict
+    _CASAglobals : dict
         Dictionary returned by Python globals() function within the CASA
-        namespace (environment). Simply pass the return value of the globals()
-        function from within CASA where this class should be instantiated
-        within.
+        namespace (environment). Avoid altering this since it is the namespace
+        that allows us to execfile a script with all of the CASA infrastructure.
 
     dataSets : list
         List of strings containing names of data sets to be benchmarked. Names
@@ -193,15 +192,15 @@ class machine:
         if not CASAglobals:
             raise ValueError('Value returned by globals() function in ' + \
                              'CASA environment must be given.')
-        self.CASAglobals = CASAglobals
+        self._CASAglobals = CASAglobals
 
         #gather details of computer and installed packages
         self.hostName = socket.gethostname()
         self.os = platform.platform()
         self.lustreAccess = os.path.isdir('/lustre/naasc/')
         self.pythonVersion = platform.python_version()
-        self.casaVersion = self.CASAglobals['casadef'].casa_version
-        self.casaRevision = self.CASAglobals['casadef'].subversion_revision
+        self.casaVersion = self._CASAglobals['casadef'].casa_version
+        self.casaRevision = self._CASAglobals['casadef'].subversion_revision
         self.machineLogs = list()
 
         #gather total memory, ncores and CPU frequency
@@ -440,7 +439,7 @@ class machine:
                     b.doScriptExtraction()
                 if b.status == 'failure': continue
 
-                b.runGuideScripts(CASAglobals=self.CASAglobals)
+                b.runGuideScripts(CASAglobals=self._CASAglobals)
 
                 if cleanUp:
                     b.emptyCurrentRedDir()

@@ -13,7 +13,6 @@ import urllib2
 import extractCASAscript
 
 #-all methods should probably return something
-#-figure out Python's version of private and public
 #-need to change class docstring to standard Python style so information isn't
 # redundant but I also still have a record of all the included attributes and
 # methods
@@ -31,7 +30,7 @@ class benchmark:
     createDirTree
     downloadData
     extractData
-    makeExtractOpts
+    _makeExtractOpts
     runextractCASAscript
     doScriptExtraction
     runGuideScripts
@@ -68,10 +67,6 @@ class benchmark:
     localTar : str
        Absolute path to uncalibrated or calibrated raw data .tgz file associated
        with CASA guide.
-
-    calLocalTar : str
-       Absolute path to calibrated raw data .tgz file associated with CASA
-       guide.
 
     extractLog : str
        Absolute path to CASA guide script extractor output.
@@ -440,9 +435,8 @@ class benchmark:
                              os.path.basename(self.localTar)[:-4] + '/'
 
 
-    def makeExtractOpts(self):
-        """Returns optparse.OptionParser.parse_args options so
-        extractCASAscript.main can be called directly.
+    def _makeExtractOpts(self):
+        """Allows calling extractCASAscript.main directly.
 
         Returns
         -------
@@ -452,10 +446,12 @@ class benchmark:
         -----
         Returns an options object from optparse.OptionParser.parse_args to feed
         into extractCASAscript.main since that script is originally intended to
-        be run from the command line.
+        be run from the command line. Only really intended for giving access to
+        extractCASAscript so it should almost be treated as a private method
+        (hence the "_" in the name).
         """
         #for telling where printed messages originate from
-        fullFuncName = __name__ + '::makeExtractOpts'
+        fullFuncName = __name__ + '::_makeExtractOpts'
         indent = len(fullFuncName) + 2
         
         usage = \
@@ -476,7 +472,6 @@ class benchmark:
 
     def runextractCASAscript(self, url):
         """Calls extractCASAscript.main on given url to make CASA script.
-        (should probably be private)
 
         Parameters
         ----------
@@ -502,7 +497,7 @@ class benchmark:
         #try three times at most to extract the script
         for i in range(3):
             try:
-                extractCASAscript.main(url, self.makeExtractOpts())
+                extractCASAscript.main(url, self._makeExtractOpts())
                 return True
             except urllib2.HTTPError, e:
                 if i != 2:
