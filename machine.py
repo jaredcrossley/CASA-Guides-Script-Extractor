@@ -13,9 +13,6 @@ import parameters
 
 #-the sharing and passing around of variables is really a mess between the
 # benchmark and machine classes right now
-#-need to change class docstring to standard Python style so information isn't
-# redundant but I also still have a record of all the included attributes and
-# methods
 
 def makeReport(files):
     """Caluclate the mean and standard deviation of times from .summary files.
@@ -355,7 +352,7 @@ class machine:
                 os.mkdir(dataSetDir)
 
             #fill out machine info log
-            self.machineLogs.append(dataSetDir + 'machine_info.log')
+            self.machineLogs.append(dataSetDir + 'all_logs/machine_info.log')
             if not os.path.isfile(self.machineLogs[-1]):
                 f = open(self.machineLogs[-1], 'w')
                 f.write('==Machine and Software Details==\n')
@@ -415,7 +412,8 @@ class machine:
                                  calSource=calSource, \
                                  imSource=imSource, \
                                  dataPath=dataPath, \
-                                 skipDownload=self.jobs[dataSet]['skipDownload'])
+                                 skipDownload=self.jobs[dataSet]['skipDownload'],
+                                 quiet=True)
                 self.jobs[dataSet]['benchmarks'].append(b)
 
                 b.createDirTree()

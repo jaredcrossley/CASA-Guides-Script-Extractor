@@ -12,10 +12,6 @@ import urllib2
 #library specific imports
 import extractCASAscript
 
-#-need to change class docstring to standard Python style so information isn't
-# redundant but I also still have a record of all the included attributes and
-# methods
-
 class benchmark:
     """A class for running a single CASA guide for benchmark testing and timing.
 
@@ -29,7 +25,7 @@ class benchmark:
     runextractCASAscript
     doScriptExtraction
     runGuideScripts
-    writeToDaELog
+    writeToWrappingLog
     useOtherBmarkScripts
     emptyCurrentRedDir
     removeTarDir
@@ -141,10 +137,20 @@ class benchmark:
        call in __init__. It is written to extractLog just before the first
        script extraction is done. While the output should always be a couple of
        empty sets, it would be useful information if they are ever not empty.
+
+    wrappingLog : str
+       Absolute path to the text file where operations done outside the actual
+       benchmarking are logged. These operations can include downloading the
+       raw data, extracting the data, extracting scripts from CASA guides, etc.
+
+    quiet : bool
+       Switch to determine if status messages are printed to the terminal or not.
+       These messages are always written to benchmark_wrapping.log.
     """
 
     def __init__(self, scriptDir='', workDir='./', execStep='both', \
-                 calSource='', imSource='', dataPath='', skipDownload=False):
+                 calSource='', imSource='', dataPath='', skipDownload=False, \
+                 quiet=False):
         """Prepare all benchmark instance variables for the other methods.
 
         Returns
@@ -181,6 +187,10 @@ class benchmark:
            Switch to skip downloading the raw data from the web. False means
            download the data from the URL provided in parameters.py variable.
            Defaults to False.
+
+        quiet : bool
+           Switch to determine if status messages are printed to the terminal or
+           not. These messages are always written to benchmark_wrapping.log.
 
         Notes
         -----
@@ -247,6 +257,9 @@ class benchmark:
             self.calSource = calSource
             self.imSource = imSource
         self.skipDownload = skipDownload
+        if type(quiet) != bool:
+            raise TypeError('quiet must be a boolean.')
+        self.quiet = quiet
 
         #check tarball exists if skipping download
         if self.skipDownload:
@@ -254,7 +267,8 @@ class benchmark:
                 raise ValueError('Cannot find local tarball for extraction. ' + \
                                  'Download may be required.')
             self.localTar = self.dataPath
-            print fullFuncName + ':', 'Data available by filesystem.'
+            outString = fullFuncName + ': Data available by filesystem.\n'
+            self.writeToWrappingLog(outString)
         #check data path is URL if downloading data instead
         else:
             self.localTar = ''
@@ -267,7 +281,7 @@ class benchmark:
                               time.strftime('%Y_%m_%dT%H_%M_%S') + \
                               '-benchmark/'
         self.currentLogDir = self.currentWorkDir + 'log_files/'
-        self.daeLog = self.currentLogDir + 'download_and_extract.log'
+        self.wrappingLog = self.currentLogDir + 'benchmark_wrapping.log'
         self.currentTarDir = self.currentWorkDir + 'tarballs/'
         self.currentRedDir = ''
         self.allLogDir = self.workDir + 'all_logs/'
@@ -323,8 +337,9 @@ class benchmark:
         if os.path.isdir(self.currentWorkDir) or \
            os.path.isdir(self.currentLogDir) or \
            os.path.isdir(self.currentTarDir):
-            print fullFuncName + ':', 'Current benchmark directories ' + \
-                  'already exist. Skipping directory creation.'
+            outString = fullFuncName + ': Current benchmark directories ' + \
+                        'already exist. Skipping directory creation.\n'
+            self.writeToWrappingLog(outString)
             return
 
         #make directories for current benchmark instance
@@ -373,8 +388,9 @@ class benchmark:
                   ' ' + self.dataPath
 
         #curl the data
-        print fullFuncName + ':', 'Acquiring data by HTTP.\n' + ' '*indent + \
-              'Logging to', self.daeLog + '.'
+        outString = fullFuncName + ': Acquiring data by HTTP.\n' + \
+                    ' '*indent + 'Logging to', self.wrappingLog + '.\n'
+        self.writeToWrappingLog(outString)
         outString = ''
         outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
         outString += 'Timing command:\n' + command + '\n'
@@ -384,7 +400,7 @@ class benchmark:
         wallT = round(time.time() - wallT, 2)
         procT = round(time.clock() - procT, 2)
         outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
-        self.writeToDaELog(outString)
+        self.writeToWrappingLog(outString, quiet=True)
         self.localTar = self.currentTarDir + os.path.basename(self.dataPath)
 
 
@@ -411,8 +427,9 @@ class benchmark:
                   "tar.close()"
 
         #untar the raw data
-        print fullFuncName + ':', 'Extracting data.\n' + ' '*indent + \
-              'Logging to', self.daeLog + '.'
+        outString = fullFuncName + ': Extracting data.\n' + ' '*indent + \
+                    'Logging to', self.wrappingLog + '.\n'
+        self.writeToWrappingLog(outString)
         outString = ''
         outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
         outString += 'Timing command:\n' + command + '\n'
@@ -424,7 +441,7 @@ class benchmark:
         wallT = round(time.time() - wallT, 2)
         procT = round(time.clock() - procT, 2)
         outString += str(wallT) + 'wall ' + str(procT) + 'CPU\n\n'
-        self.writeToDaELog(outString)
+        self.writeToWrappingLog(outString, quiet=True)
         self.currentRedDir = self.currentWorkDir + \
                              os.path.basename(self.localTar)[:-4] + '/'
 
@@ -497,12 +514,15 @@ class benchmark:
                 if i != 2:
                     time.sleep(30)
                 else:
-                    print fullFuncName + ':', 'Ran into urllib2.HTTPError 3 ' + \
-                          'times.\n' + ' '*indent + 'Giving up on ' + \
-                          'extracting a script from ' + url + '.'
-                    print fullFuncName + ':', 'Particular urllib2.HTTPError ' + \
-                          'info:\n' + ' '*indent + 'Code ' + e.code + ': ' + \
-                          e.reason
+                    outString = fullFuncName + ': Ran into ' + \
+                                'urllib2.HTTPError 3 ' + 'times.\n' + \
+                                ' '*indent + 'Giving up on ' + 'extracting ' + \
+                                'a script from ' + url + '.\n'
+                    outString += fullFuncName + ': Particular ' + \
+                                 'urllib2.HTTPError ' + 'info:\n' + \ + \
+                                 ' '*indent + 'Code ' + e.code + ': ' + \
+                                 e.reason + '\n'
+                    self.writeToWrappingLog(outString)
                     return False
 
 
@@ -529,8 +549,9 @@ class benchmark:
         os.chdir(self.currentRedDir)
 
         #set the output to the extraction log
-        print fullFuncName + ':', 'Extracting CASA Guide.\n' + ' '*indent + \
-              'Logging to ' + self.extractLog
+        outString = fullFuncName + ': Extracting CASA Guide.\n' + ' '*indent + \
+                    'Logging to ' + self.extractLog + '.\n'
+        self.writeToWrappingLog(outString)
         outFDsave = os.dup(1)
         errFDsave = os.dup(2)
         extractLogF = open(self.extractLog, 'a')
@@ -563,8 +584,9 @@ class benchmark:
 
         #report failure if extraction didn't work
         if not result:
-            print fullFuncName + ':', 'Setting benchmark.status to ' + \
-                  '"failure" and returning.'
+            outString = fullFuncName + ': Setting benchmark.status to ' + \
+                        '"failure" and returning.\n'
+            self.writeToWrappingLog(outString)
             self.status = 'failure'
             return
 
@@ -690,9 +712,10 @@ class benchmark:
 
         for i in range(len(scripts)):
             #setup logging
-            print fullFuncName + ':', 'Beginning benchmark test of ' + \
-                  scripts[i] + '.\n' + ' '*indent + 'Logging to ' + \
-                  scriptLogs[i] + '.'
+            outString = fullFuncName + ': Beginning benchmark test of ' + \
+                      scripts[i] + '.\n' + ' '*indent + 'Logging to ' + \
+                      scriptLogs[i] + '.\n'
+            self.writeToWrappingLog(outString)
             outFDsave = os.dup(1)
             errFDsave = os.dup(2)
             scriptLogF = open(scriptLogs[i], 'a')
@@ -715,7 +738,8 @@ class benchmark:
             os.close(errFDsave)
             scriptLogF.close()
             CASAglobals['casalog'].setlogfile(origLog)
-            print fullFuncName + ':', 'Finished test of ' + scripts[i]
+            outString = fullFuncName + ': Finished test of ' + scripts[i] + '\n'
+            self.writeToWrappingLog(outString)
 
             #remove anything the script added
             for key in CASAglobals.keys():
@@ -738,14 +762,18 @@ class benchmark:
         os.chdir(oldPWD)
 
 
-    def writeToDaELog(self, outString):
-        """Write outString to a text file.
+    def writeToWrappingLog(self, outString, quiet=self.quiet):
+        """Write outString to a text file named benchmark_wrapping.log.
 
         Parameters
         ----------
         outString : str
-           String containing characters to be written to
-           download_and_extract.log.
+           String containing characters to be written to benchmark_wrapping.log.
+
+        quiet : bool
+           Switch determining if outString should be printed to the terminal.
+           Defaults to the benchmark object's quiet instance variable (set when
+           instantiating the object).
 
         Returns
         -------
@@ -754,16 +782,21 @@ class benchmark:
         Notes
         -----
         Write messages stored in outString to a text file named
-        download_and_extract.log in the logDir. These messages are the output
-        from timing the raw data download and unpacking.
+        benchmark_wrapping.log in the logDir. Optionally print outString to
+        terminal too. These messages are the output from operations such as
+        timing the raw data download and unpacking, extracting scripts from CASA
+        guides, etc.
         """
         #for telling where printed messages originate from
-        fullFuncName = __name__ + '::writeToDaELog'
+        fullFuncName = __name__ + '::writeToWrappingLog'
         indent = len(fullFuncName) + 2
         
-        f = open(self.daeLog, 'a')
+        f = open(self.wrappingLog, 'a')
         f.write(outString)
         f.close()
+
+        if not quiet:
+            print outString
 
     def useOtherBmarkScripts(self, prevBmark):
         """Set this benchmark instance to use scripts from another benchmark.
