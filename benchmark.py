@@ -195,14 +195,15 @@ class benchmark:
         Notes
         -----
         Initialize all of the benchmark instance variables so that all of the
-        other object methods will operate correctly. This does not mean all of
-        the other methods will be successful (since many of them need additional
-        information or other methods to be run first) but it means that each
-        method will not crash as a result of something not being defined. Checks
-        are run on all of the required inputs to make sure the object will be
-        well formed upon return. If an instance variable is not formally defined
-        yet, it is set to an empty string. If this finishes successfully then the
-        status instance variable is set to 'normal'.
+        other object methods will operate correctly and run createDirTree.
+        This does not mean all of the other methods will be successful (since
+        many of them need additional information or other methods to be run
+        first) but it means that each method will not crash as a result of
+        something not being defined. Checks are run on all of the required
+        inputs to make sure the object will be well formed upon return. If an
+        instance variable is not formally defined yet, it is set to an empty
+        string. If this finishes successfully then the status instance variable
+        is set to 'normal'.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::__init__'
@@ -228,6 +229,17 @@ class benchmark:
             raise ValueError('Working directory must be specified as an ' + \
                              'absolute path.')
         self.workDir = workDir
+
+        #initialize the current benchmark instance directories and files
+        self.currentWorkDir = self.workDir + \
+                              time.strftime('%Y_%m_%dT%H_%M_%S') + \
+                              '-benchmark/'
+        self.currentLogDir = self.currentWorkDir + 'log_files/'
+        self.wrappingLog = self.currentLogDir + 'benchmark_wrapping.log'
+        self.currentTarDir = self.currentWorkDir + 'tarballs/'
+        self.currentRedDir = ''
+        self.allLogDir = self.workDir + 'all_logs/'
+        self.extractLog = self.currentLogDir + 'extractCASAscript.py.log'
 
         #check other necessary parameters were specified
         if execStep != 'cal' and execStep != 'im' and execStep != 'both':
@@ -267,8 +279,6 @@ class benchmark:
                 raise ValueError('Cannot find local tarball for extraction. ' + \
                                  'Download may be required.')
             self.localTar = self.dataPath
-            outString = fullFuncName + ': Data available by filesystem.\n'
-            self.writeToWrappingLog(outString)
         #check data path is URL if downloading data instead
         else:
             self.localTar = ''
@@ -276,16 +286,11 @@ class benchmark:
                 raise ValueError("'" + self.dataPath + "' is not a valid" + \
                                  "URL for downloading the data.")
 
-        #initialize the current benchmark instance directories and files
-        self.currentWorkDir = self.workDir + \
-                              time.strftime('%Y_%m_%dT%H_%M_%S') + \
-                              '-benchmark/'
-        self.currentLogDir = self.currentWorkDir + 'log_files/'
-        self.wrappingLog = self.currentLogDir + 'benchmark_wrapping.log'
-        self.currentTarDir = self.currentWorkDir + 'tarballs/'
-        self.currentRedDir = ''
-        self.allLogDir = self.workDir + 'all_logs/'
-        self.extractLog = self.currentLogDir + 'extractCASAscript.py.log'
+        #create directory tree so writeToWrappingLog can be used
+        self.createDirTree()
+        if self.skipDownload:
+            outString = fullFuncName + ': Data available by filesystem.'
+            self.writeToWrappingLog(outString, quiet=self.quiet)
 
         #strings that can be filled out by later methods
         self.calScript = ''
@@ -338,8 +343,8 @@ class benchmark:
            os.path.isdir(self.currentLogDir) or \
            os.path.isdir(self.currentTarDir):
             outString = fullFuncName + ': Current benchmark directories ' + \
-                        'already exist. Skipping directory creation.\n'
-            self.writeToWrappingLog(outString)
+                        'already exist. Skipping directory creation.'
+            self.writeToWrappingLog(outString, quiet=self.quiet)
             return
 
         #make directories for current benchmark instance
@@ -389,8 +394,8 @@ class benchmark:
 
         #curl the data
         outString = fullFuncName + ': Acquiring data by HTTP.\n' + \
-                    ' '*indent + 'Logging to', self.wrappingLog + '.\n'
-        self.writeToWrappingLog(outString)
+                    ' '*indent + 'Logging to ' + self.wrappingLog + '.'
+        self.writeToWrappingLog(outString, quiet=self.quiet)
         outString = ''
         outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
         outString += 'Timing command:\n' + command + '\n'
@@ -428,8 +433,8 @@ class benchmark:
 
         #untar the raw data
         outString = fullFuncName + ': Extracting data.\n' + ' '*indent + \
-                    'Logging to', self.wrappingLog + '.\n'
-        self.writeToWrappingLog(outString)
+                    'Logging to ' + self.wrappingLog + '.'
+        self.writeToWrappingLog(outString, quiet=self.quiet)
         outString = ''
         outString += time.strftime('%a %b %d %H:%M:%S %Z %Y') + '\n'
         outString += 'Timing command:\n' + command + '\n'
@@ -519,10 +524,10 @@ class benchmark:
                                 ' '*indent + 'Giving up on ' + 'extracting ' + \
                                 'a script from ' + url + '.\n'
                     outString += fullFuncName + ': Particular ' + \
-                                 'urllib2.HTTPError ' + 'info:\n' + \ + \
+                                 'urllib2.HTTPError ' + 'info:\n' + \
                                  ' '*indent + 'Code ' + e.code + ': ' + \
-                                 e.reason + '\n'
-                    self.writeToWrappingLog(outString)
+                                 e.reason
+                    self.writeToWrappingLog(outString, quiet=self.quiet)
                     return False
 
 
@@ -550,8 +555,8 @@ class benchmark:
 
         #set the output to the extraction log
         outString = fullFuncName + ': Extracting CASA Guide.\n' + ' '*indent + \
-                    'Logging to ' + self.extractLog + '.\n'
-        self.writeToWrappingLog(outString)
+                    'Logging to ' + self.extractLog + '.'
+        self.writeToWrappingLog(outString, quiet=self.quiet)
         outFDsave = os.dup(1)
         errFDsave = os.dup(2)
         extractLogF = open(self.extractLog, 'a')
@@ -585,8 +590,8 @@ class benchmark:
         #report failure if extraction didn't work
         if not result:
             outString = fullFuncName + ': Setting benchmark.status to ' + \
-                        '"failure" and returning.\n'
-            self.writeToWrappingLog(outString)
+                        '"failure" and returning.'
+            self.writeToWrappingLog(outString, quiet=self.quiet)
             self.status = 'failure'
             return
 
@@ -713,9 +718,9 @@ class benchmark:
         for i in range(len(scripts)):
             #setup logging
             outString = fullFuncName + ': Beginning benchmark test of ' + \
-                      scripts[i] + '.\n' + ' '*indent + 'Logging to ' + \
-                      scriptLogs[i] + '.\n'
-            self.writeToWrappingLog(outString)
+                        scripts[i] + '.\n' + ' '*indent + 'Logging to ' + \
+                        scriptLogs[i] + '.'
+            self.writeToWrappingLog(outString, quiet=self.quiet)
             outFDsave = os.dup(1)
             errFDsave = os.dup(2)
             scriptLogF = open(scriptLogs[i], 'a')
@@ -738,8 +743,8 @@ class benchmark:
             os.close(errFDsave)
             scriptLogF.close()
             CASAglobals['casalog'].setlogfile(origLog)
-            outString = fullFuncName + ': Finished test of ' + scripts[i] + '\n'
-            self.writeToWrappingLog(outString)
+            outString = fullFuncName + ': Finished test of ' + scripts[i]
+            self.writeToWrappingLog(outString, quiet=self.quiet)
 
             #remove anything the script added
             for key in CASAglobals.keys():
@@ -762,7 +767,7 @@ class benchmark:
         os.chdir(oldPWD)
 
 
-    def writeToWrappingLog(self, outString, quiet=self.quiet):
+    def writeToWrappingLog(self, outString, quiet):
         """Write outString to a text file named benchmark_wrapping.log.
 
         Parameters
@@ -772,8 +777,6 @@ class benchmark:
 
         quiet : bool
            Switch determining if outString should be printed to the terminal.
-           Defaults to the benchmark object's quiet instance variable (set when
-           instantiating the object).
 
         Returns
         -------
@@ -792,7 +795,7 @@ class benchmark:
         indent = len(fullFuncName) + 2
         
         f = open(self.wrappingLog, 'a')
-        f.write(outString)
+        f.write(outString+'\n')
         f.close()
 
         if not quiet:

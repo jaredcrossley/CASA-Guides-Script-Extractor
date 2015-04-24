@@ -1,5 +1,4 @@
 #standard library imports
-import copy
 import numpy as np
 import os
 import platform
@@ -56,66 +55,78 @@ class machine:
     -------
     __init__
     runBenchmarks
+    writeToWrappingLog
 
     Instance Variables
     ------------------
     _CASAglobals : dict
-        Dictionary returned by Python globals() function within the CASA
-        namespace (environment). Avoid altering this since it is the namespace
-        that allows us to execfile a script with all of the CASA infrastructure.
+       Dictionary returned by Python globals() function within the CASA
+       namespace (environment). Avoid altering this since it is the namespace
+       that allows us to execfile a script with all of the CASA infrastructure.
 
     dataSets : list
-        List of strings containing names of data sets to be benchmarked. Names
-        must match the dictionary variable names in parameters.py.
+       List of strings containing names of data sets to be benchmarked. Names
+       must match the dictionary variable names in parameters.py.
 
     jobs: dict
-        Container for each benchmark instance to be run on this machine along
-        with information on whether to download the raw data, the number of
-        benchmarking iterations desired and which step(s) (cal, im or both) to
-        run.
+       Container for each benchmark instance to be run on this machine along
+       with information on whether to download the raw data, the number of
+       benchmarking iterations desired and which step(s) (cal, im or both) to
+       run.
 
     workDir : str
-        Absolute path to directory where all benchmarking will run. A separate
-        directory for each data set will be created here and each benchmark
-        iteration will be contained in a dedicated directory below that.
+       Absolute path to directory where all benchmarking will run. A separate
+       directory for each data set will be created here and each benchmark
+       iteration will be contained in a dedicated directory below that.
 
-        hostName : str
-        Name of the computer this class is associated with.
+    hostName : str
+       Name of the computer this class is associated with.
 
     os : str
-        Description of underlying platform associated to hostName.
+       Description of underlying platform associated to hostName.
 
     lustreAccess : bool
-        Determines whether this computer has access to the /lustre/naasc/
-        filesystem (it is hard-coded to simply check for the existence of that
-        directory).
+       Determines whether this computer has access to the /lustre/naasc/
+       filesystem (it is hard-coded to simply check for the existence of that
+       directory).
 
     pythonVersion : str
-        major.minor.patchlevel version number for currently running Python.
+       major.minor.patchlevel version number for currently running Python.
 
     casaVersion : str
-        Version number for currently running CASA.
+       Version number for currently running CASA.
 
     casaRevision : str
-        Revision number for currently running CASA.
+       Revision number for currently running CASA.
 
     machineLogs : list
-        List of strings of absolute paths to text files containing machine
-        information.
+       List of strings of absolute paths to text files containing machine
+       information. Will be called machine_info.log and will be stored in the
+       data set directories.
 
     totalMemBytes : float
-        Total number of physical bytes of memory (RAM) available on the machine.
+       Total number of physical bytes of memory (RAM) available on the machine.
 
     nCores : int
-        Total number of physical cores available on the machine.
+       Total number of physical cores available on the machine.
 
     cpuFreqMHz : float
-        Processor frequency in MHz.
+       Processor frequency in MHz.
+
+    wrappingLogs : list
+       Absolute paths to text files where status reporting are written. This
+       includes starting data set benchmarking and index of iteration executing.
+       Will be called machine_wrapping.log and will be stored in the data set
+       directories.
+
+    quiet : bool
+       Switch to determine if status messages are printed to the terminal or not.
+       These messages are always written to machine_wrapping.log.
     """
 
     def __init__(self, CASAglobals=None, scriptDir='', dataSets=list(), \
                  nIters=list(), skipDownloads=list(), steps=list(), \
-                 scriptsSources=list(), workDir='./'):
+                 scriptsSources=list(), workDir='./', quiet=False):
         """Prepare all machine instance variables for all the other methods.
 
         Returns
@@ -165,6 +176,10 @@ class machine:
            iteration will be contained in a dedicated directory below that.
            Defaults to current directory.
 
+        quiet : bool
+           Switch to determine if status messages are printed to the terminal or
+           not. These messages are always written to machine_wrapping.log.
+
         Notes
         -----
         Initialize all of the machine instance variables so that all of the
@@ -194,6 +209,7 @@ class machine:
         self.casaVersion = self._CASAglobals['casadef'].casa_version
         self.casaRevision = self._CASAglobals['casadef'].subversion_revision
         self.machineLogs = list()
+        self.wrappingLogs = list()
 
         #gather total memory, ncores and CPU frequency
         if 'Darwin' in self.os:
@@ -310,6 +326,11 @@ class machine:
                              'absolute path.')
         self.workDir = workDir
 
+        #initialize quiet variable
+        if type(quiet) != bool:
+            raise TypeError('quiet must be a boolean.')
+        self.quiet = quiet
+
 
     def runBenchmarks(self, cleanUp=False):
         """Run all data sets the specified number of iterations with benchmark.
@@ -330,11 +351,11 @@ class machine:
         Iterate over each data set setup for benchmarking for the associated
         number of iterations. For each iteration, instantiate a dedicated
         benchmark object and store it in the jobs attribute. benchmark
-        class methods run are benchmark, createDirTree, downloadData (optional),
-        extractData, doScriptExtraction, useOtherBmarkScripts (optional),
-        runGuideScript, removeCurrentRedDir (optional) and removeTarDir
-        (optional). Make the data set directories if they are not already
-        present. Also try to only do the data extraction once:
+        class methods run are benchmark, downloadData (optional), extractData,
+        doScriptExtraction, useOtherBmarkScripts (optional), runGuideScript,
+        removeCurrentRedDir (optional) and removeTarDir (optional). Make the data
+        set directories if they are not already present. Also try to only do the
+        data extraction once:
           -do the extraction on the first iteration
           -if the previous benchmark was successful, run useOtherBmarkScripts on
            the previous benchmark instance for the next iteration
@@ -351,8 +372,16 @@ class machine:
             if not os.path.isdir(dataSetDir):
                 os.mkdir(dataSetDir)
 
+            #setup machine_wrapping logs
+            self.wrappingLogs.append(dataSetDir + 'machine_wrapping.log')
+            outString = fullFuncName + ': Beginning benchmark test(s) of ' + \
+                        'data set "' + dataSet + '".\n' + ' '*indent + \
+                        'Planning to run ' + \
+                        str(self.jobs[dataSet]['nIters']) + ' iterations.'
+            self.writeToWrappingLog(-1, outString, quiet=self.quiet)
+
             #fill out machine info log
-            self.machineLogs.append(dataSetDir + 'all_logs/machine_info.log')
+            self.machineLogs.append(dataSetDir + 'machine_info.log')
             if not os.path.isfile(self.machineLogs[-1]):
                 f = open(self.machineLogs[-1], 'w')
                 f.write('==Machine and Software Details==\n')
@@ -406,6 +435,9 @@ class machine:
 
             #actually run the benchmarks
             for i in range(self.jobs[dataSet]['nIters']):
+                outString = fullFuncName + ': Beginning iteration ' + str(i)
+                self.writeToWrappingLog(-1, outString, quiet=self.quiet)
+
                 b = benchmark.benchmark(scriptDir=self.scriptDir, \
                                  workDir=dataSetDir, \
                                  execStep=self.jobs[dataSet]['step'], \
@@ -415,8 +447,6 @@ class machine:
                                  skipDownload=self.jobs[dataSet]['skipDownload'],
                                  quiet=True)
                 self.jobs[dataSet]['benchmarks'].append(b)
-
-                b.createDirTree()
 
                 if not self.jobs[dataSet]['skipDownload']:
                     b.downloadData()
@@ -436,3 +466,43 @@ class machine:
                     b.emptyCurrentRedDir()
                     if not self.jobs[dataSet]['skipDownload']:
                         b.removeTarDir()
+
+    def writeToWrappingLog(self, ind, outString, quiet):
+        """Write outString to a text file named machine_wrapping.log.
+
+        Parameters
+        ----------
+        ind : int
+           Index specifying which machine_wrapping.log file in wrappingLogs list
+           to write to.
+
+        outString : str
+           String containing characters to be written to machine_wrapping.log.
+
+        quiet : bool
+           Switch determining if outString should be printed to the terminal.
+           Defaults to the benchmark object's quiet instance variable (set when
+           instantiating the object).
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        Write messages stored in outString to a text file named
+        machine_wrapping.log in the data set directory. ind specifies which
+        machine wrapping log to write to from the list in wrappingLogs.
+        Optionally print outString to terminal too. These messages are from
+        starting data set benchmarking and index of iteration executing.
+        """
+        #for telling where printed messages originate from
+        fullFuncName = __name__ + '::writeToWrappingLog'
+        indent = len(fullFuncName) + 2
+
+        f = open(self.wrappingLogs[ind], 'a')
+        f.write(outString+'\n')
+        f.close()
+
+        if not quiet:
+            print outString
