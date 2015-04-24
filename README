@@ -77,6 +77,7 @@ nIters = [2, 2, 2]
 skipDownloads = [False, True, False]
 steps = ['cal', 'both', 'im']
 scriptsSources = ['web', 'disk', 'web']
+quiet = False
 
 #run benchmarking
 #workDir defaults to current directory here
@@ -86,7 +87,8 @@ multivac = machine.machine(CASAglobals=CASAglobals,
                            nIters=nIters,
                            skipDownloads=skipDownloads,
 			   steps=steps,
-			   scriptsSources=scriptsSources)
+			   scriptsSources=scriptsSources,
+			   quiet=quiet)
 multivac.runBenchmarks(cleanUp=True)
 
 #print results to terminal
@@ -128,6 +130,7 @@ uncalDataPath = 'http://fatman.cv.nrao.edu/almadata/sciver/NGC3256/' + \
                 'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'
 calDataPath = 'https://bulk.cv.nrao.edu/almadata/sciver/NGC3256/' + \
               'NGC3256_Band3_CalibratedData_CASA4.tgz'
+quiet = False
 
 #run benchmarking
 #workDir defaults to current directory here
@@ -138,9 +141,8 @@ x = benchmark.benchmark(scriptDir=scriptDir,
                         calSource=calibrationURL,
                         imSource=imagingURL,
                         uncalDataPath=dataPath,
-                        calDataPath=calDataPath)
-
-x.createDirTree()
+                        calDataPath=calDataPath,
+                        quiet=quiet)
 x.downloadData()
 x.extractData()
 x.doScriptExtraction()
