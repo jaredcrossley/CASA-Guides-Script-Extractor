@@ -24,15 +24,15 @@ x2012_1_00912_S_43 = {'online': \
                                None}, \
                       'lustre': \
                           {'calScript': \
-                               '/lustre/naasc/nbrunett/benchmark/' + \
+                               '/lustre/naasc/jcrossle/benchmark/' + \
                                '2012.1.00912.S/430/' + \
                                '2012.1.00912.S_calibration4.3.py', \
                            'imScript': \
-                               '/lustre/naasc/nbrunett/benchmark/' + \
+                               '/lustre/naasc/jcrossle/benchmark/' + \
                                '2012.1.00912.S/430/' + \
                                '2012.1.00912.S_imaging4.3.py', \
                            'uncalData': \
-                               '/lustre/naasc/nbrunett/benchmark/' + \
+                               '/lustre/naasc/jcrossle/benchmark/' + \
                                '2012.1.00912.S/' + \
                                '912_reduction.tgz', \
                            'calData': \
@@ -66,15 +66,15 @@ x2012_1_00912_S_42 = {'online': \
                                None}, \
                       'lustre': \
                           {'calScript': \
-                               '/lustre/naasc/nbrunett/benchmark/' + \
+                               '/lustre/naasc/jcrossle/benchmark/' + \
                                '2012.1.00912.S/422/' + \
                                '2012.1.00912.S_calibration4.2.py', \
                            'imScript': \
-                               '/lustre/naasc/nbrunett/benchmark/' + \
+                               '/lustre/naasc/jcrossle/benchmark/' + \
                                '2012.1.00912.S/422/' + \
                                '2012.1.00912.S_imaging4.2.py', \
                            'uncalData': \
-                               '/lustre/naasc/nbrunett/benchmark/' + \
+                               '/lustre/naasc/jcrossle/benchmark/' + \
                                '2012.1.00912.S/' + \
                                '912_reduction.tgz', \
                            'calData': \
