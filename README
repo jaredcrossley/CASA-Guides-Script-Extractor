@@ -15,7 +15,7 @@ the flow, and following that are some simple examples.
         local copy of the repo is current.
 
 1) Download the repo and put it somewhere the machine you intend to benchmark
-   can access.
+   can access it.
 2) Make a directory where you intend all benchmarking on this machine to take
    place.
 3) Start a Python file which you will use primarily to keep track of the
@@ -36,29 +36,33 @@ the flow, and following that are some simple examples.
        to use will be 'AntennaeBand7_42'
       -see examples below for how to actually set these variables
 7m) Instantiate a machine.machine object with the CASAglobals, scriptDir,
-    dataSets, nIters, skipDownloads, and (optionally) workDir parameters. This
-    should be set to a variable so you can run the other machine class methods.
-8m) Run the runBenchmarks() method optionally setting the cleanUp parameter.
+    dataSets, nIters, skipDownloads, steps, scriptsSources, (optionally) workDir
+    and quiet parameters. This should be caught by a variable so you can run the
+    other machine class methods.
+8m) Run the runBenchmarks() method (optionally) setting the cleanUp parameter.
 9m) Include code to run machine.makeReport on the .summary files from your
     benchmarks. See below for a simple example of this.
 10) Start CASA
       -you can start CASA wherever you like
+      -the automatically generated casapy log is not used so it does not need to
+       be saved
 11) Run execfile on your Python file at the CASA prompt.
 6b) (steps with "b" will be if import benchmark was used) Set variables that,
     for example, specify where the calibration and imaging scripts are located
     (URL to CASA guide allowed), where the raw data can be retrieved (URL
     allowed) etc.
-7b) Instantiate a benchmark.benchmark object with the CASAglobals, scriptDir,
-    calibrationURL, imagingURL, dataPath and (optionally) workDir
-    parameters. This should be set to a variable so you can run the subsequent
+7b) Instantiate a benchmark.benchmark object with the scriptDir, (optionally)
+    workdir, execStep, calSource, imSource, dataPath, skipDownload and quiet
+    parameters. This should be caught by a variable so you can run the subsequent
     benchmark class methods.
       -values from parameters.py can be used here by adding the line
        "import parameters" and then using the different keys within the desired
        dictionary
       -if you plan on not downloading the data then be sure to set
        skipDownload=True here
-8b) Run the createDirTree, (optionally) downloadData, extractData,
-    doScriptExtraction, runGuideScripts and (optionally) emptyCurrRedDir methods.
+8b) Run the (optionally) downloadData, extractData, doScriptExtraction,
+    runGuideScripts, (optionally) emptyCurrRedDir and (optionally) removeTarDir
+    methods.
 
 Examples
 ========
@@ -126,10 +130,8 @@ calibrationURL = 'http://casaguides.nrao.edu/index.php?title=NGC3256_Band3_' + \
                  'Calibration_for_CASA_4.2'
 imagingURL = 'http://casaguides.nrao.edu/index.php?title=NGC3256_Band3_' + \
              'Imaging_for_CASA_4.2'
-uncalDataPath = 'http://fatman.cv.nrao.edu/almadata/sciver/NGC3256/' + \
+uncalDataPath = 'https://almascience.nrao.edu/almadata/sciver/NGC3256/' + \
                 'NGC3256_Band3_UnCalibratedMSandTablesForReduction.tgz'
-calDataPath = 'https://bulk.cv.nrao.edu/almadata/sciver/NGC3256/' + \
-              'NGC3256_Band3_CalibratedData_CASA4.tgz'
 quiet = False
 
 #run benchmarking
@@ -140,14 +142,36 @@ x = benchmark.benchmark(scriptDir=scriptDir,
                         execStep=execStep,
                         calSource=calibrationURL,
                         imSource=imagingURL,
-                        uncalDataPath=dataPath,
-                        calDataPath=calDataPath,
+                        dataPath=uncalDataPath,
                         quiet=quiet)
 x.downloadData()
 x.extractData()
 x.doScriptExtraction()
 x.runGuideScripts(CASAglobals=CASAglobals)
+x.emptyCurrentRedDir()
+x.removeTarDir()
 ###############################################################################
+
+
+New CASA version release
+========================
+Here is a list of items that must be completed whenever a new version of CASA is
+released.
+  -data sets that are simply benchmarked by running their calibration
+   and imaging reduction scripts must have those scripts tested carefully in the
+   new version to make sure no tasks are missing in the newer version
+  -updated scripts must be copied to elric for Mac benchmarking and to Anand's
+   benchmarking directory on lustre
+  -new entries must be made in parameters.py (see "Updating parameters.py" below)
+
+
+Adding new data set
+==================
+Here is a list of items that must be completed whenever a new data set is added
+to the benchmarking list.
+  -if new data sets are stored on lustre they must also be placed on
+   elric for Mac benchmarking
+  -new entries must be made in parameters.py (see "Updating parameters.py" below)
 
 
 Updating parameters.py
@@ -193,144 +217,3 @@ All files included in translated architecture:
   -extractCASAscript.py
   -casa_call.py
   -readcol.py
-
-
-====================================================================
-[original] CASA Guides Script Extractor and Benchmark Test Generator
-====================================================================
-
-This package will extract the Python code from a CASA Guide and write it to
-disk or optionally use the Python code to create a CASA benchmark test.  The
-benchmark test returns a measurement of the total execution time for a CASA
-script and also measurements of the time spent in each CASA task.
-
-To install the package type
-
-  $ make
-
-This will create a dist/ directory.  If you will be benchmark testing, add
-this directory to your shell execution path and to your casapy Python path.
-The casapy Python path can be appended by adding
-
-  sys.path.append('myBenchmarkPath')
- 
-to your casa initialization file, ~/.casa/init.py.
-
-To extract a Python script from a CASA guides web page simply type
-
-  $ ./extractCASAscript.py URL
-  
-where URL is the web address of the CASA Guide.  To create a benchmark test
-from a CASA guide web page or casapy script type
-
-  $ ./extractCASAscript.py -b URLPATH
- 
-where URLPATH is the URL of the CASA guide or the path to the casapy script.
-
-Two bash scripts, benchmark.sh and parameters.sh, are included to automate
-Python extraction and benchmark test execution for several ALMA data sets.  See
-file descriptions below for details. Use 'benchmark -h' to see a list of
-keywords for starting a benchmark test on specific CASA Guides.  A master
-script, doom.sh, invokes all benchmarking scripts sequentially.  Report
-generation scripts produce a nice, neat table showing the benchmark timing data
-for all tests.  report.py collects test data on a give machine; report.sh
-compiles report.py output from multiple machines. report.sh should be setup to
-call the machines you are testing.
-
-Under ideal conditions a benchmarking cycle will involve only these commands:
-
-  $ ./doom.sh 
-  $ ./report.py
-
-To run a single benchmark test:
-
-  $ ./benchmark.sh NGC3256Band3
-
-Here, NGC3256Band3 is a specific key word used to start the lasted version of
-the NGC3256 Band 3 CASA Guide.
-
-To collect benchmarking results for all machines tested, setup report.sh and
-run it.
-
-KNOWN ISSUES
-============
-
-* If analysisUtils is used in the script you are benchmark testing, it must
-  be present in the casapy module search path. To install analysisUtils and 
-  set your module search path see the Analysis Utilities wiki page:
-  http://casaguides.nrao.edu/index.php?title=Analysis_Utilities.
-
-* There is a known bug in CASA that causes iPython to sometimes crash when
-  exiting.  The crash will produce an iPython error message and then hang.  By
-  the time the error is generated the benchmarking script has finished.
-  However, this error will cause casa to hang and thereby hang the benchmarking
-  script.  The workaround is to kill the process that started casapy.
-
-* There is an known bug in CASA that prevents it starting from a shell
-  script on a Mac. Thus, benchmark.sh cannot start casapy to run benchmark tests
-  on a Mac.  (See CASA JIRA ticket CAS-3596.) The workaround is too use
-  benchmark.sh with option -p to prepare the benchmarking test.  Then, enter the
-  dataset directory and start the tests manually using execfile.
-  
-    CASA: execfile('NGC3256Band3CalibrationforCASA4.0.py');
-          execfile('NGC3256Band3ImagingforCASA4.0.py')
-
-FILES
-=====
-
-extractCASAScript.py 
-
-  The script extractor and benchmark test generator.  Invoke with the -h
-  option for details.  Contains a convenience function for updating the list
-  of CASA tasks used when generating benchmark tests.
-
-casa_call.py 
-
-  Module for timing calls to casa tasks; contains a function for printing a
-  summary from the extractCASAScript.py output file.  The scripts output by
-  extractCASAScript.py in benchmark mode require this module.
-  (extractCASAScript.py does not require this module.)
-
-list_all_tasks.py 
-
-  List all CASA tasks. This script can be used to update the list of CASA tasks
-  in extractCASAScript.py.  This will need to be used when new tasks are added
-  to CASA and used in the CASA Guides.
-
-readcol.py 
-
-  A module for reading tables of ASCII data. Imported by casa_call.py.  From
-  http://code.google.com/p/agpy/source/browse/trunk/agpy/readcol.py
-
-benchmark.sh
-
-  Bash script that contains two functions: one for acquiring data and
-  benchmarking data extraction; the other for benchmarking the execution of the
-  casaguide.  (Yes, I am benchmarking the benchmark test!)
- 
-parameters.sh
-
-  Contains input parameters for benchmark testing various CASA Guides.  See
-  'benchmark -h' output for a list of CASA Guide names that have been tested.
-  Other input parameter sets exist but have not been tested.
-
-doom.sh
-
-  The master script that runs all of the CASA Guide benchmark scripts above.
-  Edit this script and set the directory of your source code before running.
-  (One script to rule them all...) Actually, not all scripts above will run
-  under the same version of CASA.  So, in reality this is...  One script to
-  rule them all, but not at the same time...  
-
-report.py
-
-  Python script that generates a table summarizing the timing information in
-  all casa_call.summarize_bench output files. The script optionally takes a
-  glob pattern and operates on all files matched by the pattern. Command
-  line options allow for comma separated variable output.
-
-report.sh
-
-  Bash script that invokes report.py on each host used for benchmarking,
-  in the appropriate directory on each host, sorts all output and sends it to
-  stdout.
