@@ -469,7 +469,7 @@ class benchmark:
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::_makeExtractOpts'
         indent = len(fullFuncName) + 2
-        
+
         usage = \
             ''' %prog [options] URL
                 *URL* should point to a CASA Guide webpage or to a Python
@@ -481,7 +481,7 @@ class benchmark:
                           default=False)
         parser.add_option('-p', '--plotmsoff', action="store_true")
         parser.add_option('-d', '--diagplotoff', action="store_true")
-        (options, args) = parser.parse_args()
+        (options, args) = parser.parse_args(args=list(sys.argv[0]))
         options.benchmark = True
         return options
 
@@ -557,6 +557,7 @@ class benchmark:
         outString = fullFuncName + ': Extracting CASA Guide.\n' + ' '*indent + \
                     'Logging to ' + self.extractLog + '.'
         self.writeToWrappingLog(outString, quiet=self.quiet)
+        sys.stdout.flush()
         outFDsave = os.dup(1)
         errFDsave = os.dup(2)
         extractLogF = open(self.extractLog, 'a')
@@ -565,7 +566,6 @@ class benchmark:
         os.dup2(extractLogFD, 2)
 
         print self.listTasksOut
-        print '\n'
 
         if self.execStep == 'cal':
             result = self.runextractCASAscript(self.calSource)
@@ -574,12 +574,13 @@ class benchmark:
         if self.execStep == 'both':
             result = self.runextractCASAscript(self.calSource)
             if result:
+                print '\n'
+                print '='*80
+                print '\n'
                 result = self.runextractCASAscript(self.imSource)
-        print '\n'
-        print '='*80
-        print '\n'
 
         #change logs back and go back to wherever we were before
+        sys.stdout.flush()
         os.dup2(outFDsave, 1)
         os.close(outFDsave)
         os.dup2(errFDsave, 2)
@@ -721,6 +722,7 @@ class benchmark:
                         scripts[i] + '.\n' + ' '*indent + 'Logging to ' + \
                         scriptLogs[i] + '.'
             self.writeToWrappingLog(outString, quiet=self.quiet)
+            sys.stdout.flush()
             outFDsave = os.dup(1)
             errFDsave = os.dup(2)
             scriptLogF = open(scriptLogs[i], 'a')
@@ -737,6 +739,7 @@ class benchmark:
             execfile(scripts[i], CASAglobals)
 
             #put logs back
+            sys.stdout.flush()
             os.dup2(outFDsave, 1)
             os.close(outFDsave)
             os.dup2(errFDsave, 2)
