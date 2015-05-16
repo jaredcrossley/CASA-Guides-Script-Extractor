@@ -56,6 +56,7 @@ class machine:
     __init__
     runBenchmarks
     writeToWrappingLog
+    _printAndFlush
 
     Instance Variables
     ------------------
@@ -500,5 +501,30 @@ class machine:
         f.close()
 
         if not quiet:
-            print outString
-            sys.stdout.flush()
+            self._printAndFlush(outString)
+
+    def _printAndFlush(self, outString):
+        """Prints and then calls sys.stdout.flush().
+
+        Returns
+        -------
+        None
+
+        Parameters
+        ----------
+        outString : str
+           String to be printed to sys.stdout.
+
+        Notes
+        -----
+        This is a convenience function to make sure that sys.stdout.flush() is
+        always called after a plain print statement. This ensures running
+        benchmarking with Python's subprocess module writes everything to the
+        proper location.
+        """
+        #for telling where printed messages originate from
+        fullFuncName = __name__ + '::_printAndFlush'
+        indent = len(fullFuncName) + 2
+
+        print outString
+        sys.stdout.flush()
