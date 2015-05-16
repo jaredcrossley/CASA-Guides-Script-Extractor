@@ -1063,7 +1063,7 @@ class benchmark:
         proper location.
         """
         #for telling where printed messages originate from
-        fullFuncName = __name__ + '::_makeExtractOpts'
+        fullFuncName = __name__ + '::_printAndFlush'
         indent = len(fullFuncName) + 2
 
         print outString
