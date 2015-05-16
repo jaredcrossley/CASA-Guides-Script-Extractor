@@ -209,6 +209,63 @@ class machine:
         if scriptDir not in sys.path:
             sys.path.append(self.scriptDir)
 
+        #gather details of computer and installed packages
+        self.hostName = socket.gethostname()
+        self.os = platform.platform()
+        self.lustreAccess = os.path.isdir('/lustre/naasc/')
+        self.pythonVersion = platform.python_version()
+        self.casaVersion = self._CASAglobals['casadef'].casa_version
+        self.casaRevision = self._CASAglobals['casadef'].subversion_revision
+
+        #gather total memory, ncores and CPU frequency
+        if 'Darwin' in self.os:
+            out = subprocess.check_output('hostinfo', shell=True)
+            out = out.split('\n')
+            memBytes = [s for s in out if 'Primary memory available:' in s]
+            memBytes = memBytes[0].split(':')
+            memBytes = memBytes[1].strip()
+            memBytes = memBytes.split(' ')
+            unit = memBytes[1]
+            if 'gigabytes' in unit:
+                self.totalMemBytes = float(memBytes[0])*1e9
+            elif 'megabytes' in unit:
+                self.memBtyes = float(memBytes[0])*1e6
+            else:
+                raise ValueError('Memory quanta not recognized from ' + \
+                                 'hostinfo output: \n"', out, '"')
+            nCores = [s for s in out if 'processors are physically available.' \
+                      in s]
+            nCores = nCores[0].split(' ')[0]
+            self.nCores = int(nCores)
+            out = subprocess.check_output('sysctl machdep.cpu.brand_string', \
+                                          shell=True)
+            cpuFreq = out.split('@')
+            cpuFreq = [s for s in cpuFreq if 'Hz' in s]
+            if 'GHz' in cpuFreq[0]:
+                cpuFreq = cpuFreq[0].split('GHz')
+                self.cpuFreqMHz = float(cpuFreq[0].strip())*1e3
+            elif 'MHz' in cpuFreq[0]:
+                cpuFreq = cpuFreq[0].split('MHz')
+                self.cpuFreqMHz = float(cpuFreq[0].strip())*1e3
+            else:
+                raise ValueError('CPU frequency quanta not recognized from ' + \
+                                 'sysctl output: "' + out + '"')
+        else:
+            self.totalMemBytes = \
+                os.sysconf('SC_PAGE_SIZE')*os.sysconf('SC_PHYS_PAGES')
+            out = subprocess.check_output('lscpu', shell=True)
+            out = out.split('\n')
+            coresPsocket = [s for s in out if 'Core(s) per socket:' in s]
+            coresPsocket = coresPsocket[0].split(':')
+            coresPsocket = int(coresPsocket[1].strip())
+            nSockets = [s for s in out if 'Socket(s):' in s]
+            nSockets = nSockets[0].split(':')
+            nSockets = int(nSockets[1].strip())
+            self.nCores = coresPsocket*nSockets
+            cpuFreq = [s for s in out if 'z:' in s]
+            cpuFreq = cpuFreq[0].split(':')
+            self.cpuFreqMHz = float(cpuFreq[1].strip())
+
         #store info about which data sets will be benchmarked
         if len(dataSets) == 0:
             raise ValueError('At least one data set must be specified for ' + \
@@ -267,69 +324,12 @@ class machine:
                              'absolute path.')
         self.workDir = workDir
 
-        #initialize quiet variable
+        #initialize some variables
         if type(quiet) != bool:
             raise TypeError('quiet must be a boolean.')
         self.quiet = quiet
-
-        #gather details of computer and installed packages
-        self.hostName = socket.gethostname()
-        self.os = platform.platform()
-        self.lustreAccess = os.path.isdir('/lustre/naasc/')
-        self.pythonVersion = platform.python_version()
-        self.casaVersion = self._CASAglobals['casadef'].casa_version
-        self.casaRevision = self._CASAglobals['casadef'].subversion_revision
         self.machineLog = self.workDir + 'machine_info.log'
         self.wrappingLog = self.workDir + 'machine_wrapping.log'
-
-        #gather total memory, ncores and CPU frequency
-        if 'Darwin' in self.os:
-            out = subprocess.check_output('hostinfo', shell=True)
-            out = out.split('\n')
-            memBytes = [s for s in out if 'Primary memory available:' in s]
-            memBytes = memBytes[0].split(':')
-            memBytes = memBytes[1].strip()
-            memBytes = memBytes.split(' ')
-            unit = memBytes[1]
-            if 'gigabytes' in unit:
-                self.totalMemBytes = float(memBytes[0])*1e9
-            elif 'megabytes' in unit:
-                self.memBtyes = float(memBytes[0])*1e6
-            else:
-                raise ValueError('Memory quanta not recognized from ' + \
-                                 'hostinfo output: \n"', out, '"')
-            nCores = [s for s in out if 'processors are physically available.' \
-                      in s]
-            nCores = nCores[0].split(' ')[0]
-            self.nCores = int(nCores)
-            out = subprocess.check_output('sysctl machdep.cpu.brand_string', \
-                                          shell=True)
-            cpuFreq = out.split('@')
-            cpuFreq = [s for s in cpuFreq if 'Hz' in s]
-            if 'GHz' in cpuFreq[0]:
-                cpuFreq = cpuFreq[0].split('GHz')
-                self.cpuFreqMHz = float(cpuFreq[0].strip())*1e3
-            elif 'MHz' in cpuFreq[0]:
-                cpuFreq = cpuFreq[0].split('MHz')
-                self.cpuFreqMHz = float(cpuFreq[0].strip())*1e3
-            else:
-                raise ValueError('CPU frequency quanta not recognized from ' + \
-                                 'sysctl output: "' + out + '"')
-        else:
-            self.totalMemBytes = \
-                os.sysconf('SC_PAGE_SIZE')*os.sysconf('SC_PHYS_PAGES')
-            out = subprocess.check_output('lscpu', shell=True)
-            out = out.split('\n')
-            coresPsocket = [s for s in out if 'Core(s) per socket:' in s]
-            coresPsocket = coresPsocket[0].split(':')
-            coresPsocket = int(coresPsocket[1].strip())
-            nSockets = [s for s in out if 'Socket(s):' in s]
-            nSockets = nSockets[0].split(':')
-            nSockets = int(nSockets[1].strip())
-            self.nCores = coresPsocket*nSockets
-            cpuFreq = [s for s in out if 'z:' in s]
-            cpuFreq = cpuFreq[0].split(':')
-            self.cpuFreqMHz = float(cpuFreq[1].strip())
 
         #fill out machine info log
         f = open(self.machineLog, 'w')
@@ -464,6 +464,9 @@ class machine:
                     if not self.jobs[dataSet]['skipDownload']:
                         b.removeTarDir()
 
+        outString = 'Finished benchmarking on ' + self.hostName + '.'
+        self.writeToWrappingLog(outString, quiet=self.quiet)
+
     def writeToWrappingLog(self, outString, quiet):
         """Write outString to a text file named machine_wrapping.log.
 
@@ -498,3 +501,4 @@ class machine:
 
         if not quiet:
             print outString
+            sys.stdout.flush()
