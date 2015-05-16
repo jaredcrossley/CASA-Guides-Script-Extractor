@@ -29,6 +29,7 @@ class benchmark:
     useOtherBmarkScripts
     emptyCurrentRedDir
     removeTarDir
+    _printAndFlush
 
     Instance Variables
     ------------------
@@ -557,7 +558,6 @@ class benchmark:
         outString = fullFuncName + ': Extracting CASA Guide.\n' + ' '*indent + \
                     'Logging to ' + self.extractLog + '.'
         self.writeToWrappingLog(outString, quiet=self.quiet)
-        sys.stdout.flush()
         outFDsave = os.dup(1)
         errFDsave = os.dup(2)
         extractLogF = open(self.extractLog, 'a')
@@ -565,7 +565,7 @@ class benchmark:
         os.dup2(extractLogFD, 1)
         os.dup2(extractLogFD, 2)
 
-        print self.listTasksOut
+        self._printAndFlush(self.listTasksOut)
 
         if self.execStep == 'cal':
             result = self.runextractCASAscript(self.calSource)
@@ -574,9 +574,7 @@ class benchmark:
         if self.execStep == 'both':
             result = self.runextractCASAscript(self.calSource)
             if result:
-                print '\n'
-                print '='*80
-                print '\n'
+                self._printAndFlush('\n' + '='*80 + '\n')
                 result = self.runextractCASAscript(self.imSource)
 
         #change logs back and go back to wherever we were before
@@ -722,17 +720,17 @@ class benchmark:
                         scripts[i] + '.\n' + ' '*indent + 'Logging to ' + \
                         scriptLogs[i] + '.'
             self.writeToWrappingLog(outString, quiet=self.quiet)
-            sys.stdout.flush()
             outFDsave = os.dup(1)
             errFDsave = os.dup(2)
             scriptLogF = open(scriptLogs[i], 'a')
             scriptLogFD = scriptLogF.fileno()
             os.dup2(scriptLogFD, 1)
             os.dup2(scriptLogFD, 2)
-            print 'CASA Version ' + CASAglobals['casadef'].casa_version + \
-                  ' (r' + CASAglobals['casadef'].subversion_revision + \
-                  ')\n  Compiled on: ' + CASAglobals['casadef'].build_time + \
-                  '\n\n'
+            outString = 'CASA Version ' + CASAglobals['casadef'].casa_version + \
+                        ' (r' + CASAglobals['casadef'].subversion_revision + \
+                        ')\n  Compiled on: ' + CASAglobals['casadef'].build_time + \
+                        '\n\n'
+            self._printAndFlush(outString)
             origLog = CASAglobals['casalog'].logfile()
             CASAglobals['casalog'].setlogfile(scriptLogs[i])
 
@@ -802,7 +800,7 @@ class benchmark:
         f.close()
 
         if not quiet:
-            print outString
+            self._printAndFlush(outString)
 
     def useOtherBmarkScripts(self, prevBmark):
         """Set this benchmark instance to use scripts from another benchmark.
@@ -1044,3 +1042,29 @@ class benchmark:
         self.currentTarDir = ''
         if not self.skipDownload:
             self.localTar = ''
+
+    def _printAndFlush(self, outString):
+        """Prints and then calls sys.stdout.flush().
+
+        Returns
+        -------
+        None
+
+        Parameters
+        ----------
+        outString : str
+           String to be printed to sys.stdout.
+
+        Notes
+        -----
+        This is a convenience function to make sure that sys.stdout.flush() is
+        always called after a plain print statement. This ensures running
+        benchmarking with Python's subprocess module writes everything to the
+        proper location.
+        """
+        #for telling where printed messages originate from
+        fullFuncName = __name__ + '::_makeExtractOpts'
+        indent = len(fullFuncName) + 2
+
+        print outString
+        sys.stdout.flush()
