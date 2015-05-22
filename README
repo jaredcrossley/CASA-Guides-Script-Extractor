@@ -209,11 +209,15 @@ Files unique to translated architecture:
   -benchmark.py
   -machine.py
   -parameters.py
+  -top_level.py
+  -remote_machine_worker.py
   
 All files included in translated architecture:
   -benchmark.py
   -machine.py
   -parameters.py
+  -top_level.py
+  -remote_machine_worker.py
   -extractCASAscript.py
   -casa_call.py
   -readcol.py
