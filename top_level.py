@@ -2,14 +2,34 @@ import subprocess
 import os
 import sys
 
-#this only does the job for unix machines that share the home directory
-#swap around ~/.casa/prelude.py so we can set matplotlib to Agg
-HOME = os.path.expanduser('~')
-os.rename(HOME+'/.casa/prelude.py', HOME+'/.casa/prelude_backup.py')
-pre = open(HOME+'/.casa/prelude.py', 'w')
-pre.write('import matplotlib\n')
-pre.write("matplotlib.use('Agg')\n")
-pre.close()
+#add matplotlib backend setting to ~/.casa/prelude.py
+#only works for linux machines on shared home directory filer
+preludePath = os.path.expanduser('~')
+preludePath += '/.casa/prelude.py'
+if not os.path.isfile(preludePath):
+    open(preludePath, 'w').close()
+prelude = open(preludePath, 'r+')
+lines = prelude.readlines()
+impOS = False
+impML = False
+bCond = False
+for line in lines:
+    if line == 'import os\n':
+        impOS = True
+    if line == 'import matplotlib\n':
+        impML = True
+    if 'DA_BENCH' in line:
+        bCond = True
+if not impOS:
+    lines.insert(0, 'import os\n')
+if not impML:
+    lines.insert(0, 'import matplotlib\n')
+if not bCond:
+    lines.append("if os.environ.has_key('DA_BENCH'):\n")
+    lines.append("    matplotlib.use('Agg')")
+prelude.seek(0, 0)
+prelude.writelines(lines)
+prelude.close()
 
 #this works for benchmark and machine!
 devnull = open(os.devnull, 'w')
@@ -18,7 +38,7 @@ oldStderr = sys.stderr
 sys.stdout = devnull
 sys.stderr = devnull
 command = 'export DA_BENCH=yes'
-command += '; casa --nologger -c test_machine_curr_dir.py'
+command += '; casa --nologger -c remote_machine_worker.py'
 machineProc = subprocess.Popen(command, shell=True, stdout=devnull, \
                                stderr=devnull)
 #machineProc = subprocess.Popen(['casa', '--nologger', \
@@ -28,8 +48,3 @@ machineProc.wait()
 sys.stdout = oldStdout
 sys.stderr = oldStderr
 devnull.close()
-
-#again, only works on linux machines that share the home directory
-#swap the prelude files back
-os.remove(HOME+'/.casa/prelude.py')
-os.rename(HOME+'/.casa/prelude_backup.py', HOME+'/.casa/prelude.py')
