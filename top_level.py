@@ -37,13 +37,14 @@ oldStdout = sys.stdout
 oldStderr = sys.stderr
 sys.stdout = devnull
 sys.stderr = devnull
-command = 'export DA_BENCH=yes'
-command += '; casa --nologger -c remote_machine_worker.py'
+command = 'ssh -AX cvpost048'
+command += " 'export DA_BENCH=yes"
+command += "; casa --nologger -c /lustre/naasc/nbrunett/bench_code_devel/" + \
+           "CASA-Guides-Script-Extractor/remote_machine_worker.py'"
+#print command
+#machineProc = subprocess.Popen(command, shell=True)
 machineProc = subprocess.Popen(command, shell=True, stdout=devnull, \
                                stderr=devnull)
-#machineProc = subprocess.Popen(['casa', '--nologger', \
-#                                '-c test_machine_curr_dir.py'], shell=False, \
-#                               stdout=devnull, stderr=devnull)
 machineProc.wait()
 sys.stdout = oldStdout
 sys.stderr = oldStderr
