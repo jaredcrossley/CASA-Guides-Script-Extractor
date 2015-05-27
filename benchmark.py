@@ -307,6 +307,7 @@ class benchmark:
         self.status = 'normal'
 
         #fill out casa_tasks with current CASA task list
+        sys.stdout.flush()
         stdOut = sys.stdout
         stdErr = sys.stderr
         sys.stdout = cStringIO.StringIO()
