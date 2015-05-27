@@ -15,8 +15,8 @@ scriptsSources = ['disk', 'web']
 #steps = ['cal', 'both', 'im']
 #scriptsSources = ['web', 'disk', 'web']
 workDir = '/lustre/naasc/nbrunett/bench_code_devel/testing/' + \
-          'test_local_subprocess'
-quiet = False
+          'test_remote_subprocess'
+quiet = True
 
 #add script directory to Python path if need be
 scriptDir = os.path.abspath(scriptDir) + '/'
