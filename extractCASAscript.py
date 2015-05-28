@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 '''
 A script to transform CASA Guide webpages and casapy scripts to casapy
 scripts suited for interactive or non-interactive use.  This script can be
@@ -175,12 +175,17 @@ casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummary', 'bandpass',
 
 # define formatting junk that needs to be filtered
 # JFG comments that regular expressions might clean this up
-junkStr = ["<div dir=\"ltr\" class=\"mw-geshi\" style=\"text-align: left;\">"]
-junkStr = junkStr + ["<div class=\"python source-python\"><pre class=\"de1\">"]
-junkStr = junkStr + ["<pre>"]
-junkStr = junkStr + ["</span>"]
-junkStr = junkStr + ["</pre></div></div>"]
-junkStr = junkStr + ["&nbsp;"]
+# JBM - cleaned up declaration of the junkStr list
+junkStr = [ 
+    '<div dir="ltr" class="mw-geshi mw-code mw-content-ltr">',
+    "<div dir=\"ltr\" class=\"mw-geshi\" style=\"text-align: left;\">",
+    "<div class=\"python source-python\"><pre class=\"de1\">",
+    "<pre>",
+    "</span>",
+    "</pre></div></div>",
+    "&nbsp;",
+];
+
 paren1 = "&#40;"
 paren2 = "&#41;"
 brack2 = "&#93;"
