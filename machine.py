@@ -102,8 +102,8 @@ class machine:
 
     machineLog : list
        List of strings of absolute paths to text files containing machine
-       information. Will be called machine_info.log and will be stored in the
-       data set directories.
+       information. Will be called [hostname]_machine_info.log and will be
+       stored in the data set directories.
 
     totalMemBytes : float
        Total number of physical bytes of memory (RAM) available on the machine.
@@ -117,12 +117,12 @@ class machine:
     wrappingLog : list
        Absolute paths to text files where status reporting are written. This
        includes starting data set benchmarking and index of iteration executing.
-       Will be called machine_wrapping.log and will be stored in the data set
-       directories.
+       Will be called [hostname]_machine_wrapping.log and will be stored in the
+       data set directories.
 
     quiet : bool
        Switch to determine if status messages are printed to the terminal or not.
-       These messages are always written to machine_wrapping.log.
+       These messages are always written to [hostname]_machine_wrapping.log.
     """
 
     def __init__(self, CASAglobals=None, scriptDir='', dataSets=list(), \
@@ -179,7 +179,8 @@ class machine:
 
         quiet : bool
            Switch to determine if status messages are printed to the terminal or
-           not. These messages are always written to machine_wrapping.log.
+           not. These messages are always written to
+           [hostname]_machine_wrapping.log.
 
         Notes
         -----
@@ -329,8 +330,9 @@ class machine:
         if type(quiet) != bool:
             raise TypeError('quiet must be a boolean.')
         self.quiet = quiet
-        self.machineLog = self.workDir + 'machine_info.log'
-        self.wrappingLog = self.workDir + 'machine_wrapping.log'
+        self.machineLog = self.workDir + self.hostName + '_machine_info.log'
+        self.wrappingLog = self.workDir + self.hostName + \
+                           '_machine_wrapping.log'
 
         #fill out machine info log
         f = open(self.machineLog, 'w')
@@ -469,12 +471,13 @@ class machine:
         self.writeToWrappingLog(outString, quiet=self.quiet)
 
     def writeToWrappingLog(self, outString, quiet):
-        """Write outString to a text file named machine_wrapping.log.
+        """Write outString to a text file named [hostname]_machine_wrapping.log.
 
         Parameters
         ----------
         outString : str
-           String containing characters to be written to machine_wrapping.log.
+           String containing characters to be written to
+           [hostname]_machine_wrapping.log.
 
         quiet : bool
            Switch determining if outString should be printed to the terminal.
@@ -488,9 +491,9 @@ class machine:
         Notes
         -----
         Write messages stored in outString to a text file named
-        machine_wrapping.log in the machine directory. Optionally print
-        outString to terminal too. These messages are from starting data set
-        benchmarking and index of iteration executing.
+        [hostname]_machine_wrapping.log in the machine directory. Optionally
+        print outString to terminal too. These messages are from starting data
+        set benchmarking and index of iteration executing.
         """
         #for telling where printed messages originate from
         fullFuncName = __name__ + '::writeToWrappingLog'
