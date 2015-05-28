@@ -1,6 +1,7 @@
 import subprocess
 import os
 import sys
+import time
 
 #add matplotlib backend setting to ~/.casa/prelude.py
 #only works for linux machines on shared home directory filer
@@ -37,15 +38,22 @@ oldStdout = sys.stdout
 oldStderr = sys.stderr
 sys.stdout = devnull
 sys.stderr = devnull
-command = 'ssh -AX cvpost048'
-command += " 'export DA_BENCH=yes"
-command += "; casa --nologger -c /lustre/naasc/nbrunett/bench_code_devel/" + \
-           "CASA-Guides-Script-Extractor/remote_machine_worker.py'"
-#print command
-#machineProc = subprocess.Popen(command, shell=True)
-machineProc = subprocess.Popen(command, shell=True, stdout=devnull, \
-                               stderr=devnull)
-machineProc.wait()
+cmdBeg = 'ssh -AX '
+cmdEnd = " 'export DA_BENCH=yes; casa --nologger -c /lustre/naasc/nbrunett/" + \
+         "bench_code_devel/CASA-Guides-Script-Extractor/" + \
+         "remote_machine_worker.py'"
+hosts = ['cvpost048', 'cvpost064']
+procs = list()
+for host in hosts:
+    procs.append(subprocess.Popen(cmdBeg+host+cmdEnd, shell=True, \
+                                  stdout=devnull, stderr=devnull))
+    #not general at all!
+    #for log files on shared home directory
+    time.sleep(10)
+    while os.path.exists('/users/nbrunett/casapy.log'):
+        time.sleep(10)
+for i in range(len(procs)):
+    procs[i].wait()
 sys.stdout = oldStdout
 sys.stderr = oldStderr
 devnull.close()
