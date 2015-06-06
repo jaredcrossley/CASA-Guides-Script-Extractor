@@ -1,3 +1,4 @@
+#standard library imports
 import os
 import platform
 import shutil
@@ -5,9 +6,13 @@ import subprocess
 import sys
 import time
 
+#library specific imports
+import itinerary
+import parameters
+
 ###what this script does/will do###
 #-collects the hosts, data sets, number of iterations and steps to benchmark
-#  [ ]written
+#  [x]written
 #  [ ]tested
 #  [ ]i'm happy
 #-modifies prelude.py on remote machines if necessary to add matplotlib Agg
@@ -68,6 +73,76 @@ def setupDevNull(switch, setupOutput=None):
         setupOutput[2].close()
     else:
         raise ValueError('switch must be "on" or "off".')
+
+
+#retrieve the benchmarking itinerary and check the values
+itinerary = itinerary.itinerary
+if itinerary.keys() != ['hosts']:
+    raise ValueError('itinerary dictionary is malformed. Please check ' + \
+                     'template in itinerary.py header against your dictionary.')
+if len(itinerary['hosts'].keys()) == 0:
+    raise ValueError('itinerary dictionary must contain at least one host.')
+acceptedHosts = ['cvpost' + '%03d' % i for i in range(1, 65)]
+acceptedHosts.append('gauss')
+acceptedHosts.append('technomage')
+acceptedHosts.append('starthinker')
+for host in itinerary['hosts'].keys():
+    if host not in acceptedHosts:
+        raise ValueError('"'+host+'" not in list of accepted machines.')
+    if len(itinerary['hosts'][host].keys()) != 5:
+        raise ValueError(host+' dictionary must have five key, value pairs.')
+    if 'dataSets' not in itinerary['hosts'][host].keys():
+        raise ValueError(host+' dictionary is missing dataSets entry.')
+    if 'nIters' not in itinerary['hosts'][host].keys():
+        raise ValueError(host+' dictionary is missing nIters entry.')
+    if 'steps' not in itinerary['hosts'][host].keys():
+        raise ValueError(host+' dictionary is missing steps entry.')
+    if 'scriptSources' not in itinerary['hosts'][host].keys():
+        raise ValueError(host+' dictionary is missing scriptSources entry.')
+    if 'workDir' not in itinerary['hosts'][host].keys():
+        raise ValueError(host+' dictionary is missing workDir entry.')
+    if len(itinerary['hosts'][host]['dataSets']) == 0:
+        raise ValueError(host+' must have at least one dataSet.')
+    for dataSet in itinerary['hosts'][host]['dataSets']:
+        if type(dataSet) != str:
+            raise TypeError('dataSets must be specified with strings.')
+        try:
+            test = getattr(parameters, dataSet)
+        except AttributeError:
+            raise ValueError('"'+dataSet+'" not in list of accepted data sets.')
+    if len(itinerary['hosts'][host]['nIters']) != \
+       len(itinerary['hosts'][host]['dataSets']):
+        raise ValueError('nIters from '+dataSet+' of host '+host+' must be ' + \
+                         'the same length as the dataSets list.')
+    for iters in itinerary['hosts'][host]['nIters']:
+        if type(iters) != int:
+            raise TypeError('nIters must be a list of only integers.')
+        if iters < 1:
+            raise ValueError('All nIters values must be greater than zero.')
+    if len(itinerary['hosts'][host]['steps']) != \
+       len(itinerary['hosts'][host]['dataSets']):
+        raise ValueError('steps from '+dataSet+' of host '+host+' must be ' + \
+                         'the same length as the dataSets list.')
+    for step in itinerary['hosts'][host]['steps']:
+        if type(step) != str:
+            raise TypeError('steps must be a list of only strings.')
+        if step != 'both' and step != 'cal' and step != 'im':
+            raise ValueError('steps elements must be "both", "cal" or "im".')
+    if len(itinerary['hosts'][host]['scriptSources']) != \
+       len(itinerary['hosts'][host]['dataSets']):
+        raise ValueError('scriptSources from '+dataSet+' of host '+host+ \
+                         ' must be the same length as the dataSets list.')
+    for source in itinerary['hosts'][host]['scriptSources']:
+        if type(source) != str:
+            raise TypeError('scriptSources must be a list of only strings.')
+        if source != 'disk' and source != 'web':
+            raise ValueError('scriptSources elements must be "disk" or "web".')
+    if type(itinerary['hosts'][host]['workDir']) != str:
+        raise TypeError('workDir from '+dataSet+' of host '+host+' must be ' + \
+                        'a string.')
+    if len(itinerary['hosts'][host]['workDir']) == 0:
+        raise ValueError('workDir from '+dataSet+' of host '+host+' cannot ' + \
+                        'be an empty string.')
 
 
 #add matplotlib backend setting to ~/.casa/prelude.py
