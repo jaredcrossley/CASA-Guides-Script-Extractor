@@ -76,7 +76,10 @@ def setupDevNull(switch, setupOutput=None):
 
 
 #retrieve the benchmarking itinerary and check the values
+#it gets pretty awful in this section, maybe it would be better to just skip
+#this part and hope people don't mess up their itinerary files... :/
 itinerary = itinerary.itinerary
+#make sure itinerary is properly formed
 if itinerary.keys() != ['hosts']:
     raise ValueError('itinerary dictionary is malformed. Please check ' + \
                      'template in itinerary.py header against your dictionary.')
@@ -89,8 +92,8 @@ acceptedHosts.append('starthinker')
 for host in itinerary['hosts'].keys():
     if host not in acceptedHosts:
         raise ValueError('"'+host+'" not in list of accepted machines.')
-    if len(itinerary['hosts'][host].keys()) != 5:
-        raise ValueError(host+' dictionary must have five key, value pairs.')
+    if len(itinerary['hosts'][host].keys()) != 6:
+        raise ValueError(host+' dictionary must have six key, value pairs.')
     if 'dataSets' not in itinerary['hosts'][host].keys():
         raise ValueError(host+' dictionary is missing dataSets entry.')
     if 'nIters' not in itinerary['hosts'][host].keys():
@@ -105,46 +108,122 @@ for host in itinerary['hosts'].keys():
         raise ValueError(host+' must have at least one dataSet.')
     for dataSet in itinerary['hosts'][host]['dataSets']:
         if type(dataSet) != str:
-            raise TypeError('dataSets must be specified with strings.')
+            raise TypeError(host+' dataSets must be specified with strings.')
         try:
             test = getattr(parameters, dataSet)
         except AttributeError:
-            raise ValueError('"'+dataSet+'" not in list of accepted data sets.')
+            raise ValueError(host+' data set "'+dataSet+'" not in list of ' + \
+                             'accepted data sets.')
     if len(itinerary['hosts'][host]['nIters']) != \
        len(itinerary['hosts'][host]['dataSets']):
-        raise ValueError('nIters from '+dataSet+' of host '+host+' must be ' + \
-                         'the same length as the dataSets list.')
+        raise ValueError('nIters from '+dataSet+' for '+host+' must be the ' + \
+                         'same length as the dataSets list.')
     for iters in itinerary['hosts'][host]['nIters']:
         if type(iters) != int:
-            raise TypeError('nIters must be a list of only integers.')
+            raise TypeError(host+' nIters must be a list of only integers.')
         if iters < 1:
-            raise ValueError('All nIters values must be greater than zero.')
+            raise ValueError('All '+host+' nIters values must be greater ' + \
+                             'than zero.')
+    if len(itinerary['hosts'][host]['skipDownloads']) != \
+       len(itinerary['hosts'][host]['dataSets']):
+        raise ValueError('skipDownloads from '+dataSet+' for '+host+' must ' + \
+                         'be the same length as the dataSets list.')
+    for skip in itinerary['hosts'][host]['skipDownloads']:
+        if type(skip) != bool:
+            raise TypeError(host+' skipDownloads must be a list of only ' + \
+                            'booleans.')
     if len(itinerary['hosts'][host]['steps']) != \
        len(itinerary['hosts'][host]['dataSets']):
-        raise ValueError('steps from '+dataSet+' of host '+host+' must be ' + \
-                         'the same length as the dataSets list.')
+        raise ValueError('steps from '+dataSet+' for '+host+' must be the ' + \
+                         'same length as the dataSets list.')
     for step in itinerary['hosts'][host]['steps']:
         if type(step) != str:
-            raise TypeError('steps must be a list of only strings.')
+            raise TypeError(host+' steps must be a list of only strings.')
         if step != 'both' and step != 'cal' and step != 'im':
-            raise ValueError('steps elements must be "both", "cal" or "im".')
+            raise ValueError(host+' steps elements must be "both", "cal" ' + \
+                             'or "im".')
     if len(itinerary['hosts'][host]['scriptSources']) != \
        len(itinerary['hosts'][host]['dataSets']):
-        raise ValueError('scriptSources from '+dataSet+' of host '+host+ \
+        raise ValueError('scriptSources from '+dataSet+' for '+host+ \
                          ' must be the same length as the dataSets list.')
     for source in itinerary['hosts'][host]['scriptSources']:
         if type(source) != str:
-            raise TypeError('scriptSources must be a list of only strings.')
+            raise TypeError(host+' scriptSources must be a list of only ' + \
+                            'strings.')
         if source != 'disk' and source != 'web':
-            raise ValueError('scriptSources elements must be "disk" or "web".')
+            raise ValueError(host+' scriptSources elements must be "disk" ' + \
+                             'or "web".')
     if type(itinerary['hosts'][host]['workDir']) != str:
-        raise TypeError('workDir from '+dataSet+' of host '+host+' must be ' + \
+        raise TypeError('workDir from '+dataSet+' for '+host+' must be ' + \
                         'a string.')
     if len(itinerary['hosts'][host]['workDir']) == 0:
-        raise ValueError('workDir from '+dataSet+' of host '+host+' cannot ' + \
+        raise ValueError('workDir from '+dataSet+' for '+host+' cannot ' + \
                         'be an empty string.')
+    #make sure itinerary works with the info in parameters.py
+    for i,dataSet in enumerate(itinerary['hosts'][host]['dataSets']):
+        params = getattr(parameters, dataSet)
+        if itinerary['hosts'][host]['skipDownloads'][i] == True:
+            if itinerary['hosts'][host]['steps'][i] == 'cal' or \
+               itinerary['hosts'][host]['steps'][i] == 'both':
+                if params['lustre']['uncalData'] == None or \
+                   params['elric']['uncalData'] == None:
+                    raise ValueError('The '+dataSet+' uncalibrated data is ' + \
+                                     'not available on lustre and/or elric ' + \
+                                     'for '+host+'. Revise itinerary or ' + \
+                                     'update parameters.py.')
+            if itinerary['hosts'][host]['steps'][i] == 'im':
+                if params['lustre']['calData'] == None or \
+                   params['elric']['calData'] == None:
+                    raise ValueError('The '+dataSet+' calibrated data is ' + \
+                                     'not available on lustre and/or ' + \
+                                     'elric for '+host+'. Revise itinerary ' + \
+                                     'or update parameters.py')
+        else:
+            if itinerary['hosts'][host]['steps'][i] == 'cal' or \
+               itinerary['hosts'][host]['steps'][i] == 'both':
+                if params['online']['uncalData'] == None:
+                    raise ValueError('The '+dataSet+' uncalibrated data is' + \
+                                     'not available online for'+host+'. ' + \
+                                     'Revise itinerary or update ' + \
+                                     'parameters.py.')
+            if itinerary['hosts'][host]['steps'][i] == 'im':
+                if params['online']['calData'] == None:
+                    raise ValueError('The '+dataSet+' calibrated data is ' + \
+                                     'not available online for '+host+'. ' + \
+                                     'Revise itinerary or update ' + \
+                                     'parameters.py.')
+        if itinerary['hosts'][host]['steps'][i] == 'cal' or \
+           itinerary['hosts'][host]['steps'][i] == 'both':
+            if itinerary['hosts'][host]['scriptSources'][i] == 'web':
+                if params['online']['calScript'] == None:
+                    raise ValueError('The '+dataSet+' calibration script ' + \
+                                     'is not available online for '+host+ \
+                                     '. Revise itinerary or update ' + \
+                                     'parameters.py.')
+            if itinerary['hosts'][host]['scriptSources'][i] == 'disk':
+                if params['lustre']['calScript'] == None or \
+                   params['elric']['calScript'] == None:
+                    raise ValueError('The '+dataSet+' calibration script ' + \
+                                     'is not available on lustre and/or ' + \
+                                     'elric for '+host+'. Revise itinerary ' + \
+                                     'or update parameters.py.')
+        if itinerary['hosts'][host]['steps'][i] == 'im':
+            if itinerary['hosts'][host]['scriptSources'][i] == 'web':
+                if params['online']['imScript'] == None:
+                    raise ValueError('The '+dataSet+' imaging script is ' + \
+                                     'not available online for '+host+'. ' + \
+                                     'Revise itinerary or update ' + \
+                                     'parameters.py.')
+            if itinerary['hosts'][host]['scriptSources'][i] == 'disk':
+                if params['lustre']['imScript'] == None or \
+                   params['elric']['imScript'] == None:
+                    raise ValueError('The '+dataSet+' imaging script is ' + \
+                                     'not available on lustre and/or ' + \
+                                     'elric for '+host+'. Revise itinerary ' + \
+                                     'or update parameters.py.')
 
 
+'''
 #add matplotlib backend setting to ~/.casa/prelude.py
 #this needs to be thoroughly tested
 hosts = ['cvpost048', 'cvpost064']
@@ -265,3 +344,4 @@ for host in hosts:
 for i in range(len(procs)):
     procs[i].wait()
 setupDevNull(switch='off', setupOutput=stdShuffle)
+'''
