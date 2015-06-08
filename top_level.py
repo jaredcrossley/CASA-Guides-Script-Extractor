@@ -21,9 +21,9 @@ import parameters
 #  [ ]tested
 #  [ ]i'm happy
 #-copies repo files to remote machines
-#  [ ]written
-#  [ ]tested
-#  [ ]i'm happy
+#  [x]written
+#  [x]tested
+#  [x]i'm happy
 #-builds script to run machine benchmarking on the remote machines
 #  [x]written
 #  [x]tested
@@ -165,8 +165,8 @@ for host in itinerary['hosts'].keys():
                              'then', 'echo', '1;', 'else', 'echo', '0;', \
                              'fi'], shell=False, stdout=subprocess.PIPE, \
                             stderr=subprocess.PIPE)
-    setupDevNull(switch='off', setupOutput=stdShuffle)
     workDirExists = bool(int(proc.communicate()[0].rstrip()))
+    setupDevNull(switch='off', setupOutput=stdShuffle)
     if not workDirExists:
         raise ValueError('workDir on '+host+' does not exist.')
     #make sure itinerary works with the info in parameters.py
@@ -298,6 +298,30 @@ for host in hosts:
         filerDone = True
 
 '''
+#clone repo onto remote machines
+#needs to be changed when/if python_translate branch is merged into master
+#(-b python_translate part would be removed if so)
+for host in itinerary['hosts'].keys():
+    #first check if it's already in the workDir
+    stdShuffle = setupDevNull(switch='on')
+    proc = subprocess.Popen(['ssh', '-AX', host, 'if', '[', '-d', \
+                             itinerary['hosts'][host]['workDir']+ \
+                             '/CASA-Guides-Script-Extractor', '];', \
+                             'then', 'echo', '1;', 'else', 'echo', '0;', \
+                             'fi'], shell=False, stdout=subprocess.PIPE, \
+                            stderr=subprocess.PIPE)
+    repoExists = bool(int(proc.communicate()[0].rstrip()))
+    if not repoExists:
+        #do the clone since it doesn't exist yet
+        subprocess.call(['ssh', '-AX', host, 'cd', \
+                         itinerary['hosts'][host]['workDir']+';', 'git', \
+                         'clone', '-b', 'python_translate', \
+                         'https://github.com/' + \
+                         'jaredcrossley/CASA-Guides-Script-Extractor.git'], \
+                        shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
+    setupDevNull(switch='off', setupOutput=stdShuffle)
+
+'''
 #build machine script to be executed on remote machines
 #needs to be finalized
 #  -what to do for scriptDir
@@ -337,7 +361,7 @@ for host in itinerary['hosts'].keys():
     macF.write('                         quiet=quiet)\n')
     macF.write('cvpost.runBenchmarks(cleanUp=True)\n')
     macF.close()
-
+'''
 '''
 #kick off benchmarking on each host
 #see testing for remote workDir existsing for possibly not needing shell=True
