@@ -13,8 +13,8 @@ import parameters
 ###what this script does/will do###
 #-collects the hosts, data sets, number of iterations and steps to benchmark
 #  [x]written
-#  [ ]tested
-#  [ ]i'm happy
+#  [x]tested
+#  [x]i'm happy
 #-modifies prelude.py on remote machines if necessary to add matplotlib Agg
 # setting
 #  [x]written
@@ -26,8 +26,8 @@ import parameters
 #  [ ]i'm happy
 #-builds script to run machine benchmarking on the remote machines
 #  [x]written
-#  [ ]tested
-#  [ ]i'm happy
+#  [x]tested
+#  [ ]i'm happy (needs a few things looked at)
 #-copies that file to each remote host to be benchmarking
 #  [ ]written
 #  [ ]tested
@@ -100,8 +100,8 @@ for host in itinerary['hosts'].keys():
         raise ValueError(host+' dictionary is missing nIters entry.')
     if 'steps' not in itinerary['hosts'][host].keys():
         raise ValueError(host+' dictionary is missing steps entry.')
-    if 'scriptSources' not in itinerary['hosts'][host].keys():
-        raise ValueError(host+' dictionary is missing scriptSources entry.')
+    if 'scriptsSources' not in itinerary['hosts'][host].keys():
+        raise ValueError(host+' dictionary is missing scriptsSources entry.')
     if 'workDir' not in itinerary['hosts'][host].keys():
         raise ValueError(host+' dictionary is missing workDir entry.')
     if len(itinerary['hosts'][host]['dataSets']) == 0:
@@ -142,16 +142,16 @@ for host in itinerary['hosts'].keys():
         if step != 'both' and step != 'cal' and step != 'im':
             raise ValueError(host+' steps elements must be "both", "cal" ' + \
                              'or "im".')
-    if len(itinerary['hosts'][host]['scriptSources']) != \
+    if len(itinerary['hosts'][host]['scriptsSources']) != \
        len(itinerary['hosts'][host]['dataSets']):
-        raise ValueError('scriptSources from '+dataSet+' for '+host+ \
+        raise ValueError('scriptsSources from '+dataSet+' for '+host+ \
                          ' must be the same length as the dataSets list.')
-    for source in itinerary['hosts'][host]['scriptSources']:
+    for source in itinerary['hosts'][host]['scriptsSources']:
         if type(source) != str:
-            raise TypeError(host+' scriptSources must be a list of only ' + \
+            raise TypeError(host+' scriptsSources must be a list of only ' + \
                             'strings.')
         if source != 'disk' and source != 'web':
-            raise ValueError(host+' scriptSources elements must be "disk" ' + \
+            raise ValueError(host+' scriptsSources elements must be "disk" ' + \
                              'or "web".')
     if type(itinerary['hosts'][host]['workDir']) != str:
         raise TypeError('workDir from '+dataSet+' for '+host+' must be ' + \
@@ -159,6 +159,16 @@ for host in itinerary['hosts'].keys():
     if len(itinerary['hosts'][host]['workDir']) == 0:
         raise ValueError('workDir from '+dataSet+' for '+host+' cannot ' + \
                         'be an empty string.')
+    stdShuffle = setupDevNull(switch='on')
+    proc = subprocess.Popen(['ssh', '-AX', host, 'if', '[', '-d', \
+                             itinerary['hosts'][host]['workDir'], '];', \
+                             'then', 'echo', '1;', 'else', 'echo', '0;', \
+                             'fi'], shell=False, stdout=subprocess.PIPE, \
+                            stderr=subprocess.PIPE)
+    setupDevNull(switch='off', setupOutput=stdShuffle)
+    workDirExists = bool(int(proc.communicate()[0].rstrip()))
+    if not workDirExists:
+        raise ValueError('workDir on '+host+' does not exist.')
     #make sure itinerary works with the info in parameters.py
     for i,dataSet in enumerate(itinerary['hosts'][host]['dataSets']):
         params = getattr(parameters, dataSet)
@@ -194,13 +204,13 @@ for host in itinerary['hosts'].keys():
                                      'parameters.py.')
         if itinerary['hosts'][host]['steps'][i] == 'cal' or \
            itinerary['hosts'][host]['steps'][i] == 'both':
-            if itinerary['hosts'][host]['scriptSources'][i] == 'web':
+            if itinerary['hosts'][host]['scriptsSources'][i] == 'web':
                 if params['online']['calScript'] == None:
                     raise ValueError('The '+dataSet+' calibration script ' + \
                                      'is not available online for '+host+ \
                                      '. Revise itinerary or update ' + \
                                      'parameters.py.')
-            if itinerary['hosts'][host]['scriptSources'][i] == 'disk':
+            if itinerary['hosts'][host]['scriptsSources'][i] == 'disk':
                 if params['lustre']['calScript'] == None or \
                    params['elric']['calScript'] == None:
                     raise ValueError('The '+dataSet+' calibration script ' + \
@@ -208,13 +218,13 @@ for host in itinerary['hosts'].keys():
                                      'elric for '+host+'. Revise itinerary ' + \
                                      'or update parameters.py.')
         if itinerary['hosts'][host]['steps'][i] == 'im':
-            if itinerary['hosts'][host]['scriptSources'][i] == 'web':
+            if itinerary['hosts'][host]['scriptsSources'][i] == 'web':
                 if params['online']['imScript'] == None:
                     raise ValueError('The '+dataSet+' imaging script is ' + \
                                      'not available online for '+host+'. ' + \
                                      'Revise itinerary or update ' + \
                                      'parameters.py.')
-            if itinerary['hosts'][host]['scriptSources'][i] == 'disk':
+            if itinerary['hosts'][host]['scriptsSources'][i] == 'disk':
                 if params['lustre']['imScript'] == None or \
                    params['elric']['imScript'] == None:
                     raise ValueError('The '+dataSet+' imaging script is ' + \
@@ -225,7 +235,8 @@ for host in itinerary['hosts'].keys():
 
 '''
 #add matplotlib backend setting to ~/.casa/prelude.py
-#this needs to be thoroughly tested
+#this needs to be thoroughly tested; I think really just to tes that ~ expands
+#in scp calls
 hosts = ['cvpost048', 'cvpost064']
 filerDone = False
 for host in hosts:
@@ -286,46 +297,50 @@ for host in hosts:
     if 'Darwin' not in kernel:
         filerDone = True
 
-
+'''
 #build machine script to be executed on remote machines
-#needs to be generalized when aqcuiring benchmarking itinerary is handled here
+#needs to be finalized
+#  -what to do for scriptDir
+#  -adding scriptDir to pythonpath
 #the code being written needs to be carefully inspected so I'm happy with it
-macF = open('remote_machine.py', 'w')
-macF.write('import os\n')
-macF.write('\n')
-macF.write('CASAglobals = globals()\n')
-macF.write("scriptDir = '/lustre/naasc/nbrunett/bench_code_devel/' + \\n")
-macF.write("            'CASA-Guides-Script-Extractor'\n")
-macF.write("dataSets = ['x2012_1_00912_S_43', 'NGC3256Band3_43']\n")
-macF.write('nIters = [2, 2]\n')
-macF.write('skipDownloads = [True, False]\n')
-macF.write("steps = ['both', 'im']\n")
-macF.write("scriptsSources = ['disk', 'web']\n")
-macF.write("workDir = '/lustre/naasc/nbrunett/bench_code_devel/testing/' + \\n")
-macF.write("          'test_remote_subprocess'\n")
-macF.write('quiet = True\n')
-macF.write('#add script directory to Python path if need be\n')
-#is this needed...?
-macF.write("scriptDir = os.path.abspath(scriptDir) + '/'\n")
-macF.write('if scriptDir not in sys.path:\n')
-macF.write('    sys.path.append(scriptDir)\n')
-macF.write('\n')
-macF.write('import machine\n')
-macF.write('\n')
-macF.write('cvpost = machine.machine(CASAglobals=CASAglobals, \\n')
-macF.write('                         scriptDir=scriptDir, \\n')
-macF.write('                         dataSets=dataSets, \\n')
-macF.write('                         nIters=nIters, \\n')
-macF.write('                         skipDownloads=skipDownloads, \n')
-macF.write('                         steps=steps, \\n')
-macF.write('                         workDir=workDir, \\n')
-macF.write('                         scriptsSources=scriptsSources, \\n')
-macF.write('                         quiet=quiet)\n')
-macF.write('cvpost.runBenchmarks(cleanUp=True)\n')
-macF.close()
+for host in itinerary['hosts'].keys():
+    macF = open('remote_machine.py', 'w')
+    macF.write('import os\n')
+    macF.write('\n')
+    macF.write('CASAglobals = globals()\n')
+    macF.write("scriptDir = '/lustre/naasc/nbrunett/bench_code_devel/' + \\\n")
+    macF.write("            'CASA-Guides-Script-Extractor'\n")
+    macF.write("dataSets = " + str(itinerary['hosts'][host]['dataSets']) + "\n")
+    macF.write("nIters = " + str(itinerary['hosts'][host]['nIters']) + "\n")
+    macF.write("skipDownloads = " + \
+               str(itinerary['hosts'][host]['skipDownloads']) + "\n")
+    macF.write("steps = " + str(itinerary['hosts'][host]['steps']) + "\n")
+    macF.write("scriptsSources = " + \
+               str(itinerary['hosts'][host]['scriptsSources']) + "\n")
+    macF.write("workDir = '" + itinerary['hosts'][host]['workDir'] + "'\n")
+    macF.write('quiet = True\n')
+    macF.write('#add script directory to Python path if need be\n')
+    macF.write("scriptDir = os.path.abspath(scriptDir) + '/'\n")
+    macF.write('if scriptDir not in sys.path:\n')
+    macF.write('    sys.path.append(scriptDir)\n')
+    macF.write('\n')
+    macF.write('import machine\n')
+    macF.write('\n')
+    macF.write('cvpost = machine.machine(CASAglobals=CASAglobals, \\\n')
+    macF.write('                         scriptDir=scriptDir, \\\n')
+    macF.write('                         dataSets=dataSets, \\\n')
+    macF.write('                         nIters=nIters, \\\n')
+    macF.write('                         skipDownloads=skipDownloads, \\\n')
+    macF.write('                         steps=steps, \\\n')
+    macF.write('                         workDir=workDir, \\\n')
+    macF.write('                         scriptsSources=scriptsSources, \\\n')
+    macF.write('                         quiet=quiet)\n')
+    macF.write('cvpost.runBenchmarks(cleanUp=True)\n')
+    macF.close()
 
-
+'''
 #kick off benchmarking on each host
+#see testing for remote workDir existsing for possibly not needing shell=True
 stdShuffle = setupDevNull(switch='on')
 sys.stderr = devnull
 cmdBeg = 'ssh -AX '
