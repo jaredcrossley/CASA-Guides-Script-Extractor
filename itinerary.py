@@ -14,7 +14,7 @@ itinerary = {'hosts': {'cvpost045': {'dataSets': ['x2012_1_00912_S_43', \
                                      'nIters': [2, 2], \
                                      'skipDownloads': [True, False], \
                                      'steps': ['both', 'im'], \
-                                     'scriptSources': ['disk', 'web'], \
+                                     'scriptsSources': ['disk', 'web'], \
                                      'workDir': '/lustre/naasc/nbrunett/' + \
                                                 'bench_code_devel/testing/' + \
                                                 'test_remote_subprocess'}, \
@@ -23,7 +23,7 @@ itinerary = {'hosts': {'cvpost045': {'dataSets': ['x2012_1_00912_S_43', \
                                  'nIters': [2, 2], \
                                  'skipDownloads': [True, False], \
                                  'steps': ['both', 'im'], \
-                                 'scriptSources': ['disk', 'web'], \
+                                 'scriptsSources': ['disk', 'web'], \
                                  'workDir': '/lustre/naasc/nbrunett/' + \
                                             'bench_code_devel/testing/' + \
                                             'test_remote_subprocess'}, \
@@ -32,7 +32,7 @@ itinerary = {'hosts': {'cvpost045': {'dataSets': ['x2012_1_00912_S_43', \
                                       'nIters': [2, 2], \
                                       'skipDownloads': [True, False], \
                                       'steps': ['both', 'im'], \
-                                      'scriptSources': ['disk', 'web'],\
+                                      'scriptsSources': ['disk', 'web'],\
                                       'workDir': '/lustre/naasc/nbrunett/' + \
                                                  'bench_code_devel/testing/' + \
                                                  'test_remote_subprocess'}}}
