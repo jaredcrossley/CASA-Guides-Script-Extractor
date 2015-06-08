@@ -29,9 +29,9 @@ import parameters
 #  [x]tested
 #  [ ]i'm happy (needs a few things looked at)
 #-copies that file to each remote host to be benchmarking
-#  [ ]written
-#  [ ]tested
-#  [ ]i'm happy
+#  [x]written
+#  [x]tested
+#  [x]i'm happy
 #-starts up, over ssh, CASA on each machine to execute the remote machine script
 #  [x]written
 #  [x]tested
@@ -235,7 +235,7 @@ for host in itinerary['hosts'].keys():
 
 '''
 #add matplotlib backend setting to ~/.casa/prelude.py
-#this needs to be thoroughly tested; I think really just to tes that ~ expands
+#this needs to be thoroughly tested; I think really just to test that ~ expands
 #in scp calls
 hosts = ['cvpost048', 'cvpost064']
 filerDone = False
@@ -321,14 +321,15 @@ for host in itinerary['hosts'].keys():
                         shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
     setupDevNull(switch='off', setupOutput=stdShuffle)
 
-'''
-#build machine script to be executed on remote machines
+
+#build machine script to be executed on remote machines and scp it over
 #needs to be finalized
 #  -what to do for scriptDir
 #  -adding scriptDir to pythonpath
 #the code being written needs to be carefully inspected so I'm happy with it
 for host in itinerary['hosts'].keys():
-    macF = open('remote_machine.py', 'w')
+    remScript = host + '_remote_machine.py'
+    macF = open(remScript, 'w')
     macF.write('import os\n')
     macF.write('\n')
     macF.write('CASAglobals = globals()\n')
@@ -361,7 +362,13 @@ for host in itinerary['hosts'].keys():
     macF.write('                         quiet=quiet)\n')
     macF.write('cvpost.runBenchmarks(cleanUp=True)\n')
     macF.close()
-'''
+    stdShuffle = setupDevNull(switch='on')
+    subprocess.call(['scp', '-o', 'ForwardAgent=yes', remScript, \
+                     host+':'+itinerary['hosts'][host]['workDir']], \
+                    shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
+    setupDevNull(switch='off', setupOutput=stdShuffle)
+    os.remove(remScript)
+
 '''
 #kick off benchmarking on each host
 #see testing for remote workDir existsing for possibly not needing shell=True
