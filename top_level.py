@@ -37,13 +37,13 @@ import parameters
 #  [x]tested
 #  [x]i'm happy
 #-removes remote repo copy
-#  [ ]written
-#  [ ]tested
-#  [ ]i'm happy
+#  [x]written
+#  [x]tested
+#  [x]i'm happy
 #-removes remote machine script copy
-#  [ ]written
-#  [ ]tested
-#  [ ]i'm happy
+#  [x]written
+#  [x]tested
+#  [x]i'm happy
 #-removes remote casapy and ipython log files
 #  [ ]written
 #  [ ]tested
@@ -391,3 +391,14 @@ for i in range(len(procs)):
     procs[i].wait()
 setupDevNull(switch='off', setupOutput=stdShuffle)
 '''
+
+#remove remote repo and machine script
+for host in itinerary['hosts'].keys():
+    remScript = host + '_remote_machine.py'
+    stdShuffle = setupDevNull(switch='on')
+    subprocess.call(['ssh', '-AX', host, 'rm', '-rf', \
+                     itinerary['hosts'][host]['workDir']+ \
+                     '/CASA-Guides-Script-Extractor', \
+                     itinerary['hosts'][host]['workDir']+'/'+remScript], \
+                    shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
+    setupDevNull(switch='off', setupOutput=stdShuffle)
