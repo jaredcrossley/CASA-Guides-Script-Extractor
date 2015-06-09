@@ -211,6 +211,7 @@ Files unique to translated architecture:
   -parameters.py
   -top_level.py
   -remote_machine_worker.py
+  -itinerary.py
   
 All files included in translated architecture:
   -benchmark.py
@@ -218,6 +219,7 @@ All files included in translated architecture:
   -parameters.py
   -top_level.py
   -remote_machine_worker.py
+  -itinerary.py
   -extractCASAscript.py
   -casa_call.py
   -readcol.py
