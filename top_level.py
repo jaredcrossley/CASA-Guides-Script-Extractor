@@ -28,14 +28,14 @@ import parameters
 #  [x]written
 #  [x]tested
 #  [ ]i'm happy (needs a few things looked at)
-#-copies that file to each remote host to be benchmarking
+#-copies that script to each remote host to be benchmarking
 #  [x]written
 #  [x]tested
 #  [x]i'm happy
 #-starts up, over ssh, CASA on each machine to execute the remote machine script
 #  [x]written
-#  [x]tested
-#  [x]i'm happy
+#  [ ]tested
+#  [ ]i'm happy
 #-removes remote repo copy
 #  [x]written
 #  [x]tested
@@ -45,7 +45,7 @@ import parameters
 #  [x]tested
 #  [x]i'm happy
 #-removes remote casapy and ipython log files
-#  [ ]written
+#  [x]written
 #  [ ]tested
 #  [ ]i'm happy
 #-?moves results to local machine
@@ -80,6 +80,7 @@ def setupDevNull(switch, setupOutput=None):
 #this part and hope people don't mess up their itinerary files... :/
 itinerary = itinerary.itinerary
 #make sure itinerary is properly formed
+'''
 if itinerary.keys() != ['hosts']:
     raise ValueError('itinerary dictionary is malformed. Please check ' + \
                      'template in itinerary.py header against your dictionary.')
@@ -169,6 +170,8 @@ for host in itinerary['hosts'].keys():
     setupDevNull(switch='off', setupOutput=stdShuffle)
     if not workDirExists:
         raise ValueError('workDir on '+host+' does not exist.')
+    if itinerary['hosts'][host]['workDir'][-1] != '/':
+        itinerary['hosts'][host]['workDir'] += '/'
     #make sure itinerary works with the info in parameters.py
     for i,dataSet in enumerate(itinerary['hosts'][host]['dataSets']):
         params = getattr(parameters, dataSet)
@@ -233,7 +236,7 @@ for host in itinerary['hosts'].keys():
                                      'or update parameters.py.')
 
 
-'''
+
 #add matplotlib backend setting to ~/.casa/prelude.py
 #this needs to be thoroughly tested; I think really just to test that ~ expands
 #in scp calls
@@ -297,7 +300,7 @@ for host in hosts:
     if 'Darwin' not in kernel:
         filerDone = True
 
-'''
+
 #clone repo onto remote machines
 #needs to be changed when/if python_translate branch is merged into master
 #(-b python_translate part would be removed if so)
@@ -368,30 +371,31 @@ for host in itinerary['hosts'].keys():
                     shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
     setupDevNull(switch='off', setupOutput=stdShuffle)
     os.remove(remScript)
-
 '''
+
 #kick off benchmarking on each host
-#see testing for remote workDir existsing for possibly not needing shell=True
+#see testing for remote workDir existing for possibly not needing shell=True
 stdShuffle = setupDevNull(switch='on')
 sys.stderr = devnull
-cmdBeg = 'ssh -AX '
-cmdEnd = " 'export DA_BENCH=yes; casa --nologger -c /lustre/naasc/nbrunett/" + \
-         "bench_code_devel/CASA-Guides-Script-Extractor/" + \
-         "remote_machine_worker.py'"
+cmdP1 = 'ssh -AX '
+cmdP2 = " 'export DA_BENCH=yes; cd "
+cmdP3 = '; casa --nologger -c '
 procs = list()
-for host in hosts:
-    procs.append(subprocess.Popen(cmdBeg+host+cmdEnd, shell=True, \
+for host in itinerary['hosts'].keys():
+    remScript = host + '_remote_machine.py'
+    cmdTot = cmdP1 + host + cmdP2 + itinerary['hosts'][host]['workDir'] + \
+             cmdP3 + itinerary['hosts'][host]['workDir'] + remScript + "'"
+    procs.append(subprocess.Popen(cmdTot, shell=True, \
                                   stdout=stdShuffle[2], stderr=stdShuffle[2]))
-    #not general at all!
-    #for log files on shared home directory
+    #in case same workDir used for multiple machines
     time.sleep(10)
-    while os.path.exists('/users/nbrunett/casapy.log'):
+    while os.path.exists(itinerary['hosts'][host]['workDir'] + '/casapy.log')
         time.sleep(10)
 for i in range(len(procs)):
     procs[i].wait()
 setupDevNull(switch='off', setupOutput=stdShuffle)
-'''
 
+'''
 #remove remote repo and machine script
 for host in itinerary['hosts'].keys():
     remScript = host + '_remote_machine.py'
@@ -399,6 +403,16 @@ for host in itinerary['hosts'].keys():
     subprocess.call(['ssh', '-AX', host, 'rm', '-rf', \
                      itinerary['hosts'][host]['workDir']+ \
                      '/CASA-Guides-Script-Extractor', \
-                     itinerary['hosts'][host]['workDir']+'/'+remScript], \
+                     itinerary['hosts'][host]['workDir']+remScript], \
+                    shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
+    setupDevNull(switch='off', setupOutput=stdShuffle)
+'''
+
+#remove remote casapy and ipython log files
+for host in itinerary['hosts'].keys():
+    stdShuffle = setupDevNull(switch='on')
+    subprocess.call(['ssh', '-AX', host, 'rm', '-rf', \
+                     itinerary['hosts'][host]['workDir']+'casapy*.log', \
+                     itinerary['hosts'][host]['workDir']+'ipython*.log']
                     shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
     setupDevNull(switch='off', setupOutput=stdShuffle)
