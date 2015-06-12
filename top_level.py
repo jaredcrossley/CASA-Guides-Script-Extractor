@@ -50,14 +50,6 @@ import parameters
 #  [ ]i'm happy
 #-?moves results to local machine
 #-?compiles results into a single report on local machine
-#-?should a lot of the checks that are done in the classes be done here too (for
-#  example: setting skipDownloads=True for a data set that isn't stored on
-#  lustre) :/ this would be because error messages would be maybe directed to
-#  some random log file and wouldn't be presented plainly
-
-#think about how to reduce chance of shell-injection in the subprocess calls
-#that start the benchmarking; maybe have a set of hosts that are acceptable and
-#thus can't be anything malicious
 
 def setupDevNull(switch, setupOutput=None):
     if switch == 'on':
@@ -80,7 +72,6 @@ def setupDevNull(switch, setupOutput=None):
 #this part and hope people don't mess up their itinerary files... :/
 itinerary = itinerary.itinerary
 #make sure itinerary is properly formed
-'''
 if itinerary.keys() != ['hosts']:
     raise ValueError('itinerary dictionary is malformed. Please check ' + \
                      'template in itinerary.py header against your dictionary.')
@@ -240,20 +231,7 @@ for host in itinerary['hosts'].keys():
 #add matplotlib backend setting to ~/.casa/prelude.py
 #this needs to be thoroughly tested; I think really just to test that ~ expands
 #in scp calls
-hosts = ['cvpost048', 'cvpost064']
-filerDone = False
-for host in hosts:
-    #determine if remote host is linux or Mac
-    stdShuffle = setupDevNull(switch='on')
-    proc = subprocess.Popen(['ssh', '-AX', host, 'uname', '-s'], shell=False, \
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    kernel = proc.communicate()[0].rstrip()
-    setupDevNull(switch='off', setupOutput=stdShuffle)
-
-    #linux machines (assumed to be on the filer) only need to be checked once
-    if 'Darwin' not in kernel and filerDone:
-        continue
-
+for host in itinerary['hosts'].keys():
     #copy prelude.py file here
     stdShuffle = setupDevNull(switch='on')
     ret = subprocess.call(['scp', '-o', 'ForwardAgent=yes',
@@ -266,7 +244,7 @@ for host in hosts:
         open('working_prelude.py', 'w').close()
 
     #add Agg conditional if necessary
-    prelude = open('working_prelude', 'r+')
+    prelude = open('working_prelude.py', 'r+')
     lines = prelude.readlines()
     impOS = False
     impML = False
@@ -296,9 +274,6 @@ for host in hosts:
                     shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
     setupDevNull(switch='off', setupOutput=stdShuffle)
     os.remove('working_prelude.py')
-    #only need to do it once for machines on the filer
-    if 'Darwin' not in kernel:
-        filerDone = True
 
 
 #clone repo onto remote machines
@@ -328,7 +303,7 @@ for host in itinerary['hosts'].keys():
 #build machine script to be executed on remote machines and scp it over
 #needs to be finalized
 #  -what to do for scriptDir
-#  -adding scriptDir to pythonpath
+#  -adding scriptDir to pythonpath?
 #the code being written needs to be carefully inspected so I'm happy with it
 for host in itinerary['hosts'].keys():
     remScript = host + '_remote_machine.py'
@@ -371,12 +346,11 @@ for host in itinerary['hosts'].keys():
                     shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
     setupDevNull(switch='off', setupOutput=stdShuffle)
     os.remove(remScript)
-'''
+
 
 #kick off benchmarking on each host
 #see testing for remote workDir existing for possibly not needing shell=True
 stdShuffle = setupDevNull(switch='on')
-sys.stderr = devnull
 cmdP1 = 'ssh -AX '
 cmdP2 = " 'export DA_BENCH=yes; cd "
 cmdP3 = '; casa --nologger -c '
@@ -389,13 +363,13 @@ for host in itinerary['hosts'].keys():
                                   stdout=stdShuffle[2], stderr=stdShuffle[2]))
     #in case same workDir used for multiple machines
     time.sleep(10)
-    while os.path.exists(itinerary['hosts'][host]['workDir'] + '/casapy.log')
+    while os.path.exists(itinerary['hosts'][host]['workDir'] + '/casapy.log'):
         time.sleep(10)
 for i in range(len(procs)):
     procs[i].wait()
 setupDevNull(switch='off', setupOutput=stdShuffle)
 
-'''
+
 #remove remote repo and machine script
 for host in itinerary['hosts'].keys():
     remScript = host + '_remote_machine.py'
@@ -406,13 +380,13 @@ for host in itinerary['hosts'].keys():
                      itinerary['hosts'][host]['workDir']+remScript], \
                     shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
     setupDevNull(switch='off', setupOutput=stdShuffle)
-'''
+
 
 #remove remote casapy and ipython log files
 for host in itinerary['hosts'].keys():
     stdShuffle = setupDevNull(switch='on')
     subprocess.call(['ssh', '-AX', host, 'rm', '-rf', \
                      itinerary['hosts'][host]['workDir']+'casapy*.log', \
-                     itinerary['hosts'][host]['workDir']+'ipython*.log']
+                     itinerary['hosts'][host]['workDir']+'ipython*.log'], \
                     shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
     setupDevNull(switch='off', setupOutput=stdShuffle)
