@@ -18,8 +18,8 @@ import parameters
 #-modifies prelude.py on remote machines if necessary to add matplotlib Agg
 # setting
 #  [x]written
-#  [ ]tested
-#  [ ]i'm happy
+#  [x]tested
+#  [x]i'm happy
 #-copies repo files to remote machines
 #  [x]written
 #  [x]tested
@@ -27,7 +27,7 @@ import parameters
 #-builds script to run machine benchmarking on the remote machines
 #  [x]written
 #  [x]tested
-#  [ ]i'm happy (needs a few things looked at)
+#  [x]i'm happy
 #-copies that script to each remote host to be benchmarking
 #  [x]written
 #  [x]tested
@@ -46,8 +46,8 @@ import parameters
 #  [x]i'm happy
 #-removes remote casapy and ipython log files
 #  [x]written
-#  [ ]tested
-#  [ ]i'm happy
+#  [x]tested
+#  [x]i'm happy
 #-?moves results to local machine
 #-?compiles results into a single report on local machine
 
@@ -67,9 +67,6 @@ def setupDevNull(switch, setupOutput=None):
         raise ValueError('switch must be "on" or "off".')
 
 
-#retrieve the benchmarking itinerary and check the values
-#it gets pretty awful in this section, maybe it would be better to just skip
-#this part and hope people don't mess up their itinerary files... :/
 itinerary = itinerary.itinerary
 #make sure itinerary is properly formed
 if itinerary.keys() != ['hosts']:
@@ -227,10 +224,7 @@ for host in itinerary['hosts'].keys():
                                      'or update parameters.py.')
 
 
-
 #add matplotlib backend setting to ~/.casa/prelude.py
-#this needs to be thoroughly tested; I think really just to test that ~ expands
-#in scp calls
 for host in itinerary['hosts'].keys():
     #copy prelude.py file here
     stdShuffle = setupDevNull(switch='on')
@@ -301,18 +295,15 @@ for host in itinerary['hosts'].keys():
 
 
 #build machine script to be executed on remote machines and scp it over
-#needs to be finalized
-#  -what to do for scriptDir
-#  -adding scriptDir to pythonpath?
-#the code being written needs to be carefully inspected so I'm happy with it
+be carefully inspected so I'm happy with it
 for host in itinerary['hosts'].keys():
     remScript = host + '_remote_machine.py'
     macF = open(remScript, 'w')
     macF.write('import os\n')
     macF.write('\n')
     macF.write('CASAglobals = globals()\n')
-    macF.write("scriptDir = '/lustre/naasc/nbrunett/bench_code_devel/' + \\\n")
-    macF.write("            'CASA-Guides-Script-Extractor'\n")
+    macF.write("scriptDir = '" + itinerary['hosts'][host]['workDir'] + \
+               "CASA-Guides-Script-Extractor'\n")
     macF.write("dataSets = " + str(itinerary['hosts'][host]['dataSets']) + "\n")
     macF.write("nIters = " + str(itinerary['hosts'][host]['nIters']) + "\n")
     macF.write("skipDownloads = " + \
@@ -329,7 +320,7 @@ for host in itinerary['hosts'].keys():
     macF.write('\n')
     macF.write('import machine\n')
     macF.write('\n')
-    macF.write('cvpost = machine.machine(CASAglobals=CASAglobals, \\\n')
+    macF.write('bMarker = machine.machine(CASAglobals=CASAglobals, \\\n')
     macF.write('                         scriptDir=scriptDir, \\\n')
     macF.write('                         dataSets=dataSets, \\\n')
     macF.write('                         nIters=nIters, \\\n')
@@ -338,7 +329,7 @@ for host in itinerary['hosts'].keys():
     macF.write('                         workDir=workDir, \\\n')
     macF.write('                         scriptsSources=scriptsSources, \\\n')
     macF.write('                         quiet=quiet)\n')
-    macF.write('cvpost.runBenchmarks(cleanUp=True)\n')
+    macF.write('bMarker.runBenchmarks(cleanUp=True)\n')
     macF.close()
     stdShuffle = setupDevNull(switch='on')
     subprocess.call(['scp', '-o', 'ForwardAgent=yes', remScript, \
