@@ -1,14 +1,25 @@
-#edit the fields below and save for the benchmarking itinerary you want
+"""Storage module for CASA benchmarking with the top_level.py script.
 
-#information needed:
-#  -host names
-#  -data sets
-#  -number of iterations of each data set
-#  -whether data should be downloaded from HTTP or not
-#  -execution steps for each data set
-#  -sources of scripts for each data set
-#  -working directory on host
+Purpose
+-------
+This module is used to store the machines, data sets, stages and numbers of
+iterations that make up all of the benchmarking that will be carried out with
+the top_level.py script. It is also setup to be the way the user actually tells
+top_level.py what to run so editing this module's source file (itinerary.py) is
+the first step in automated, parallel, benchmarking of machines on the internal
+NRAO network.
 
+Editing for Use with top_level.py
+---------------------------------
+The first step of using top_level.py is to actually edit this module's source
+file. When a copy of the CASA-Guides-Script-Extractor repository is cloned, this
+module has an example itinerary already filled out. The easiest way to make sure
+that dictionary is filled out properly is to just follow the form of the example
+that it starts with. All of the values for each host (e.g. dataSets, nIters,
+skipDownloads, etc.) are the inputs that will be used when using the machine
+class included in this repository. It may help to review the help docstring for
+the machine class to understand what is needed for each of those values.
+"""
 itinerary = {'hosts': {'cvpost045': {'dataSets': ['x2012_1_00912_S_43', \
                                                   'NGC3256Band3_43'], \
                                      'nIters': [2, 2], \
