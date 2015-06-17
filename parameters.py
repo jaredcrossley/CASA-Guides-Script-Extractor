@@ -1,14 +1,14 @@
-""" Storage module for CASA benchmarking parameters.
+"""Storage module for CASA benchmarking parameters.
 
 This module is solely for storing information related to benchmarking the
-typical group of data sets. The machine module depends on this module for finding
-sources of scripts, raw data etc. but this module can be used in other contexts
-too. Some data set variable names start with a meaningless "x" since variable
-names can not start with numbers.
+typical group of data sets. The machine module depends on this module for
+finding sources of scripts, raw data etc. but this module can be used in other
+contexts too. Some data set variable names start with a meaningless "x" since
+variable names can not start with numbers.
 
 The dictionaries are organized by the source of data/scripts from "online",
-"lustre" and "elric". Then each of those sub-dictionaries contain the URL/path to
-the calScript, imScript, uncalData and calData from that source.
+"lustre" and "elric". Then each of those sub-dictionaries contain the URL/path
+to the calScript, imScript, uncalData and calData from that source.
 """
 ##2012.1.00912##
 #THIS DATA IS NOT ON THE SCIENCE PORTAL
