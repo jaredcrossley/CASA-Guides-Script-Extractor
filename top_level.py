@@ -10,46 +10,59 @@ import time
 import itinerary
 import parameters
 
-###what this script does/will do###
-#-collects the hosts, data sets, number of iterations and steps to benchmark
-#  [x]written
-#  [x]tested
-#  [x]i'm happy
-#-modifies prelude.py on remote machines if necessary to add matplotlib Agg
-# setting
-#  [x]written
-#  [x]tested
-#  [x]i'm happy
-#-copies repo files to remote machines
-#  [x]written
-#  [x]tested
-#  [x]i'm happy
-#-builds script to run machine benchmarking on the remote machines
-#  [x]written
-#  [x]tested
-#  [x]i'm happy
-#-copies that script to each remote host to be benchmarking
-#  [x]written
-#  [x]tested
-#  [x]i'm happy
-#-starts up, over ssh, CASA on each machine to execute the remote machine script
-#  [x]written
-#  [ ]tested
-#  [ ]i'm happy
-#-removes remote repo copy
-#  [x]written
-#  [x]tested
-#  [x]i'm happy
-#-removes remote machine script copy
-#  [x]written
-#  [x]tested
-#  [x]i'm happy
-#-removes remote casapy and ipython log files
-#  [x]written
-#  [x]tested
-#  [x]i'm happy
-#-?moves results to local machine
-#-?compiles results into a single report on local machine
+
+"""NRAO convenience script for parallel CASA benchmarking.
+
+Purpose
+-------
+This Python script is intended to simplify the process of running CASA
+benchmarking for internal NRAO staff. It makes it possible to clone the
+CASA-Guides-Script-Extractor repository, edit a single file to specify what will
+be benchmarked and to invoke Python on a single script to handle everything
+else. The goal has been to automate as much of the benchmarking and report
+generation process and this file is the interface between the user and the
+benchmarking code.
+
+Usage
+-----
+Using this script for benchmarking on NRAO machines on the internal network
+is only a two step process. First, you must edit the itinerary.py file included
+in this repository to specify which machines will be used, what data sets will
+be run, which stages each data set will run through and how many times each
+benchmark will be repeated. Directions for editing itinerary.py are included in
+that file. The second step is to invoke Python with this file as the only
+argument. E.g.
+
+> python /lustre/naasc/nbrunett/CASA-Guides-Script-Extractor/top_level.py
+
+What This Script Does
+---------------------
+This portion of the benchmarking process was written as a "procedural" Python
+script because, at the time of writing, it was the most straightforward way to
+provide a simple interface for the user. The tasks perfomed by this script are:
+
+  -collect the hosts, data sets, number of iterations and steps to benchmark
+   from itinerary.py
+  -modify prelude.py on remote machines, if necessary, to add matplotlib Agg
+  -clone repo on remote machines
+  -build script to run machine benchmarking on the remote machines
+  -copy that script to each remote host to be benchmarking
+  -start up, over ssh, CASA on each machine to execute the remote machine
+   script
+  -remove remote repo copy
+  -remove remote machine script copy
+  -remove remote casapy and ipython log files
+  *[not yet] move results to local machine
+  *[not yet] compile results into a single report on local machine
+
+As mentioned above, the results from each machine are not yet moved to the
+local machine that is running this script. The results are also still left as
+text files from each individual benchmark. It is up to the user, at the time of
+this writing, to retrieve all of the results from each remote machine and to
+combine them as the user sees fit. The completed workflow will have this script
+automating those tasks as well.
+"""
+
 
 def setupDevNull(switch, setupOutput=None):
     if switch == 'on':
@@ -340,7 +353,6 @@ for host in itinerary['hosts'].keys():
 
 
 #kick off benchmarking on each host
-#see testing for remote workDir existing for possibly not needing shell=True
 stdShuffle = setupDevNull(switch='on')
 cmdP1 = 'ssh -AX '
 cmdP2 = " 'export DA_BENCH=yes; cd "
