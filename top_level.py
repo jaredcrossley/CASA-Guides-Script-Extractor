@@ -65,6 +65,41 @@ automating those tasks as well.
 
 
 def setupDevNull(switch, setupOutput=None):
+    """Sets or unsets sys.stdout and sys.stderr to os.devnull.
+
+    Returns
+    -------
+    If switch == 'on'
+       Returns 3-tuple containing original sys.stdout file object, original
+       sys.stderr file object and the os.devnull file object.
+    If switch == 'off'
+       Returns None.
+
+    Parameters
+    ----------
+    switch : str
+       Specifies if stdout and stderr are being set to devnull or returned to
+       their default values. Must be either "on" or "off".
+
+    setupOutput : 3-tuple
+       Only used when switch == 'off' and it should be the returned 3-tuple from
+       when setupDevNull was run with switch == 'on'.
+
+    Notes
+    -----
+    Intended as a simple convenience function to clean up the main part of this
+    script. When a portion of the script should not be sending any output to the
+    terminal, and we do not care about logging it, then this function should
+    wrap around that section. E.g.
+
+       stdShuffle = setupDevNull(switch='on')
+       print 'Python is dumb.'
+       setupDevNull(switch='off', setupOutput=stdShuffle)
+
+    Since the above print statement is something we would obviously never want
+    to have printed to the terminal and we do not want to keep track of it we
+    just wrap it with a couple calls to setupDevNull to keep it quiet.
+    """
     if switch == 'on':
         devnull = open(os.devnull, 'w')
         oldStdout = sys.stdout
