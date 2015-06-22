@@ -33,7 +33,7 @@ benchmark will be repeated. Directions for editing itinerary.py are included in
 that file. The second step is to invoke Python with this file as the only
 argument. E.g.
 
-> python /lustre/naasc/nbrunett/CASA-Guides-Script-Extractor/top_level.py
+> python /lustre/naasc/nbrunett/CASA-Guides-Script-Extractor/run_benchmarks.py
 
 What This Script Does
 ---------------------

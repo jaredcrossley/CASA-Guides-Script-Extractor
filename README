@@ -29,7 +29,7 @@ benchmarking going.
    forwarding (see below).
 2) Clone a copy of the repository to your local machine.
 3) Edit itinerary.py to specify what will be benchmarked.
-4) Invoke Python with top_level.py as the only argument.
+4) Invoke Python with run_benchmarks.py as the only argument.
 
 These steps will allow you to quickly begin benchmarking CASA on machines that
 you have ssh access to over the internal NRAO network. It will also run
@@ -63,13 +63,14 @@ process.
    calibration/imaging scripts can be extracted from and what directory you
    actually want the benchmarking to be done in.
 4) Launching Python to run the automated benchmarking is a simple one-liner at
-   the command prompt. Just run this line, changing the path to top_level.py
-   so that it points to the location of your copy:
-     $ python /lustre/naasc/nbrunett/CASA-Guides-Script-Extractor/top_level.py
+   the command prompt. Just run this line, changing the path to
+   run_benchmarks.py so that it points to the location of your copy:
+     $ python /lustre/naasc/nbrunett/CASA-Guides-Script-Extractor/run_benchmakrs.py
    This will run the actual benchmarking, giving some very limited diagnostic
    output, and will return your prompt when all benchmarking jobs have
-   finished. Please note that top_level.py will modify your ~/.casa/prelude.py
-   file on each machine running benchmarks to include these lines:
+   finished. Please note that run_benchmarks.py will modify your
+   ~/.casa/prelude.py file on each machine running benchmarks to include these
+   lines:
      import os
      import matplotlib
      if os.environ.has_key('DA_BENCH'):
@@ -229,7 +230,7 @@ Files unique to translated architecture:
   -benchmark.py
   -machine.py
   -parameters.py
-  -top_level.py
+  -run_benchmarks.py
   -remote_machine_worker.py
   -itinerary.py
   
@@ -237,7 +238,7 @@ All files included in translated architecture:
   -benchmark.py
   -machine.py
   -parameters.py
-  -top_level.py
+  -run_benchmarks.py
   -remote_machine_worker.py
   -itinerary.py
   -extractCASAscript.py
