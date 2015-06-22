@@ -271,7 +271,8 @@ for host in itinerary['hosts'].keys():
                                      'elric for '+host+'. Revise itinerary ' + \
                                      'or update parameters.py.')
 print 'Itinerary from itinerary.py successfully cleared checks.'
-print '##Benchmarking to be run is:'
+time.sleep(0.5)
+print '##Benchmarking to be run:'
 for host in itinerary['hosts'].keys():
     print '  ' + host
     for i,dataSet in enumerate(itinerary['hosts'][host]['dataSets']):
@@ -359,9 +360,10 @@ for host in itinerary['hosts'].keys():
 
 #build machine script to be executed on remote machines and scp it over
 remScripts = list()
+workingScript = 'working_remote_machine.py'
 for host in itinerary['hosts'].keys():
     remScripts.append(host + '_remote_machine.py')
-    macF = open(remScripts[-1], 'w')
+    macF = open(workingScript, 'w')
     macF.write('import os\n')
     macF.write('\n')
     macF.write('CASAglobals = globals()\n')
@@ -395,11 +397,11 @@ for host in itinerary['hosts'].keys():
     macF.write('bMarker.runBenchmarks(cleanUp=True)\n')
     macF.close()
     stdShuffle = setupDevNull(switch='on')
-    subprocess.call(['scp', '-o', 'ForwardAgent=yes', remScripts[-1], \
-                     host+':'+itinerary['hosts'][host]['workDir']], \
+    subprocess.call(['scp', '-o', 'ForwardAgent=yes', workingScript, \
+                 host+':'+itinerary['hosts'][host]['workDir']+remScripts[-1]], \
                     shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
     setupDevNull(switch='off', setupOutput=stdShuffle)
-    os.remove(remScripts[-1])
+os.remove(workingScript)
 
 
 #kick off benchmarking on each host
