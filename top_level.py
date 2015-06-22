@@ -270,6 +270,21 @@ for host in itinerary['hosts'].keys():
                                      'not available on lustre and/or ' + \
                                      'elric for '+host+'. Revise itinerary ' + \
                                      'or update parameters.py.')
+print 'Itinerary from itinerary.py successfully cleared checks.'
+print '##Benchmarking to be run is:'
+for host in itinerary['hosts'].keys():
+    print '  ' + host
+    for i,dataSet in enumerate(itinerary['hosts'][host]['dataSets']):
+        print '    ' + dataSet
+        print '      ' + str(itinerary['hosts'][host]['nIters'][i]) + \
+              ' iterations'
+        if itinerary['hosts'][host]['steps'][i] == 'both':
+            print '      both calibration and imaging steps'
+        elif itinerary['hosts'][host]['steps'][i] == 'cal':
+            print '      calibration step'
+        else:
+            print '      imaging step'
+print '##'
 
 
 #add matplotlib backend setting to ~/.casa/prelude.py
@@ -343,10 +358,10 @@ for host in itinerary['hosts'].keys():
 
 
 #build machine script to be executed on remote machines and scp it over
-be carefully inspected so I'm happy with it
+remScripts = list()
 for host in itinerary['hosts'].keys():
-    remScript = host + '_remote_machine.py'
-    macF = open(remScript, 'w')
+    remScripts.append(host + '_remote_machine.py')
+    macF = open(remScripts[-1], 'w')
     macF.write('import os\n')
     macF.write('\n')
     macF.write('CASAglobals = globals()\n')
@@ -380,23 +395,23 @@ for host in itinerary['hosts'].keys():
     macF.write('bMarker.runBenchmarks(cleanUp=True)\n')
     macF.close()
     stdShuffle = setupDevNull(switch='on')
-    subprocess.call(['scp', '-o', 'ForwardAgent=yes', remScript, \
+    subprocess.call(['scp', '-o', 'ForwardAgent=yes', remScripts[-1], \
                      host+':'+itinerary['hosts'][host]['workDir']], \
                     shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
     setupDevNull(switch='off', setupOutput=stdShuffle)
-    os.remove(remScript)
+    os.remove(remScripts[-1])
 
 
 #kick off benchmarking on each host
+print 'Launching benchmarking jobs on each machine.'
 stdShuffle = setupDevNull(switch='on')
 cmdP1 = 'ssh -AX '
 cmdP2 = " 'export DA_BENCH=yes; cd "
 cmdP3 = '; casa --nologger -c '
 procs = list()
-for host in itinerary['hosts'].keys():
-    remScript = host + '_remote_machine.py'
+for i,host in enumerate(itinerary['hosts'].keys()):
     cmdTot = cmdP1 + host + cmdP2 + itinerary['hosts'][host]['workDir'] + \
-             cmdP3 + itinerary['hosts'][host]['workDir'] + remScript + "'"
+             cmdP3 + itinerary['hosts'][host]['workDir'] + remScripts[i] + "'"
     procs.append(subprocess.Popen(cmdTot, shell=True, \
                                   stdout=stdShuffle[2], stderr=stdShuffle[2]))
     #in case same workDir used for multiple machines
@@ -406,16 +421,17 @@ for host in itinerary['hosts'].keys():
 for i in range(len(procs)):
     procs[i].wait()
 setupDevNull(switch='off', setupOutput=stdShuffle)
+print 'All benchmarking jobs are finished.'
+print 'Finishing file cleanup.'
 
 
 #remove remote repo and machine script
-for host in itinerary['hosts'].keys():
-    remScript = host + '_remote_machine.py'
+for i,host in enumerate(itinerary['hosts'].keys()):
     stdShuffle = setupDevNull(switch='on')
     subprocess.call(['ssh', '-AX', host, 'rm', '-rf', \
                      itinerary['hosts'][host]['workDir']+ \
                      '/CASA-Guides-Script-Extractor', \
-                     itinerary['hosts'][host]['workDir']+remScript], \
+                     itinerary['hosts'][host]['workDir']+remScripts[i]], \
                     shell=False, stdout=stdShuffle[2], stderr=stdShuffle[2])
     setupDevNull(switch='off', setupOutput=stdShuffle)
 
