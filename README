@@ -231,7 +231,6 @@ Files unique to translated architecture:
   -machine.py
   -parameters.py
   -run_benchmarks.py
-  -remote_machine_worker.py
   -itinerary.py
   
 All files included in translated architecture:
@@ -239,7 +238,6 @@ All files included in translated architecture:
   -machine.py
   -parameters.py
   -run_benchmarks.py
-  -remote_machine_worker.py
   -itinerary.py
   -extractCASAscript.py
   -casa_call.py
