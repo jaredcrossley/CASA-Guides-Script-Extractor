@@ -125,9 +125,9 @@ class machine:
        These messages are always written to [hostname]_machine_wrapping.log.
     """
 
-    def __init__(self, CASAglobals=None, scriptDir='', dataSets=list(), \
-                 nIters=list(), skipDownloads=list(), steps=list(), \
-                 scriptsSources=list(), workDir='./', quiet=False):
+    def __init__(self, CASAglobals=None, dataSets=list(), nIters=list(), \
+                 skipDownloads=list(), steps=list(), scriptsSources=list(), \
+                 workDir='./', quiet=False):
         """Prepare all machine instance variables for all the other methods.
 
         Returns
@@ -141,9 +141,6 @@ class machine:
            namespace (environment). Simply pass the return value of the globals()
            function from within CASA where this class should be instantiated
            within.
-
-        scriptDir : str
-           Absolute path to directory containing the benchmarking module files.
 
         dataSets : list
            List of strings containing names of data sets to be benchmarked. Names
@@ -202,14 +199,6 @@ class machine:
             raise ValueError('Value returned by globals() function in ' + \
                              'CASA environment must be given.')
         self._CASAglobals = CASAglobals
-
-        #add script directory to Python path if need be
-        if scriptDir == '':
-            raise ValueError('Path to benchmarking scripts must be given.')
-        scriptDir = os.path.abspath(scriptDir) + '/'
-        self.scriptDir = scriptDir
-        if scriptDir not in sys.path:
-            sys.path.append(self.scriptDir)
 
         #gather details of computer and installed packages
         self.hostName = socket.gethostname()
@@ -438,14 +427,13 @@ class machine:
                 outString = fullFuncName + ': Beginning iteration ' + str(i)
                 self.writeToWrappingLog(outString, quiet=self.quiet)
 
-                b = benchmark.benchmark(scriptDir=self.scriptDir, \
-                                 workDir=dataSetDir, \
-                                 execStep=self.jobs[dataSet]['step'], \
-                                 calSource=calSource, \
-                                 imSource=imSource, \
-                                 dataPath=dataPath, \
-                                 skipDownload=self.jobs[dataSet]['skipDownload'],
-                                 quiet=True)
+                b = benchmark.benchmark(workDir=dataSetDir, \
+                                        execStep=self.jobs[dataSet]['step'], \
+                                        calSource=calSource, \
+                                        imSource=imSource, \
+                                        dataPath=dataPath, \
+                              skipDownload=self.jobs[dataSet]['skipDownload'], \
+                                        quiet=True)
                 self.jobs[dataSet]['benchmarks'].append(b)
 
                 if not self.jobs[dataSet]['skipDownload']:

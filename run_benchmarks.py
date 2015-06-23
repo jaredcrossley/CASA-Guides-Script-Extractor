@@ -386,7 +386,6 @@ for host in itinerary['hosts'].keys():
     macF.write('import machine\n')
     macF.write('\n')
     macF.write('bMarker = machine.machine(CASAglobals=CASAglobals, \\\n')
-    macF.write('                         scriptDir=scriptDir, \\\n')
     macF.write('                         dataSets=dataSets, \\\n')
     macF.write('                         nIters=nIters, \\\n')
     macF.write('                         skipDownloads=skipDownloads, \\\n')

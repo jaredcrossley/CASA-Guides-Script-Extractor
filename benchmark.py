@@ -149,9 +149,8 @@ class benchmark:
        These messages are always written to benchmark_wrapping.log.
     """
 
-    def __init__(self, scriptDir='', workDir='./', execStep='both', \
-                 calSource='', imSource='', dataPath='', skipDownload=False, \
-                 quiet=False):
+    def __init__(self, workDir='./', execStep='both', calSource='', \
+                 imSource='', dataPath='', skipDownload=False, quiet=False):
         """Prepare all benchmark instance variables for the other methods.
 
         Returns
@@ -160,9 +159,6 @@ class benchmark:
 
         Parameters
         ----------
-        scriptDir : str
-           Absolute path to directory containing the benchmarking module files.
-
         workDir : str
            Absolute path to directory where benchmarking directory structure will
            be created, all data will be stored and processing will be done.
@@ -212,13 +208,6 @@ class benchmark:
 
         #default to an error unless at least __init__ finishes
         self.status = 'failure'
-
-        #add script directory to Python path if need be
-        if scriptDir == '':
-            raise ValueError('Path to benchmarking scripts must be given.')
-        scriptDir = os.path.abspath(scriptDir) + '/'
-        if scriptDir not in sys.path:
-            sys.path.append(scriptDir)
 
         #initialize the working directory
         if not os.path.isdir(workDir):
