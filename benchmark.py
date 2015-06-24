@@ -303,9 +303,13 @@ class benchmark:
         sys.stderr = sys.stdout
         myStdOut = sys.stdout
         extractCASAscript.casa_tasks = extractCASAscript.listCASATasks()
+        myStdOut.truncate(0)
+        myStdOut.seek(0)
+        extractCASAscript.casa_tasks = extractCASAscript.listCASATasks()
         stdOut, sys.stdout = sys.stdout, stdOut
         stdErr, sys.stderr = sys.stderr, stdErr
         self.listTasksOut = myStdOut.getvalue()
+        stdOut.close()
 
 
     def createDirTree(self):
