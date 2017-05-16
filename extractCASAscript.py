@@ -4,16 +4,12 @@ A script to transform CASA Guide webpages and casapy scripts to casapy
 scripts suited for interactive or non-interactive use.  This script can be
 run from the command line.  Use the '-h' option to obtain a help message
 explaining the command line parameters and options.
-
 The script runs in one of three modes:
-
 1) interactive (default): Generates a casapy script that requests user input
    when interactive GUIs are invoked.
-
 2) non-interactive: Generates a casapy script that sleeps for 60s when an
    interactive GUI is invoked.  (Note: 60s may not be enough time for some
    plots.)
-
 3) benchmark: Generates a casapy script that makes all tasks noninteractive or
    removes their invocation all together.  The output script imports and makes
    extensive use of module *casa_call.py* to keep track of the start and stop
@@ -23,7 +19,6 @@ The script runs in one of three modes:
    casa being tests.  To check for consistency or update the hardcoded list,
    use the function listCASATasks() below (see the function's docstring for
    instructions).
-
    The intended functionality of the benchmarking mode is (1) to allow easy
    assessment of whether the scripts are working and (2) to produce useful
    benchmarks of performance, e.g., as a function of machine.
@@ -47,15 +42,25 @@ from optparse import OptionParser
 # =====================
 
 # Expression that define the beginning and end of CASA code blocks in the HTML
-beginBlock = "class=\"python source-python\""
-endBlock = "</pre></div></div>"
+#beginBlock = "class=\"python source-python\""
+#endBlock = "</pre></div></div>"
+
+
+beginBlock = "class=\"p\""
+beginBlock1 = "class=\"n\""
+beginBlock2 = "class=\"k\""
+beginBlock3 = "class=\"s1\""
+beginBlock4 = "class=\"s2\""
+
+endBlock = "</span>"
+
 
 # interactives
-interactive=re.compile("[\s;]*(plotxy|plotcal|plotms|viewer|plotants)")
+interactive=re.compile("[\s;]*(plotxy|plotcal|plotms|viewer|plotants|imview)")
 
 # CASA task list (used for benchmarking markup, else ignored)
 # Check and update this list using function listCASATasks(), below.
-# for CASA 4.2...
+# for CASA 4.5...
 casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummary', 'bandpass',
 'blcal', 'boxit', 'browsetable', 'calstat', 'caltabconvert', 'clean',
 'clearcal', 'clearplot', 'clearstat', 'concat', 'conjugatevis', 'csvclean',
@@ -81,110 +86,24 @@ casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummary', 'bandpass',
 'testconcat', 'toolhelp', 'uvcontsub', 'uvcontsub3', 'uvmodelfit', 'uvsub',
 'viewer', 'virtualconcat', 'vishead', 'visstat', 'widebandpbcor', 'widefield',
 'wvrgcal']
-# # for CASA 4.1...
-# casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummary', 'bandpass',
-# 'blcal', 'boxit', 'browsetable', 'calstat', 'caltabconvert', 'clean',
-# 'clearcal', 'clearplot', 'clearstat', 'concat', 'conjugatevis', 'csvclean',
-# 'cvel', 'deconvolve', 'delmod', 'exportasdm', 'exportfits', 'exportuvfits',
-# 'feather', 'find', 'fixplanets', 'fixvis', 'flagcmd', 'flagdata',
-# 'flagmanager', 'fluxscale', 'ft', 'gaincal', 'gencal', 'hanningsmooth',
-# 'help par.parametername', 'help taskname', 'imcollapse', 'imcontsub', 'imfit',
-# 'imhead', 'immath', 'immoments', 'impbcor', 'importasdm', 'importevla',
-# 'importfits', 'importfitsidi', 'importgmrt', 'importuvfits', 'importvla',
-# 'impv', 'imreframe', 'imregrid', 'imsmooth', 'imstat', 'imsubimage', 'imtrans',
-# 'imval', 'imview', 'listcal', 'listfits', 'listhistory', 'listobs',
-# 'listpartition', 'listsdm', 'listvis', 'makemask', 'mosaic', 'msmoments',
-# 'mstransform', 'msview', 'partition', 'plotants', 'plotbandpass', 'plotcal',
-# 'plotms', 'plotuv', 'plotweather', 'plotxy', 'polcal', 'predictcomp',
-# 'rmtables', 'sdbaseline', 'sdcal', 'sdcal2', 'sdcoadd', 'sdfit', 'sdflag',
-# 'sdflagmanager', 'sdgrid', 'sdimaging', 'sdimprocess', 'sdlist', 'sdmath',
-# 'sdplot', 'sdreduce', 'sdsave', 'sdscale', 'sdsmooth', 'sdstat', 'sdtpimaging',
-# 'setjy', 'simalma', 'simanalyze', 'simobserve', 'slsearch', 'smoothcal',
-# 'specfit', 'splattotable', 'split', 'startup', 'statwt', 'taskhelp',
-# 'tasklist', 'tclean', 'testconcat', 'toolhelp', 'uvcontsub', 'uvcontsub2',
-# 'uvcontsub3', 'uvmodelfit', 'uvsub', 'viewer', 'virtualconcat', 'vishead',
-# 'visstat', 'widebandpbcor', 'widefield', 'wvrgcal']
-# # for CASA 4.0...
-# casa_tasks = ['accum', 'applycal', 'asap_init', 'bandpass', 'blcal', 'boxit',
-# 'browsetable', 'calstat', 'caltabconvert', 'clean', 'clearcal', 'clearplot',
-# 'clearstat', 'concat', 'conjugatevis', 'csvclean', 'cvel', 'deconvolve',
-# 'delmod', 'exportasdm', 'exportfits', 'exportuvfits', 'feather', 'find',
-# 'fixplanets', 'fixvis', 'flagcmd', 'flagdata', 'flagmanager', 'fluxscale',
-# 'ft', 'gaincal', 'gencal', 'hanningsmooth', 'help par.parametername',
-# 'help taskname', 'imcollapse', 'imcontsub', 'imfit', 'imhead', 'immath',
-# 'immoments', 'impbcor', 'importasdm', 'importevla', 'importfits',
-# 'importfitsidi', 'importgmrt', 'importuvfits', 'importvla', 'imregrid',
-# 'imsmooth', 'imstat', 'imsubimage', 'imtrans', 'imval', 'imview', 'listcal',
-# 'listfits', 'listhistory', 'listobs', 'listpartition', 'listsdm', 'listvis',
-# 'makemask', 'mosaic', 'msmoments', 'msview', 'partition', 'plotants',
-# 'plotcal', 'plotms', 'plotuv', 'plotweather', 'plotxy', 'polcal',
-# 'predictcomp', 'rmtables', 'sdbaseline', 'sdcal', 'sdcoadd', 'sdfit',
-# 'sdflag', 'sdflagmanager', 'sdgrid', 'sdimaging', 'sdimprocess', 'sdlist',
-# 'sdmath', 'sdplot', 'sdreduce', 'sdsave', 'sdscale', 'sdsmooth', 'sdstat',
-# 'sdtpimaging', 'setjy', 'simalma', 'simanalyze', 'simobserve', 'slsearch',
-# 'smoothcal', 'specfit', 'splattotable', 'split', 'startup', 'statwt',
-# 'taskhelp', 'tasklist', 'testconcat', 'toolhelp', 'uvcontsub', 'uvcontsub2',
-# 'uvcontsub3', 'uvmodelfit', 'uvsub', 'viewer', 'virtualconcat', 'vishead',
-# 'visstat', 'widebandpbcor', 'widefield', 'wvrgcal']
-# # for CASA 3.4...
-# casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummary', 'bandpass',
-# 'blcal', 'boxit', 'browsetable', 'calstat', 'caltabconvert', 'clean',
-# 'clearcal', 'clearplot', 'clearstat', 'concat', 'conjugatevis', 'csvclean',
-# 'cvel', 'deconvolve', 'delmod', 'exportasdm', 'exportfits', 'exportuvfits',
-# 'feather', 'find', 'fixplanets', 'fixvis', 'flagcmd', 'flagdata',
-# 'flagmanager', 'fluxscale', 'ft', 'gaincal', 'gencal', 'hanningsmooth',
-# 'help par.parametername', 'help taskname', 'imcollapse', 'imcontsub',
-# 'imfit', 'imhead', 'immath', 'immoments', 'impbcor', 'importasdm',
-# 'importevla', 'importfits', 'importfitsidi', 'importgmrt', 'importuvfits',
-# 'importvla', 'impv', 'imreframe', 'imregrid', 'imsmooth', 'imstat',
-# 'imsubimage', 'imtrans', 'imval', 'imview', 'listcal', 'listfits',
-# 'listhistory', 'listobs', 'listpartition', 'listsdm', 'listvis', 'makemask',
-# 'mosaic', 'msmoments', 'mstransform', 'msview', 'partition', 'plotants',
-# 'plotbandpass', 'plotcal', 'plotms', 'plotuv', 'plotweather', 'plotxy',
-# 'polcal', 'predictcomp', 'rmfit', 'rmtables', 'sdaverage', 'sdbaseline',
-# 'sdbaselineold', 'sdcal', 'sdcal2', 'sdcal2old', 'sdcalold', 'sdcoadd',
-# 'sdfit', 'sdfitold', 'sdflag', 'sdflag2old', 'sdflagmanager', 'sdflagold',
-# 'sdgrid', 'sdgridold', 'sdimaging', 'sdimagingold', 'sdimprocess', 'sdlist',
-# 'sdmath', 'sdmathold', 'sdplot', 'sdplotold', 'sdreduce', 'sdreduceold',
-# 'sdsave', 'sdsaveold', 'sdscale', 'sdsmoothold', 'sdstat', 'sdstatold',
-# 'sdtpimaging', 'setjy', 'simalma', 'simanalyze', 'simobserve', 'slsearch',
-# 'smoothcal', 'specfit', 'splattotable', 'split', 'spxfit', 'startup',
-# 'statwt', 'taskhelp', 'tasklist', 'tclean', 'testconcat', 'toolhelp',
-# 'uvcontsub', 'uvcontsub3', 'uvmodelfit', 'uvsub', 'viewer', 'virtualconcat',
-# 'vishead', 'visstat', 'widebandpbcor', 'widefield', 'wvrgcal']
-# # CASA 3.3...
-# casa_tasks = ['accum', 'applycal', 'asap_init', 'bandpass', 'blcal', 'boxi',
-# 'browsetable', 'calstat', 'clean', 'clearcal', 'clearplot', 'clearstat',
-# 'concat', 'conjugatevis', 'csvclea', 'cvel', 'deconvolve', 'exportasd',
-# 'exportfits', 'exportuvfits', 'feather', 'find', 'fixplanets', 'fixvis',
-# 'flagautocorr', 'flagcmd', 'flagdata', 'flagmanager', 'fluxscale', 'ft',
-# 'gaincal', 'gencal', 'hanningsmooth', 'help par.parametername', 'help
-# taskname', 'imcollapse', 'imcontsub', 'imfit', 'imhead', 'immath', 'immoments',
-# 'impbcor', 'importaipscaltable', 'importasdm', 'importevl', 'importfits',
-# 'importfitsidi', 'importgmr', 'importoldasd', 'importuvfits', 'importvla',
-# 'imregrid', 'imsmooth', 'imstat', 'imtrans', 'imval', 'imview', 'listcal',
-# 'listhistory', 'listobs', 'listsd', 'listvis', 'mosai', 'msmoments', 'msview',
-# 'plotants', 'plotcal', 'plotms', 'plotuv', 'plotxy', 'polcal', 'rmtables',
-# 'sdaverage', 'sdbaseline', 'sdcal', 'sdcoadd', 'sdfit', 'sdflag',
-# 'sdflagmanager', 'sdimaging', 'sdimprocess', 'sdlist', 'sdmath', 'sdplot',
-# 'sdsave', 'sdscale', 'sdsmooth', 'sdstat', 'sdtpimaging', 'setjy',
-# 'sim_analyze', 'sim_observe', 'simdata', 'slsearch', 'smoothcal', 'specfi',
-# 'splattotable', 'split', 'startup', 'taskhelp', 'tasklist', 'testautofla',
-# 'testconcat', 'toolhelp', 'uvcontsub', 'uvmodelfit', 'uvsub', 'viewer',
-# 'vishead', 'visstat', 'widefiel']
+
 
 # define formatting junk that needs to be filtered
 # JFG comments that regular expressions might clean this up
 # JBM - cleaned up declaration of the junkStr list
+
 junkStr = [ 
     '<div dir="ltr" class="mw-geshi mw-code mw-content-ltr">',
+    '<div class="mw-highlight mw-content-ltr" dir="ltr">',
     "<div dir=\"ltr\" class=\"mw-geshi\" style=\"text-align: left;\">",
     "<div class=\"python source-python\"><pre class=\"de1\">",
     "<pre>",
     "</span>",
     "</pre></div></div>",
+    "</pre></div>",
     "&nbsp;",
 ];
+
 
 paren1 = "&#40;"
 paren2 = "&#41;"
@@ -193,6 +112,7 @@ brack1 = "&#91;"
 sqirl1 = "&#123;"
 sqirl2 = "&#125;"
 quote1 = "&quot;"
+quote2 = "&#39;"
 lessthan = "&lt;"
 greaterthan = "&gt;"
 ampersand = "&amp;"
@@ -275,26 +195,26 @@ def suppress_for_benchmark(line):
 def make_func_noninteractive(line):
     """
     Make calls to specific tasks/functions non interactive.
-
     Set argument interactive to false for specific tasks and functions.
     """
     # First, check to see if clean is called with function arguments.
     funcName = extract_task(line)
-    if funcName == "clean" or funcName == "au.plotbandpass":
+    if funcName == "clean" or funcName == "au.plotbandpass" or funcName == "tclean" or funcName == "plotbandpass" :
         # Set argument interactive to false
-        pattern = r'''interactive\ *=\ *(True|T|true)'''
+        pattern = r'''interactive\ *=\ *(True)'''
         new_line = re.sub( pattern, 'interactive = False', line )
-        if funcName == "clean":
-            # Remove clean mask parameter if it exists
-            pattern = r'''mask\ *=\ *['"].*['"].*?,?'''
-            new_line = re.sub( pattern, '', new_line )
+	# Leave the mask parameter for testing        
+	#if funcName == "clean":
+        #    # Remove clean mask parameter if it exists
+        #    pattern = r'''mask\ *=\ *['"].*['"].*?,?'''
+        #    new_line = re.sub( pattern, '', new_line )
         return new_line
     # Second, check for variables in local namespace
     else:
-        pattern = r'''^[ \t]*interactive\ *=\ *(True|T|true)'''
+        pattern = r'''^[ \t]*interactive\ *=\ *(True)'''
         # If variable interactive is being set, make sure it is set to false.
         if re.match( pattern, line ):
-            pattern2 = r'''\ *(True|T|true)'''
+            pattern2 = r'''\ *(True)'''
             new_line = re.sub( pattern2, ' False', line )
             return new_line
     return line
@@ -302,20 +222,39 @@ def make_func_noninteractive(line):
 def suppress_gui( line ):
     """
     Suppress GUIs. Return modified line.
-
     * line = a python statement
     """
     if is_task_call(line): 
         # Plotcal
         if extract_task(line) == "plotcal":
             # if showgui is specified, make sure it is false
-            pattern = r'''showgui\ *=\ *(True|T|true|False|F|false)'''
+            pattern = r'''showgui\ *=\ *(True|False)'''
             new_line = re.sub( pattern, 'showgui = False', line )
             if new_line == line: # no substituion made
                 # add showgui=False to parameter list
                 pattern = r'''\('''
                 new_line = re.sub( pattern, '( showgui=False, ', line, count=1 )
             return new_line
+
+        if extract_task(line) == "plotms":
+            # if showgui is specified, make sure it is false
+            pattern = r'''showgui\ *=\ *(True|False)'''
+            new_line = re.sub( pattern, 'showgui = False', line )
+            if new_line == line: # no substituion made
+                # add showgui=False to parameter list
+                pattern = r'''\('''
+                new_line = re.sub( pattern, '( showgui=False, ', line, count=1 )
+            return new_line
+
+        # Flagdata
+
+        if extract_task(line) == "flagdata":
+            pattern = r"""display\ *=\ *['"].*['"]"""
+	    if re.search( pattern, line ):
+            # if showgui is specified, make sure it is false
+            	new_line = re.sub( pattern, "display=''", line )
+            	return new_line
+
         # Suppress GUIs for other tasks here...
     return line
 
@@ -331,10 +270,13 @@ def turnPlotmsOff( line ):
     if is_task_call(line):
         if extract_task(line) == "plotms":
             line = ' '*indentation(line) + "print 'Turned PLOTMS off'"
+
+    line = exclude_raw_input(line)
+    line = include_raw_input( "plotcal",line )
     return(line)
 
 # TO DO: This function testing; I don't think it's working yet.
-def turnPlotbandpassOff( line ):
+def turnAUPlotbandpassOff( line ):
     """ Turn aU.plotbandpass off. """
     pattern = r'''\s*aU.plotbandpass\(.*\)'''
     matchObj = re.match( pattern, line )
@@ -342,12 +284,25 @@ def turnPlotbandpassOff( line ):
         line =  ' ' * indentation(line) + "print 'Turned aU.plotbandpass off'"
     return( line )
 
+def turnPlotbandpassOff( line ):
+    """ Turn off plotbandpass calls. """
+    if is_task_call(line):
+        if extract_task(line) == "plotbandpass":
+            line = ' '*indentation(line) + "print 'Turned plotbandpass off'"
+    return(line)
+
 def turnDiagPlotsOff( line ):
-    """ Turn diagnostic plots off (plotms, plotcal, aU.plotbandpass, plotants, plotxy) """
+    """ Turn diagnostic plots off (plotms, plotcal, aU.plotbandpass, plotants, plotxy, plotbandpass) """
     line = turnTaskOff( "plotms", line )
     line = turnTaskOff( "plotcal", line )
     line = turnTaskOff( "plotants", line )
     line = turnTaskOff( "plotxy", line )
+    line = turnTaskOff( "plotbandpass", line )
+    line = turnTaskOff( "viewer", line )
+    line = turnTaskOff( "imview", line )
+    line = turnTaskOff( "au.plotWVRSolutions",line)
+    line = suppress_gui( line )
+    line = exclude_raw_input( line )
     # Test this function before using.
     # line = turnPlotbandpassOff( line )
     return line
@@ -362,6 +317,7 @@ def loseTheJunk(line):
     for junk in junkStr:
         outline = outline.replace(junk, "")
     outline = outline.replace(quote1, "\"")
+    outline = outline.replace(quote2, "\'")
     outline = outline.replace(paren1, "(")
     outline = outline.replace(paren2, ")")
     outline = outline.replace(brack1, "[")
@@ -372,6 +328,8 @@ def loseTheJunk(line):
     outline = outline.replace(greaterthan, ">")
     outline = outline.replace(ampersand, "&")
     outline = outline.replace(nbsp, " ")
+    outline = outline.replace("<br />", " ")
+    outline = outline.replace("<snip>", " ")
 
     #some additional parsing -- scripting has slightly different
     #syntax than interactive session for tget, default, and go
@@ -397,8 +355,8 @@ def addInteractivePause(outline):
 
 def addNonInteractivePause(outline):
     newoutline = outline
-    newoutline += "\ninp()\nprint('Pausing for 60 seconds...')\n"
-    newoutline += "time.sleep(60)\n"
+    newoutline += "\ninp()\nprint('Pausing for 30 seconds...')\n"
+    newoutline += "time.sleep(30)\n"
     newoutline = string.replace(newoutline, '\n', '\n'+' '*indentation(outline))
     return newoutline
 
@@ -406,7 +364,6 @@ def addNonInteractivePause(outline):
 def benchmark_header( scriptName='script' ):
     """
     Write the header of the benchmarking script.
-
     * scriptName = Name of the benchmarking script
     """
     out_file = scriptName.replace('.py','.benchmark.txt')
@@ -429,7 +386,6 @@ def benchmark_header( scriptName='script' ):
 def pythonize_shell_commands( line ):
     """
     Make casapy-friendly shell commands Python compatible.
-
     Unix shell commands included below in the 'commands' list can be called
     directly from the casapy prompt. These commands cannot be called from inside
     a Python script. To run these commands in a script, place them in an 
@@ -441,20 +397,18 @@ def pythonize_shell_commands( line ):
     firstWord = line.split(' ')[0]
     if firstWord in commands:
         line = 'os.system("' + line + '")'
+    if 'wget' in line:
+	line = '\n'
     return line
 
 def make_system_call_noninteractive( line ):
     """
     Make calls to os.system non-interactive. Return non-interacive line.
-
     Some shell commands called via os.system require user interaction, such as
     more.  Make these shell calls noninteractive.
-
     Replacements:
-
     1) Replace more with cat,
     2) [Add other replacements here...]
-
     * line = a python statement
     """
     command = ''
@@ -472,53 +426,83 @@ def make_system_call_noninteractive( line ):
     newLine = line.replace( command, newCommand, 1 )
     return newLine
 
+def include_raw_input( task,line ):
+    """
+    
+    * line = a python statement
+    """
+    if is_task_call(line):
+    	if extract_task(line) == task:
+        	line = ''*indentation(line) + line + '\n' 
+		line += ' '*indentation(line) + 'user_check=raw_input("press enter to continue script")\n'
+    return line
+
 def exclude_raw_input( line ):
     """
     Exclude raw_input calls from non-interactive scripts.
-
     * line = a python statement
     """
     pattern = r'''raw_input\ *\('''
     if re.search( pattern, line ):
+	#newline = ' ' * indentation(line) + 'print("script will continue")\n'
         newline = ' ' * indentation(line) + '#' + line
         newline += '\n' + ' '*indentation(line) + 'pass\n'
         line = newline
     return line
-    
-# start of main code
+
+def correct_casa_builtins_inp( line ):  
+    """
+    Correct inp built-in from non-interactive scripts.
+    * line = a python statement
+    """
+    pattern = r''' *(inp )'''
+    if re.search( pattern, line ):
+    	new_line = re.sub( pattern, 'inp(', line )
+    	new_line = ' ' * indentation(line) + new_line + ')'
+    	line = new_line
+    return line
+
+def correct_casa_builtins_help( line ):  
+    """
+    Correct help built-in from non-interactive scripts.
+    * line = a python statement
+    """
+    pattern = r''' *(help )'''
+    if re.search( pattern, line ):
+    	new_line = re.sub( pattern, 'help(', line )
+    	new_line = ' ' * indentation(line) + new_line + ')'
+	new_line = "#" + new_line
+    	line = new_line
+    return line
 
 def make_noninteractive( line ):
     """
     Make *line* non-interactive.
-
     * line = a python statement
     """
     line = make_func_noninteractive(line)
     line = make_system_call_noninteractive(line)
     line = exclude_raw_input(line)
+    line = correct_casa_builtins_inp( line )
+    line = correct_casa_builtins_help( line )
+    line = suppress_gui(line)
     return line
 
 def listCASATasks():
     """
     Return a list of all the CASA tasks.
-
     Also report the difference between the task list in this module and the
     task list obtained from CASA. Note that the appropriate list will vary
     with the version of CASA.
-
     This function requires casapy module *tasks*.
-
     In casapy:
     >>> import extractCASAscript
     >>> taskList = extractCASAscript.listCASATasks()
     
     Review the difference between the task lists here...
-
     To update the task list in this module, 
     >>> print taskList
-
     Then, copy-paste the output list into this module.
-
     THIS COULD BE AUTOMATED IF THE SCRIPT EXTRACTOR WAS RUN WITHIN CASAPY!  THE
     CURRENT DESIGN ASSUMES THIS IS NOT THE CASE.
     """
@@ -558,11 +542,9 @@ def main( URL, options ):
     * URL = URL to a CASA Guide web page (HTML) or a Python script.  
     * options = options object created by optparse.  If options.benchmark
       is true, output a Python benchmarking script.
-
     If URL to a CASA Guide, extract the Python from the guide and create
     an executable Python script. If options.benchmark is true, produce a 
     benchmark test from the CASA Guide or existing Python script. 
-
     If URL to a Python script, convert the script to a benchmarking script.
     """
     # Determine if the input file is a Python script
@@ -597,24 +579,32 @@ def main( URL, options ):
 
     if pyInput:
         lineList = responseLines
+
+
     else:
         # Loop over the lines read from the web page
         for line in responseLines:
+	    
             # If we are not currently reading code, see if this line
             # begins a python code block.
             if (readingCode == False):
-                if beginBlock in line:
-                    readingCode = True
-                    outline = loseTheJunk(line)
-                    lineList += [outline]
-                    if endBlock in line:
-                        readingCode = False
-            else:
-                outline = loseTheJunk(line)
-                lineList += [outline]
-                if endBlock in line:
-                    readingCode = False
-                    
+		# This needs to written in better python syntax. This is temp
+
+		if (beginBlock in line) or (beginBlock1 in line) or (beginBlock2 in line) or (beginBlock3 in line) or (beginBlock4 in line): # TODO: Convert to More Pythonic Syntax 
+			readingCode = True
+		        outline = loseTheJunk(line)
+		        lineList += [outline]
+		        if endBlock in line:
+		        	readingCode = False
+
+            #else:
+		#continue
+                #outline = loseTheJunk(line)
+                #lineList += [outline]
+                #if endBlock in line:
+                #    readingCode = False
+
+
     # The python code is now loaded into a list of lines.  Now compress the
     # lines into individual commands, allowing for commands to span multiple
     # lines.  Lines are grouped by closed parentheses.
@@ -668,7 +658,7 @@ def main( URL, options ):
                     line = add_benchmarking(line,tasknum)      
                     task_list.append(this_task)
                     task_nums.append(tasknum)
-                print >>f, line
+                print >>f, line.decode('utf-8')
         print >>f, 'casa_call.summarize_bench( out_file, out_file+".summary" )'
         f.close()        
 
@@ -684,19 +674,28 @@ def main( URL, options ):
         f = codecs.open(outFile, 'w','utf-8')
         for line in compressedList:
             if options.diagplotoff:
-                print "Turning off diagnostic plots..."
+                #print "Turning off diagnostic plots..."
                 line = turnDiagPlotsOff(line)
             elif options.plotmsoff:
+		#print "Turning off plotms..."
                 line = turnPlotmsOff(line)
+		
             elif options.noninteractive:
+		#print "Turning on Non Interactive features..."
+		line = exclude_raw_input(line)
+		# NOTE compressedList iterates through make_noninteractive
                 if extract_task(line) == 'plotms': 
-                    line = addNonInteractivePause(line)
+                	line = addNonInteractivePause(line)
             else: #interactive
-                line = exclude_raw_input(line)
-                mtch = interactive.match(line)
-                if (mtch and not ("showgui=F" in line)): 
-                    line = addInteractivePause(line)
-            print >>f, line
+                #line = exclude_raw_input(line)
+                #mtch = interactive.match(line)
+                #if (mtch and not ("showgui=F" in line)): 
+                #    line = addInteractivePause(line)
+		line = line
+    		line = correct_casa_builtins_inp( line )
+    		line = correct_casa_builtins_help( line )
+	    #print line
+            print >>f, line.decode('utf-8')
         f.close()
     
     print "New file " + outFile + " written to current directory."
@@ -706,23 +705,16 @@ def main( URL, options ):
 if __name__ == "__main__":
     usage = \
 """ %prog [options] URL
-
 *URL* should point to a CASA Guide webpage or to a Python script. *URL* can also be
 a local file system path."""
     parser = OptionParser( usage=usage )
-    parser.add_option( '-b', '--benchmark', action="store_true", default=False,
-        help="produce benchmark test script" )
-    parser.add_option( '-n', '--noninteractive', action="store_true", 
-        default=False, 
-        help="make script non-interactive (non-benchmark mode only)")
-    parser.add_option( '-p', '--plotmsoff', action="store_true",
-        help="turn off all plotms commands")
-    parser.add_option( '-d', '--diagplotoff', action="store_true",
-        help="turn off diagnostic plots (plotms, plotcal, aU.plotbandpass, plotants, plotxy)" )
+    parser.add_option( '-b', '--benchmark', action="store_true", default=False,help="produce benchmark test script" )
+    parser.add_option( '-n', '--noninteractive', action="store_true",  default=False,   help="make script non-interactive (non-benchmark mode only)")
+    parser.add_option( '-p', '--plotmsoff', action="store_true", help="turn off all plotms commands")
+    parser.add_option( '-d', '--diagplotoff', action="store_true",help="turn off diagnostic plots (imview, plotms, plotcal, aU.plotbandpass, plotants, plotxy)" )
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.print_help()
         #raise ValueError("")
         sys.exit(1)
     main(args[0], options)
-
