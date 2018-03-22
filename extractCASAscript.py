@@ -51,6 +51,7 @@ beginBlock1 = "class=\"n\""
 beginBlock2 = "class=\"k\""
 beginBlock3 = "class=\"s1\""
 beginBlock4 = "class=\"s2\""
+beginBlock5 = "class=\"nn\""
 
 endBlock = "</span>"
 
@@ -61,7 +62,7 @@ interactive=re.compile("[\s;]*(plotxy|plotcal|plotms|viewer|plotants|imview)")
 # CASA task list (used for benchmarking markup, else ignored)
 # Check and update this list using function listCASATasks(), below.
 # for CASA 4.5...
-casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummary', 'bandpass',
+casa_tasks = ['accum', 'applycal', 'asdmsummary', 'bandpass',
 'blcal', 'boxit', 'browsetable', 'calstat', 'caltabconvert', 'clean',
 'clearcal', 'clearplot', 'clearstat', 'concat', 'conjugatevis', 'csvclean',
 'cvel', 'deconvolve', 'delmod', 'exportasdm', 'exportfits', 'exportuvfits',
@@ -75,17 +76,12 @@ casa_tasks = ['accum', 'applycal', 'asap_init', 'asdmsummary', 'bandpass',
 'listpartition', 'listsdm', 'listvis', 'makemask', 'mosaic', 'msmoments',
 'mstransform', 'msview', 'partition', 'plotants', 'plotbandpass', 'plotcal',
 'plotms', 'plotuv', 'plotweather', 'plotxy', 'polcal', 'predictcomp', 'rmfit',
-'rmtables', 'sdaverage', 'sdbaseline', 'sdbaselineold', 'sdcal', 'sdcal2',
-'sdcal2old', 'sdcalold', 'sdcoadd', 'sdfit', 'sdfitold', 'sdflag',
-'sdflag2old', 'sdflagmanager', 'sdflagold', 'sdgrid', 'sdgridold', 'sdimaging',
-'sdimagingold', 'sdimprocess', 'sdlist', 'sdmath', 'sdmathold', 'sdplot',
-'sdplotold', 'sdreduce', 'sdreduceold', 'sdsave', 'sdsaveold', 'sdscale',
-'sdsmoothold', 'sdstat', 'sdstatold', 'sdtpimaging', 'setjy', 'simalma',
-'simanalyze', 'simobserve', 'slsearch', 'smoothcal', 'specfit', 'splattotable',
-'split', 'spxfit', 'startup', 'statwt', 'taskhelp', 'tasklist', 'tclean',
-'testconcat', 'toolhelp', 'uvcontsub', 'uvcontsub3', 'uvmodelfit', 'uvsub',
-'viewer', 'virtualconcat', 'vishead', 'visstat', 'widebandpbcor', 'widefield',
-'wvrgcal']
+'rmtables', 'sdbaseline', 'sdcal', 'sdfit', 'sdfixscan', 'sdgaincal', 
+'sdimaging', 'sdsmooth', 'setjy', 'simalma', 'simanalyze', 'simobserve', 
+'slsearch', 'smoothcal', 'specfit', 'splattotable', 'split', 'spxfit', 
+'startup', 'statwt', 'taskhelp', 'tasklist', 'tclean', 'testconcat', 'toolhelp', 
+'uvcontsub', 'uvcontsub3', 'uvmodelfit', 'uvsub', 'viewer', 'virtualconcat', 
+'vishead', 'visstat', 'widebandpbcor', 'widefield', 'wvrgcal']
 
 
 # define formatting junk that needs to be filtered
@@ -557,9 +553,17 @@ def main( URL, options ):
     outFile = ''
     if ( URL[:4].upper() == 'HTTP' ):
         print "Acquiring " + URL
-        req = urllib2.Request(URL)
-        response = urllib2.urlopen(req)
-        responseLines = response.read().split("\n")
+        if os.uname()[0] == 'Darwin': #http://stackoverflow.com/questions/27835619/ssl-certificate-verify-failed-error
+            import ssl
+            req = urllib2.Request(URL)
+            gcontext = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+            response = urllib2.urlopen(req,context=gcontext)
+            responseLines = response.read().split("\n")
+    
+        else:
+            req = urllib2.Request(URL)
+            response = urllib2.urlopen(req)
+            responseLines = response.read().split("\n")
         # Clean up the output file name
         outFile = URL.split('/')[-1]
         if not pyInput: outFile += '.py'
@@ -590,7 +594,7 @@ def main( URL, options ):
             if (readingCode == False):
 		# This needs to written in better python syntax. This is temp
 
-		if (beginBlock in line) or (beginBlock1 in line) or (beginBlock2 in line) or (beginBlock3 in line) or (beginBlock4 in line): # TODO: Convert to More Pythonic Syntax 
+		if (beginBlock in line) or (beginBlock1 in line) or (beginBlock2 in line) or (beginBlock3 in line) or (beginBlock4 in line)or (beginBlock5 in line): # TODO: Convert to More Pythonic Syntax 
 			readingCode = True
 		        outline = loseTheJunk(line)
 		        lineList += [outline]
