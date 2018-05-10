@@ -51,7 +51,6 @@ beginBlock1 = "class=\"n\""
 beginBlock2 = "class=\"k\""
 beginBlock3 = "class=\"s1\""
 beginBlock4 = "class=\"s2\""
-beginBlock5 = "class=\"nn\""
 
 endBlock = "</span>"
 
@@ -199,8 +198,8 @@ def make_func_noninteractive(line):
         # Set argument interactive to false
         pattern = r'''interactive\ *=\ *(True)'''
         new_line = re.sub( pattern, 'interactive = False', line )
-	# Leave the mask parameter for testing        
-	#if funcName == "clean":
+        # Leave the mask parameter for testing          
+        #if funcName == "clean":
         #    # Remove clean mask parameter if it exists
         #    pattern = r'''mask\ *=\ *['"].*['"].*?,?'''
         #    new_line = re.sub( pattern, '', new_line )
@@ -246,10 +245,10 @@ def suppress_gui( line ):
 
         if extract_task(line) == "flagdata":
             pattern = r"""display\ *=\ *['"].*['"]"""
-	    if re.search( pattern, line ):
+            if re.search( pattern, line ):
             # if showgui is specified, make sure it is false
-            	new_line = re.sub( pattern, "display=''", line )
-            	return new_line
+                new_line = re.sub( pattern, "display=''", line )
+                return new_line
 
         # Suppress GUIs for other tasks here...
     return line
@@ -394,7 +393,7 @@ def pythonize_shell_commands( line ):
     if firstWord in commands:
         line = 'os.system("' + line + '")'
     if 'wget' in line:
-	line = '\n'
+        line = '\n'
     return line
 
 def make_system_call_noninteractive( line ):
@@ -428,9 +427,9 @@ def include_raw_input( task,line ):
     * line = a python statement
     """
     if is_task_call(line):
-    	if extract_task(line) == task:
-        	line = ''*indentation(line) + line + '\n' 
-		line += ' '*indentation(line) + 'user_check=raw_input("press enter to continue script")\n'
+        if extract_task(line) == task:
+            line = ''*indentation(line) + line + '\n' 
+        line += ' '*indentation(line) + 'user_check=raw_input("press enter to continue script")\n'
     return line
 
 def exclude_raw_input( line ):
@@ -440,7 +439,7 @@ def exclude_raw_input( line ):
     """
     pattern = r'''raw_input\ *\('''
     if re.search( pattern, line ):
-	#newline = ' ' * indentation(line) + 'print("script will continue")\n'
+        #newline = ' ' * indentation(line) + 'print("script will continue")\n'
         newline = ' ' * indentation(line) + '#' + line
         newline += '\n' + ' '*indentation(line) + 'pass\n'
         line = newline
@@ -453,9 +452,9 @@ def correct_casa_builtins_inp( line ):
     """
     pattern = r''' *(inp )'''
     if re.search( pattern, line ):
-    	new_line = re.sub( pattern, 'inp(', line )
-    	new_line = ' ' * indentation(line) + new_line + ')'
-    	line = new_line
+        new_line = re.sub( pattern, 'inp(', line )
+        new_line = ' ' * indentation(line) + new_line + ')'
+        line = new_line
     return line
 
 def correct_casa_builtins_help( line ):  
@@ -465,10 +464,10 @@ def correct_casa_builtins_help( line ):
     """
     pattern = r''' *(help )'''
     if re.search( pattern, line ):
-    	new_line = re.sub( pattern, 'help(', line )
-    	new_line = ' ' * indentation(line) + new_line + ')'
-	new_line = "#" + new_line
-    	line = new_line
+        new_line = re.sub( pattern, 'help(', line )
+        new_line = ' ' * indentation(line) + new_line + ')'
+        new_line = "#" + new_line
+        line = new_line
     return line
 
 def make_noninteractive( line ):
@@ -556,7 +555,7 @@ def main( URL, options ):
         if os.uname()[0] == 'Darwin': #http://stackoverflow.com/questions/27835619/ssl-certificate-verify-failed-error
             import ssl
             req = urllib2.Request(URL)
-            gcontext = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+            gcontext = ssl.SSLContext(ssl.PROTOCOL_TLS) # Fix for python versions > 2.7.13 to match new certificates 
             response = urllib2.urlopen(req,context=gcontext)
             responseLines = response.read().split("\n")
     
@@ -588,21 +587,21 @@ def main( URL, options ):
     else:
         # Loop over the lines read from the web page
         for line in responseLines:
-	    
+
             # If we are not currently reading code, see if this line
             # begins a python code block.
             if (readingCode == False):
-		# This needs to written in better python syntax. This is temp
+                # This needs to written in better python syntax. This is temp
 
-		if (beginBlock in line) or (beginBlock1 in line) or (beginBlock2 in line) or (beginBlock3 in line) or (beginBlock4 in line)or (beginBlock5 in line): # TODO: Convert to More Pythonic Syntax 
-			readingCode = True
-		        outline = loseTheJunk(line)
-		        lineList += [outline]
-		        if endBlock in line:
-		        	readingCode = False
+                if (beginBlock in line) or (beginBlock1 in line) or (beginBlock2 in line) or (beginBlock3 in line) or (beginBlock4 in line): # TODO: Convert to More Pythonic Syntax 
+                        readingCode = True
+                        outline = loseTheJunk(line)
+                        lineList += [outline]
+                        if endBlock in line:
+                                readingCode = False
 
             #else:
-		#continue
+                #continue
                 #outline = loseTheJunk(line)
                 #lineList += [outline]
                 #if endBlock in line:
@@ -681,24 +680,24 @@ def main( URL, options ):
                 #print "Turning off diagnostic plots..."
                 line = turnDiagPlotsOff(line)
             elif options.plotmsoff:
-		#print "Turning off plotms..."
+                #print "Turning off plotms..."
                 line = turnPlotmsOff(line)
-		
+
             elif options.noninteractive:
-		#print "Turning on Non Interactive features..."
-		line = exclude_raw_input(line)
-		# NOTE compressedList iterates through make_noninteractive
+                #print "Turning on Non Interactive features..."
+                line = exclude_raw_input(line)
+                # NOTE compressedList iterates through make_noninteractive
                 if extract_task(line) == 'plotms': 
-                	line = addNonInteractivePause(line)
+                        line = addNonInteractivePause(line)
             else: #interactive
                 #line = exclude_raw_input(line)
                 #mtch = interactive.match(line)
                 #if (mtch and not ("showgui=F" in line)): 
                 #    line = addInteractivePause(line)
-		line = line
-    		line = correct_casa_builtins_inp( line )
-    		line = correct_casa_builtins_help( line )
-	    #print line
+                line = line
+                line = correct_casa_builtins_inp( line )
+                line = correct_casa_builtins_help( line )
+            #print line
             print >>f, line.decode('utf-8')
         f.close()
     
