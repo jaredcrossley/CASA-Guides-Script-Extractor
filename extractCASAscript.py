@@ -51,6 +51,8 @@ beginBlock1 = "class=\"n\""
 beginBlock2 = "class=\"k\""
 beginBlock3 = "class=\"s1\""
 beginBlock4 = "class=\"s2\""
+beginBlock5 = "class=\"kn\""
+
 
 endBlock = "</span>"
 
@@ -593,7 +595,7 @@ def main( URL, options ):
             if (readingCode == False):
                 # This needs to written in better python syntax. This is temp
 
-                if (beginBlock in line) or (beginBlock1 in line) or (beginBlock2 in line) or (beginBlock3 in line) or (beginBlock4 in line): # TODO: Convert to More Pythonic Syntax 
+                if (beginBlock in line) or (beginBlock1 in line) or (beginBlock2 in line) or (beginBlock3 in line) or (beginBlock4 in line) or (beginBlock5 in line): # TODO: Convert to More Pythonic Syntax 
                         readingCode = True
                         outline = loseTheJunk(line)
                         lineList += [outline]
