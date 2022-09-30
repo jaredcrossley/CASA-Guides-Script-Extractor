@@ -28,8 +28,8 @@ The script runs in one of three modes:
 # IMPORTS
 # =====================
 
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import sys
 import codecs
 import re
@@ -505,7 +505,7 @@ def listCASATasks():
     """
     from tasks import allcat
     all_tasks=[]
-    for key in allcat.keys():
+    for key in list(allcat.keys()):
         for taskname in allcat[key]:
             if (taskname[0] == '(') or (taskname[0]=='{'):
                 taskname = taskname[1:-1]
@@ -514,10 +514,10 @@ def listCASATasks():
     all_tasks.sort()
     all_tasks_set = set(all_tasks)
     casa_tasks_set = set(casa_tasks)
-    print "Tasks in casapy but not in this module: " + \
-          str(all_tasks_set.difference(casa_tasks_set))
-    print "Tasks in this module but not in casapy: " + \
-          str(casa_tasks_set.difference(all_tasks_set))
+    print("Tasks in casapy but not in this module: " + \
+          str(all_tasks_set.difference(casa_tasks_set)))
+    print("Tasks in this module but not in casapy: " + \
+          str(casa_tasks_set.difference(all_tasks_set)))
     return all_tasks
 
 def checkModules():
@@ -526,7 +526,7 @@ def checkModules():
     try:
         import casa_call
     except ImportError:
-        print "casa_call.py must exist in the casapy module search path!"
+        print("casa_call.py must exist in the casapy module search path!")
         raise
 
 # =====================
@@ -553,17 +553,17 @@ def main( URL, options ):
     responseLines = []
     outFile = ''
     if ( URL[:4].upper() == 'HTTP' ):
-        print "Acquiring " + URL
+        print("Acquiring " + URL)
         if os.uname()[0] == 'Darwin': #http://stackoverflow.com/questions/27835619/ssl-certificate-verify-failed-error
             import ssl
-            req = urllib2.Request(URL)
+            req = urllib.request.Request(URL)
             gcontext = ssl.SSLContext(ssl.PROTOCOL_TLS) # Fix for python versions > 2.7.13 to match new certificates 
-            response = urllib2.urlopen(req,context=gcontext)
+            response = urllib.request.urlopen(req,context=gcontext)
             responseLines = response.read().split("\n")
     
         else:
-            req = urllib2.Request(URL)
-            response = urllib2.urlopen(req)
+            req = urllib.request.Request(URL)
+            response = urllib.request.urlopen(req)
             responseLines = response.read().split("\n")
         # Clean up the output file name
         outFile = URL.split('/')[-1]
@@ -572,7 +572,7 @@ def main( URL, options ):
         outFile = outFile.replace(":","")
         outFile = outFile.replace("_","") 
     else:
-        print "Copying " + URL + " to CWD."
+        print("Copying " + URL + " to CWD.")
         os.system('cp '+URL+' ./')
         outFile = os.path.basename(URL)
         localFile = open( outFile , 'r' )
@@ -627,8 +627,8 @@ def main( URL, options ):
         compressedList += [line]
         iline += 1
 
-    print str(len(lineList))+" total lines become"
-    print str(len(compressedList))+" compressed lines"
+    print(str(len(lineList))+" total lines become")
+    print(str(len(compressedList))+" compressed lines")
 
     # All modes
     for i,line in enumerate(compressedList):
@@ -643,36 +643,36 @@ def main( URL, options ):
     if options.benchmark:
         task_list = []
         task_nums = []
-        print "Writing file for execution in benchmarking mode."
+        print("Writing file for execution in benchmarking mode.")
         tasknum = 0
         f = codecs.open(outFile, 'w','utf-8')
         checkModules()
         header = benchmark_header( scriptName = outFile )
         for line in header:
-            print >>f, line
+            print(line, file=f)
         for line in compressedList:
             if suppress_for_benchmark(line):
-                print >>f, ' ' * indentation(line) + 'pass #' + \
-                    line.replace('\n','')
+                print(' ' * indentation(line) + 'pass #' + \
+                    line.replace('\n',''), file=f)
             else: 
                 line = suppress_gui(line)
                 if is_task_call(line):                
                     this_task = extract_task(line)
-                    print "I found a task call for ", this_task                
+                    print("I found a task call for ", this_task)                
                     tasknum += 1
                     line = add_benchmarking(line,tasknum)      
                     task_list.append(this_task)
                     task_nums.append(tasknum)
-                print >>f, line.decode('utf-8')
-        print >>f, 'casa_call.summarize_bench( out_file, out_file+".summary" )'
+                print(line.decode('utf-8'), file=f)
+        print('casa_call.summarize_bench( out_file, out_file+".summary" )', file=f)
         f.close()        
 
         # Write task list to expectation file
         exp_file = outFile+'.expected'
-        print "I am writing the expected flow to a file called "+exp_file
+        print("I am writing the expected flow to a file called "+exp_file)
         f = codecs.open(exp_file, 'w','utf-8')
         for i in range(len(task_list)):
-            print >>f, task_list[i], task_nums[i]
+            print(task_list[i], task_nums[i], file=f)
         f.close()
     else:
         # Write script for interactive and noninteractive modes
@@ -700,12 +700,12 @@ def main( URL, options ):
                 line = correct_casa_builtins_inp( line )
                 line = correct_casa_builtins_help( line )
             #print line
-            print >>f, line.decode('utf-8')
+            print(line.decode('utf-8'), file=f)
         f.close()
     
-    print "New file " + outFile + " written to current directory."
-    print "In casapy, run the file using ",
-    print 'execfile("' + outFile + '")'
+    print("New file " + outFile + " written to current directory.")
+    print("In casapy, run the file using ", end=' ')
+    print('execfile("' + outFile + '")')
     
 if __name__ == "__main__":
     usage = \
