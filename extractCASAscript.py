@@ -564,7 +564,7 @@ def main( URL, options ):
         else:
             req = urllib.request.Request(URL)
             response = urllib.request.urlopen(req)
-            responseLines = response.read().split("\n")
+            responseLines = response.read().decode('utf-8').split("\n")
         # Clean up the output file name
         outFile = URL.split('/')[-1]
         if not pyInput: outFile += '.py'
@@ -623,7 +623,7 @@ def main( URL, options ):
             iline += 1
             line += lineList[iline]
             pcount = countParen(line)
-        line = string.expandtabs(line)
+        line = line.expandtabs()
         compressedList += [line]
         iline += 1
 
@@ -700,7 +700,7 @@ def main( URL, options ):
                 line = correct_casa_builtins_inp( line )
                 line = correct_casa_builtins_help( line )
             #print line
-            print(line.decode('utf-8'), file=f)
+            print(line, file=f)
         f.close()
     
     print("New file " + outFile + " written to current directory.")
